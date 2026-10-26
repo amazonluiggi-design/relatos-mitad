@@ -1,6 +1,7 @@
 // Relatos Autopilot: panel privado + publicador y estadísticas en la nube (Cloudflare).
 // Cron cada 5 min: publica en TikTok lo que venció y revisa estados. Cada hora (minuto 0-4): estadísticas de las 3 redes.
 import { login, salir, sesionValida } from "./auth";
+import { entrarDesdePortal, leerPase } from "./portal";
 import { publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube } from "./redes";
 import { type Env, type Pub, evento } from "./tipos";
 
@@ -101,10 +102,34 @@ async function medio(env: Env, req: Request, clave: string) {
   return new Response(obj.body, { headers: h });
 }
 
+/** Cifras compactas para la tarjeta de Relatos en el portal de empresas. */
+async function resumenPortal(env: Env) {
+  const cuenta = async (red: string) => (await env.DB.prepare("SELECT seguidores FROM cuentas_hist WHERE red = ? ORDER BY momento DESC LIMIT 1").bind(red).first<number>("seguidores")) ?? 0;
+  const vistas = await env.DB.prepare(`SELECT COALESCE(SUM(m.vistas), 0) v FROM metricas m
+      JOIN (SELECT pub_id, MAX(momento) mx FROM metricas GROUP BY pub_id) u ON u.pub_id = m.pub_id AND u.mx = m.momento`).first<number>("v");
+  const pubs = await env.DB.prepare(`SELECT SUM(estado IN ('publicado','privado')) publicados, SUM(estado IN ('pendiente','programado','enviado')) agenda,
+      SUM(estado = 'fallido') fallidos FROM publicaciones`).first<{ publicados: number; agenda: number; fallidos: number }>();
+  const proxima = await env.DB.prepare("SELECT p.cuando, v.titulo FROM publicaciones p JOIN videos v ON v.id = p.video_id WHERE p.estado IN ('pendiente','programado') ORDER BY p.cuando LIMIT 1").first<{ cuando: string; titulo: string }>();
+  const errores24h = await env.DB.prepare("SELECT COUNT(*) n FROM eventos WHERE nivel = 'error' AND cuando >= datetime('now', '-1 day')").first<number>("n");
+  return {
+    seguidores: { facebook: await cuenta("facebook"), youtube: await cuenta("youtube"), tiktok: await cuenta("tiktok") },
+    vistas: vistas ?? 0, publicados: pubs?.publicados ?? 0, enAgenda: pubs?.agenda ?? 0, fallidos: pubs?.fallidos ?? 0,
+    proxima: proxima ?? null, errores24h: errores24h ?? 0,
+    pausa: (await env.DB.prepare("SELECT valor FROM config WHERE clave = 'pausa'").first<string>("valor")) === "1",
+  };
+}
+
 async function api(env: Env, req: Request, url: URL) {
   const ruta = url.pathname.slice(4);
   if (ruta === "/login" && req.method === "POST") return login(env, req);
   if (ruta === "/salir" && req.method === "POST") return salir();
+  // Portal de empresas: entrada con pase (sin contraseña) y cifras para su tablero.
+  if (ruta === "/portal" && req.method === "POST") return entrarDesdePortal(env, req);
+  if (ruta === "/portal/resumen" && req.method === "GET") {
+    const pase = /^Portal (.+)$/.exec(req.headers.get("authorization") || "")?.[1];
+    if (!pase || !(await leerPase(env, pase, "relatos-stats"))) return Response.json({ error: "pase" }, { status: 401 });
+    return Response.json(await resumenPortal(env));
+  }
   const deScript = req.headers.get("x-clave") === env.CLAVE;
   if (!deScript && !(await sesionValida(env, req))) return Response.json({ error: "sin sesión" }, { status: 401 });
   // Protección CSRF: las escrituras desde el navegador deben venir del mismo origen.

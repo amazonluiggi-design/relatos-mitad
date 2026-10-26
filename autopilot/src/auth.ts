@@ -43,6 +43,10 @@ export async function login(env: Env, req: Request) {
     await env.KV.put(llave, String(fallos + 1), { expirationTtl: 900 });
     return Response.json({ error: "Contraseña incorrecta" }, { status: 401 });
   }
+  return crearSesion(env);
+}
+
+export async function crearSesion(env: Env) {
   const vence = String(Date.now() + 30 * 86400000);
   const cookie = `sesion=${encodeURIComponent(`${vence}.${await firmar(env, vence)}`)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${30 * 86400}`;
   return Response.json({ ok: true }, { headers: { "Set-Cookie": cookie } });

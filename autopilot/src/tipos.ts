@@ -10,6 +10,7 @@ export interface Env {
   FB_TOKEN: string;
   YT_CLIENTE: string;
   YT_SECRETO: string;
+  PORTAL_CORREO: string;  // único correo que puede entrar desde el portal de empresas
 }
 
 export type Pub = {

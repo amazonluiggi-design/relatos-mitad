@@ -123,7 +123,7 @@ const VISTAS = {
     const c = datos.resumen.cuentas[red], r = REDES[red];
     const lista = datos.pubs.filter((p) => p.red === red);
     const avisos = {
-      facebook: c.vistas == null ? `<div class="aviso-caja">Las vistas de Facebook aparecerán cuando la app de Meta tenga el permiso <b>read_insights</b>. Mientras, el panel sigue el estado de cada publicación.</div>` : "",
+      facebook: !lista.some((p) => p.estado === "publicado") ? `<div class="aviso-caja">Aún no hay videos publicados en Facebook. Las vistas, reacciones y comentarios aparecen aquí una hora después de cada publicación.</div>` : "",
       tiktok: lista.some((p) => p.estado === "privado") ? `<div class="aviso-caja">TikTok aún revisa la app: mientras tanto publica en <b>privado</b> y esos videos no suman vistas públicas.</div>` : "",
       youtube: lista.some((p) => p.estado === "privado") ? `<div class="aviso-caja">YouTube deja en privado los videos de apps sin auditoría de Google. Ya está pedida; mientras, se pueden pasar a públicos desde YouTube Studio.</div>` : "",
     };
@@ -240,4 +240,12 @@ async function iniciar() {
   try { await cargar(); pintar(); } catch {}
 }
 setInterval(() => { if (!$("#app").hidden && !document.hidden) cargar().then(pintar).catch(() => {}); }, 120000);
-iniciar();
+// Entrada desde el portal de empresas: el pase llega en #sso= y se canjea por una sesión (un solo uso).
+(async () => {
+  const pase = /^#sso=(.+)$/.exec(location.hash)?.[1];
+  if (pase) {
+    history.replaceState(null, "", location.pathname);
+    await fetch("/api/portal", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pase: decodeURIComponent(pase) }) }).catch(() => {});
+  }
+  iniciar();
+})();
