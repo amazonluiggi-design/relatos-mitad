@@ -75,13 +75,23 @@ export async function revisarTikTok(env: Env, p: Pub) {
   }
 }
 
-export async function cuentaTikTok(env: Env) {
+export async function sincronizarTikTok(env: Env, pubs: Pub[]) {
   const tok = await tokenTikTok(env);
   const r = (await (await fetch(`${TT}/user/info/?fields=follower_count,video_count,likes_count`, { headers: { Authorization: `Bearer ${tok}` } })).json()) as
     { data?: { user?: { follower_count?: number; video_count?: number } }; error?: { code: string } };
   const u = r.data?.user;
   if (u?.follower_count !== undefined) await guardarCuenta(env, "tiktok", u.follower_count, null, u.video_count ?? null);
-  return r.error?.code === "ok" ? "ok" : r.error?.code;
+  // Vistas por video (permiso video.list). Se cruzan por el id del post guardado en la URL.
+  const conId = pubs.map((p) => ({ p, id: /\/video\/(\d+)/.exec(p.url || "")?.[1] })).filter((x) => x.id);
+  if (!conId.length) return;
+  const l = (await (await fetch(`${TT}/video/query/?fields=id,view_count,like_count,comment_count,share_count`, {
+    method: "POST", headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ filters: { video_ids: conId.slice(0, 20).map((x) => x.id) } }),
+  })).json()) as { data?: { videos?: { id: string; view_count: number; like_count: number; comment_count: number; share_count: number }[] } };
+  for (const v of l.data?.videos || []) {
+    const p = conId.find((x) => x.id === v.id)?.p;
+    if (p) await guardarMetrica(env, p.id, { vistas: v.view_count, me_gusta: v.like_count, comentarios: v.comment_count, compartidos: v.share_count });
+  }
 }
 
 /* ───────────── YouTube ───────────── */

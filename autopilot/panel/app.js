@@ -122,7 +122,7 @@ const VISTAS = {
     const lista = datos.pubs.filter((p) => p.red === red);
     const avisos = {
       facebook: c.vistas == null ? `<div class="aviso-caja">Las vistas de Facebook aparecerán cuando la app de Meta tenga el permiso <b>read_insights</b>. Mientras, el panel sigue el estado de cada publicación.</div>` : "",
-      tiktok: `<div class="aviso-caja">TikTok aún revisa la app: mientras tanto puede publicar en <b>privado</b>. Las vistas por video llegan cuando aprueben el permiso <b>video.list</b>.</div>`,
+      tiktok: lista.some((p) => p.estado === "privado") ? `<div class="aviso-caja">TikTok aún revisa la app: mientras tanto publica en <b>privado</b> y esos videos no suman vistas públicas.</div>` : "",
       youtube: lista.some((p) => p.estado === "privado") ? `<div class="aviso-caja">YouTube deja en privado los videos de apps sin auditoría de Google. Ya está pedida; mientras, se pueden pasar a públicos desde YouTube Studio.</div>` : "",
     };
     const filas = lista.map((p) => `<tr><td><b>${esc(p.titulo)}</b><br><span class="nd">${p.tipo === "largo" ? "Video largo" : "Reel"}</span></td>

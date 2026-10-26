@@ -1,7 +1,7 @@
 // Relatos Autopilot: panel privado + publicador y estadísticas en la nube (Cloudflare).
 // Cron cada 5 min: publica en TikTok lo que venció y revisa estados. Cada hora (minuto 0-4): estadísticas de las 3 redes.
 import { login, salir, sesionValida } from "./auth";
-import { cuentaTikTok, publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarYouTube } from "./redes";
+import { publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube } from "./redes";
 import { type Env, type Pub, evento } from "./tipos";
 
 async function pubs(env: Env, where = "1=1", ...args: unknown[]) {
@@ -39,7 +39,7 @@ async function sincronizar(env: Env) {
   const tareas: [string, () => Promise<unknown>][] = [
     ["youtube", () => sincronizarYouTube(env, todas.filter((p) => p.red === "youtube"))],
     ["facebook", () => sincronizarFacebook(env, todas.filter((p) => p.red === "facebook"))],
-    ["tiktok", () => cuentaTikTok(env)],
+    ["tiktok", () => sincronizarTikTok(env, todas.filter((p) => p.red === "tiktok"))],
   ];
   for (const [red, f] of tareas) {
     try { await f(); } catch (e) { await evento(env, `No se pudieron leer las estadísticas: ${String(e).slice(0, 200)}`, "error", red); }

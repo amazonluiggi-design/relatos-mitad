@@ -11,7 +11,7 @@ const WEB = "https://relatos-web.probador-worker.workers.dev";
 const redirect = WEB + "/tiktok/regreso";
 const state = crypto.randomBytes(8).toString("hex");
 await fetch(WEB + "/tiktok/codigo", { headers: { "x-clave": CLAVE } }); // limpia un código viejo
-const url = `https://www.tiktok.com/v2/auth/authorize/?client_key=${v.CLIENT_KEY}&scope=user.info.basic,video.upload,video.publish&response_type=code&redirect_uri=${encodeURIComponent(redirect)}&state=${state}`;
+const url = `https://www.tiktok.com/v2/auth/authorize/?client_key=${v.CLIENT_KEY}&scope=user.info.basic,user.info.stats,video.list,video.upload,video.publish&response_type=code&redirect_uri=${encodeURIComponent(redirect)}&state=${state}`;
 spawn("C:/Program Files/Google/Chrome/Application/chrome.exe", [url], { detached: true, stdio: "ignore" }).unref();
 console.log("Esperando el permiso en Chrome...");
 let code;
