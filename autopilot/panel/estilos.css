@@ -144,3 +144,12 @@ dialog video { display: block; max-width: 100%; max-height: 90dvh; }
   .barra h2 { font-size: 22px; }
   main { padding: 18px 16px 90px; }
 }
+
+/* Historias */
+.historia h4 { margin: 2px 0 0; font: 700 19px Cinzel, serif; letter-spacing: .3px; }
+.historia-cab { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.historia-cab .nd { display: inline-block; }
+.historia-nota { color: var(--tenue); font-size: 14px; margin: 10px 0 14px; }
+.pasos { display: flex; gap: 4px; flex-wrap: wrap; }
+.pasos span { flex: 1; min-width: 70px; text-align: center; font-size: 11px; padding: 6px 4px; border-radius: 8px; background: var(--panel2); color: var(--tenue); }
+.pasos span.hecho { background: rgba(242,163,58,.18); color: var(--ambar2); font-weight: 600; }

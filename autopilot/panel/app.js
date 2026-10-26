@@ -6,7 +6,7 @@ const fecha = (iso, op) => new Date(iso).toLocaleString("es-EC", { timeZone: ZON
 const num = (n) => (n === null || n === undefined ? null : Number(n).toLocaleString("es-EC"));
 const REDES = { facebook: { nombre: "Facebook", c: "var(--fb)", i: "f" }, youtube: { nombre: "YouTube", c: "var(--yt)", i: "▶" }, tiktok: { nombre: "TikTok", c: "var(--tt)", i: "♪" } };
 const ESTADO = { pendiente: "En agenda", programado: "Programado", enviado: "Enviando", publicado: "Publicado", privado: "Privado", fallido: "Falló" };
-const TITULOS = { resumen: "Resumen", agenda: "Agenda", videos: "Videos", facebook: "Facebook", youtube: "YouTube", tiktok: "TikTok", actividad: "Actividad" };
+const TITULOS = { resumen: "Resumen", historias: "Historias", agenda: "Agenda", videos: "Videos", facebook: "Facebook", youtube: "YouTube", tiktok: "TikTok", actividad: "Actividad" };
 
 async function api(ruta, op = {}) {
   const r = await fetch("/api" + ruta, { ...op, headers: { "Content-Type": "application/json", ...(op.headers || {}) } });
@@ -28,10 +28,10 @@ $("#form-login").addEventListener("submit", async (e) => {
 $("#salir").addEventListener("click", async () => { await fetch("/api/salir", { method: "POST" }); mostrarLogin(); });
 
 /* ───── Datos ───── */
-let datos = { resumen: null, pubs: [], serie: [] };
+let datos = { resumen: null, pubs: [], serie: [], historias: [] };
 async function cargar() {
-  const [resumen, pubs, serie] = await Promise.all([api("/resumen"), api("/publicaciones"), api("/serie")]);
-  datos = { resumen, pubs, serie };
+  const [resumen, pubs, serie, historias] = await Promise.all([api("/resumen"), api("/publicaciones"), api("/serie"), api("/historias")]);
+  datos = { resumen, pubs, serie, historias };
   $("#pausa").checked = resumen.pausa;
   $("#pausa-txt").textContent = resumen.pausa ? "Automático en PAUSA" : "Automático activo";
   $("#sync").textContent = resumen.ultima_sync ? `Estadísticas actualizadas ${fecha(resumen.ultima_sync, { dateStyle: "short", timeStyle: "short" })}` : "Las estadísticas se actualizan cada hora";
@@ -94,12 +94,14 @@ const VISTAS = {
   resumen() {
     const { resumen, pubs, serie } = datos;
     const ahora = new Date().toISOString();
+    const sig = [...datos.historias].filter((h) => h.estado !== "publicado").sort((a, b) => (a.semana || "").localeCompare(b.semana || ""))[0];
     const proximas = porVideo(pubs.filter((p) => p.cuando >= ahora.slice(0, 10) && !["publicado", "privado"].includes(p.estado))).slice(0, 6);
     return `<div class="rejilla r3">${Object.keys(REDES).map((r) => tarjetaRed(r, resumen.cuentas[r])).join("")}</div>
       <div class="rejilla r2 seccion">
         <div class="tarjeta"><h3>Lo que viene</h3><div class="lista">${proximas.map(itemAgenda).join("") || `<div class="vacio">No hay publicaciones en agenda.</div>`}</div></div>
         <div class="tarjeta"><h3>Actividad reciente</h3>${eventosHtml(resumen.eventos.slice(0, 10))}</div>
       </div>
+      ${sig ? `<a class="tarjeta seccion historia red-tarjeta" href="#historias" style="--c:var(--ambar)"><span class="nd">Próxima historia · sale el ${esc(fecha(sig.semana + "T19:00:00-05:00", { weekday: "long", day: "numeric", month: "long" }))}</span><h4>${esc(sig.titulo)}</h4></a>` : ""}
       <div class="tarjeta seccion grafico"><h3>Vistas por día</h3>${grafico(serie)}</div>`;
   },
   agenda() {
@@ -135,6 +137,20 @@ const VISTAS = {
       <div class="tarjeta seccion"><h3>Publicaciones en ${r.nombre}</h3><div class="tabla-env"><table>
         <thead><tr><th>Video</th><th>Fecha</th><th>Estado</th><th>Vistas</th><th>Me gusta</th><th>Coment.</th><th></th></tr></thead>
         <tbody>${filas || `<tr><td colspan="7" class="vacio">Sin publicaciones.</td></tr>`}</tbody></table></div></div>`;
+  },
+  historias() {
+    const pasos = ["idea", "guion", "voz", "imagenes", "render", "listo", "publicado"];
+    const nombres = { idea: "Idea", guion: "Guion", voz: "Voz", imagenes: "Imágenes", render: "Render", listo: "Programada", publicado: "Publicada" };
+    const lista = [...datos.historias].sort((a, b) => (a.semana || "").localeCompare(b.semana || ""));
+    return `<div class="lista">${lista.map((h) => {
+      const n = pasos.indexOf(h.estado);
+      return `<div class="tarjeta historia">
+        <div class="historia-cab"><div><span class="nd">Sale el ${esc(fecha(h.semana + "T19:00:00-05:00", { weekday: "long", day: "numeric", month: "long" }))}</span>
+          <h4>${esc(h.titulo)}</h4></div><span class="chip ${h.estado === "publicado" ? "publicado" : n >= 5 ? "enviado" : ""}">${esc(nombres[h.estado] || h.estado)}</span></div>
+        ${h.notas ? `<p class="historia-nota">${esc(h.notas)}</p>` : ""}
+        <div class="pasos">${pasos.map((p, i) => `<span class="${i <= n ? "hecho" : ""}">${nombres[p]}</span>`).join("")}</div>
+      </div>`;
+    }).join("") || `<div class="vacio">Sin historias planificadas.</div>`}</div>`;
   },
   actividad() { return `<div class="tarjeta"><h3>Todo lo que hizo el sistema</h3>${eventosHtml(datos.resumen.eventos)}</div>`; },
 };
