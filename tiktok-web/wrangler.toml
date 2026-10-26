@@ -1,0 +1,7 @@
+name = "relatos-web"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "b873da7948444000a7276dfebdca3798"

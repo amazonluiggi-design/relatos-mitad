@@ -1,0 +1,15 @@
+name = "relatos-autopilot"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+# Cada 5 minutos revisa la agenda y publica lo que toque (funciona con el PC apagado).
+[triggers]
+crons = ["*/5 * * * *"]
+
+[[kv_namespaces]]
+binding = "KV"
+id = "99bae21dfbdc455c93c18b9374c10240"
+
+[[r2_buckets]]
+binding = "VIDEOS"
+bucket_name = "relatos-videos"

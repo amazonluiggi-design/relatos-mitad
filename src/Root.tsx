@@ -1,0 +1,35 @@
+import { Composition, Folder } from "remotion";
+import { Perfil, PortadaFacebook, PortadaYouTube } from "./marca";
+import { Plan, Reel, Relato } from "./Relato";
+import { Miniatura } from "./Miniatura";
+import cantuna from "./datos/cantuna-plan.json";
+
+// Mientras falten imágenes, se usa la portada como relleno para revisar el montaje.
+const relleno = (p: Plan): Plan => {
+  const f = (e: Plan["escenas"][number]) => ({ ...e, h: e.h ?? "marca/banner-fondo.jpg" });
+  return { ...p, escenas: p.escenas.map(f), reels: p.reels.map((r) => ({ ...r, escenas: r.escenas.map(f) })) };
+};
+const HISTORIAS: Record<string, Plan> = { cantuna: relleno(cantuna as Plan) };
+const MINIATURAS: Record<string, React.ComponentProps<typeof Miniatura>> = {
+  cantuna: { cara: "cantuna/h/c3.jpg", fondo: "cantuna/h/x4.jpg", linea1: "LE GANÓ", linea2: "AL DIABLO", dato: "QUITO · SIGLO XVI" },
+};
+const MUSICA = "musica/fondo.mp3";
+
+export const Root: React.FC = () => (
+  <>
+    <Folder name="Marca">
+      <Composition id="Perfil" component={Perfil} width={1080} height={1080} fps={30} durationInFrames={1} />
+      <Composition id="PortadaYouTube" component={PortadaYouTube} width={2560} height={1440} fps={30} durationInFrames={1} />
+      <Composition id="PortadaFacebook" component={PortadaFacebook} width={1640} height={624} fps={30} durationInFrames={1} />
+    </Folder>
+    {Object.entries(HISTORIAS).map(([id, plan]) => (
+      <Folder key={id} name={id}>
+        <Composition id={`${id}-miniatura`} component={Miniatura} width={1280} height={720} fps={30} durationInFrames={1} defaultProps={MINIATURAS[id]} />
+        <Composition id={`${id}-largo`} component={Relato} width={1920} height={1080} fps={30} durationInFrames={plan.total} defaultProps={{ plan, musica: MUSICA }} />
+        {plan.reels.map((r) => (
+          <Composition key={r.id} id={`${id}-${r.id}`} component={Reel} width={1080} height={1920} fps={30} durationInFrames={r.total} defaultProps={{ reel: r, musica: "musica/reel.mp3" }} />
+        ))}
+      </Folder>
+    ))}
+  </>
+);
