@@ -13,5 +13,5 @@
     "noUnusedLocals": true,
     "resolveJsonModule": true
   },
-  "exclude": ["remotion.config.ts", "generador"]
+  "exclude": ["remotion.config.ts", "generador", "autopilot", "tiktok-web"]
 }

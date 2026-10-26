@@ -112,6 +112,22 @@ async function api(env: Env, req: Request, url: URL) {
   if (ruta === "/serie") return Response.json(await serie(env));
   if (ruta === "/historias") return Response.json((await env.DB.prepare("SELECT h.*, (SELECT COUNT(*) FROM videos WHERE historia_id = h.id) videos FROM historias h ORDER BY creada DESC").all()).results);
   if (ruta.startsWith("/medio/")) return medio(env, req, decodeURIComponent(ruta.slice(7)));
+  if (ruta === "/animaciones") return Response.json((await env.DB.prepare(`SELECT a.*, h.titulo, h.semana FROM animaciones a JOIN historias h ON h.id = a.historia_id
+      WHERE h.estado != 'publicado' ORDER BY h.semana, a.orden`).all()).results);
+  const sub = /^\/animaciones\/([a-z0-9-]+:[a-z0-9]+)\/clip$/.exec(ruta);
+  if (sub && req.method === "POST") {
+    const a = await env.DB.prepare("SELECT * FROM animaciones WHERE id = ?").bind(sub[1]).first<{ historia_id: string; escena: string }>();
+    if (!a) return Response.json({ error: "no existe" }, { status: 404 });
+    const tipo = req.headers.get("content-type") || "";
+    const largo = +(req.headers.get("content-length") || 0);
+    if (!/^video\/(mp4|quicktime|webm)$/.test(tipo)) return Response.json({ error: "Sube un video MP4" }, { status: 400 });
+    if (!largo || largo > 95 * 1024 * 1024) return Response.json({ error: "El video debe pesar menos de 95 MB" }, { status: 400 });
+    const clave = `animaciones/${a.historia_id}/${a.escena}.${tipo.endsWith("webm") ? "webm" : tipo.endsWith("quicktime") ? "mov" : "mp4"}`;
+    await env.VIDEOS.put(clave, req.body, { httpMetadata: { contentType: tipo } });
+    await env.DB.prepare("UPDATE animaciones SET clip = ?, subido = datetime('now') WHERE id = ?").bind(clave, sub[1]).run();
+    await evento(env, `Clip animado recibido: ${a.historia_id} · escena ${a.escena}`);
+    return Response.json({ ok: true });
+  }
   if (ruta === "/pausa" && req.method === "POST") {
     const { valor } = (await req.json()) as { valor: boolean };
     await env.DB.prepare("UPDATE config SET valor = ? WHERE clave = 'pausa'").bind(valor ? "1" : "0").run();

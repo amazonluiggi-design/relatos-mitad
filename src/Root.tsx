@@ -3,14 +3,16 @@ import { Perfil, PortadaFacebook, PortadaYouTube } from "./marca";
 import { Plan, Reel, Relato } from "./Relato";
 import { Miniatura } from "./Miniatura";
 import cantuna from "./datos/cantuna-plan.json";
+import llanganates from "./datos/llanganates-plan.json";
 
 // Mientras falten imágenes, se usa la portada como relleno para revisar el montaje.
 const relleno = (p: Plan): Plan => {
   const f = (e: Plan["escenas"][number]) => ({ ...e, h: e.h ?? "marca/banner-fondo.jpg" });
   return { ...p, escenas: p.escenas.map(f), reels: p.reels.map((r) => ({ ...r, escenas: r.escenas.map(f) })) };
 };
-const HISTORIAS: Record<string, Plan> = { cantuna: relleno(cantuna as Plan) };
+const HISTORIAS: Record<string, Plan> = { cantuna: relleno(cantuna as Plan), llanganates: relleno(llanganates as Plan) };
 const MINIATURAS: Record<string, React.ComponentProps<typeof Miniatura>> = {
+  llanganates: { cara: "llanganates/h/v3.jpg", fondo: "llanganates/h/i4.jpg", linea1: "EL ORO", linea2: "MALDITO", dato: "LLANGANATES · ECUADOR" },
   cantuna: { cara: "cantuna/h/c3.jpg", fondo: "cantuna/h/x4.jpg", linea1: "LE GANÓ", linea2: "AL DIABLO", dato: "QUITO · SIGLO XVI" },
 };
 const MUSICA = "musica/fondo.mp3";

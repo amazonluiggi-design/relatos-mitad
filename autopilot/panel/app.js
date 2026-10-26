@@ -6,7 +6,7 @@ const fecha = (iso, op) => new Date(iso).toLocaleString("es-EC", { timeZone: ZON
 const num = (n) => (n === null || n === undefined ? null : Number(n).toLocaleString("es-EC"));
 const REDES = { facebook: { nombre: "Facebook", c: "var(--fb)", i: "f" }, youtube: { nombre: "YouTube", c: "var(--yt)", i: "▶" }, tiktok: { nombre: "TikTok", c: "var(--tt)", i: "♪" } };
 const ESTADO = { pendiente: "En agenda", programado: "Programado", enviado: "Enviando", publicado: "Publicado", privado: "Privado", fallido: "Falló" };
-const TITULOS = { resumen: "Resumen", historias: "Historias", agenda: "Agenda", videos: "Videos", facebook: "Facebook", youtube: "YouTube", tiktok: "TikTok", actividad: "Actividad" };
+const TITULOS = { resumen: "Resumen", historias: "Historias", animar: "Animar", agenda: "Agenda", videos: "Videos", facebook: "Facebook", youtube: "YouTube", tiktok: "TikTok", actividad: "Actividad" };
 
 async function api(ruta, op = {}) {
   const r = await fetch("/api" + ruta, { ...op, headers: { "Content-Type": "application/json", ...(op.headers || {}) } });
@@ -28,10 +28,10 @@ $("#form-login").addEventListener("submit", async (e) => {
 $("#salir").addEventListener("click", async () => { await fetch("/api/salir", { method: "POST" }); mostrarLogin(); });
 
 /* ───── Datos ───── */
-let datos = { resumen: null, pubs: [], serie: [], historias: [] };
+let datos = { resumen: null, pubs: [], serie: [], historias: [], animaciones: [] };
 async function cargar() {
-  const [resumen, pubs, serie, historias] = await Promise.all([api("/resumen"), api("/publicaciones"), api("/serie"), api("/historias")]);
-  datos = { resumen, pubs, serie, historias };
+  const [resumen, pubs, serie, historias, animaciones] = await Promise.all([api("/resumen"), api("/publicaciones"), api("/serie"), api("/historias"), api("/animaciones")]);
+  datos = { resumen, pubs, serie, historias, animaciones };
   $("#pausa").checked = resumen.pausa;
   $("#pausa-txt").textContent = resumen.pausa ? "Automático en PAUSA" : "Automático activo";
   $("#sync").textContent = resumen.ultima_sync ? `Estadísticas actualizadas ${fecha(resumen.ultima_sync, { dateStyle: "short", timeStyle: "short" })}` : "Las estadísticas se actualizan cada hora";
@@ -138,6 +138,28 @@ const VISTAS = {
         <thead><tr><th>Video</th><th>Fecha</th><th>Estado</th><th>Vistas</th><th>Me gusta</th><th>Coment.</th><th></th></tr></thead>
         <tbody>${filas || `<tr><td colspan="7" class="vacio">Sin publicaciones.</td></tr>`}</tbody></table></div></div>`;
   },
+  animar() {
+    const lista = datos.animaciones;
+    if (!lista.length) return `<div class="tarjeta vacio">No hay escenas para animar esta semana.</div>`;
+    const hechas = lista.filter((x) => x.clip).length;
+    const guia = `<div class="tarjeta guia"><h3>Cómo animar en Flow <span class="chip ${hechas === lista.length ? "publicado" : ""}">${hechas} de ${lista.length} listas</span></h3>
+      <ol><li>Abre <a href="https://labs.google/fx/tools/flow" target="_blank" rel="noopener">Flow ↗</a> con tu cuenta de Gemini Pro y elige <b>Fotogramas a video</b> (Frames to Video), formato <b>horizontal 16:9</b>.</li>
+      <li>Descarga la imagen de la escena y súbela como primer fotograma.</li>
+      <li>Pulsa <b>Copiar instrucción</b> y pégala en Flow. Genera el video.</li>
+      <li>Descarga el video y súbelo aquí con <b>Subir clip</b>. Yo me encargo del resto.</li></ol></div>`;
+    return guia + `<div class="animar">${lista.map((x, i) => `<div class="tarjeta anim ${x.clip ? "lista" : ""}">
+        <div class="anim-img" style="background-image:url('/api/medio/${encodeURIComponent(x.imagen)}')"><em>Escena ${i + 1}</em>${x.clip ? "<span>✓ Animada</span>" : ""}</div>
+        <div class="anim-txt"><span class="nd">${esc(x.titulo)}</span><p>${esc(x.descripcion)}</p>
+          <div class="instruccion">${esc(x.instruccion)}</div>
+          <div class="anim-botones">
+            <a class="boton-sec" href="/api/medio/${encodeURIComponent(x.imagen)}" download="escena-${i + 1}-${esc(x.escena)}.jpg">⬇ Imagen</a>
+            <button class="boton-sec" data-copiar="${esc(x.instruccion)}">⧉ Copiar instrucción</button>
+            <label class="boton-pri">${x.clip ? "↻ Cambiar clip" : "⬆ Subir clip"}<input type="file" accept="video/mp4,video/quicktime,video/webm" data-subir="${esc(x.id)}" hidden></label>
+          </div>
+          ${x.clip ? `<video src="/api/medio/${encodeURIComponent(x.clip)}" controls playsinline preload="metadata"></video>` : ""}
+          <div class="progreso" data-progreso="${esc(x.id)}"></div>
+        </div></div>`).join("")}</div>`;
+  },
   historias() {
     const pasos = ["idea", "guion", "voz", "imagenes", "render", "listo", "publicado"];
     const nombres = { idea: "Idea", guion: "Guion", voz: "Voz", imagenes: "Imágenes", render: "Render", listo: "Programada", publicado: "Publicada" };
@@ -168,6 +190,31 @@ function pintar() {
 
 /* ───── Eventos ───── */
 window.addEventListener("hashchange", pintar);
+$("#vista").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-copiar]");
+  if (!b) return;
+  await navigator.clipboard.writeText(b.dataset.copiar);
+  const t = b.textContent; b.textContent = "✓ Copiada"; setTimeout(() => (b.textContent = t), 1500);
+});
+$("#vista").addEventListener("change", (e) => {
+  const inp = e.target.closest("[data-subir]");
+  if (!inp || !inp.files[0]) return;
+  const f = inp.files[0], id = inp.dataset.subir;
+  const barra = document.querySelector(`[data-progreso="${CSS.escape(id)}"]`);
+  if (f.size > 95 * 1024 * 1024) { barra.textContent = "El video pesa más de 95 MB."; return; }
+  const x = new XMLHttpRequest();
+  x.open("POST", `/api/animaciones/${encodeURIComponent(id)}/clip`);
+  x.setRequestHeader("Content-Type", f.type || "video/mp4");
+  x.upload.onprogress = (ev) => { barra.textContent = `Subiendo… ${Math.round((ev.loaded / ev.total) * 100)}%`; };
+  x.onload = async () => {
+    let msg = "";
+    try { msg = JSON.parse(x.responseText || "{}").error || ""; } catch {}
+    barra.textContent = x.status === 200 ? "✓ Clip recibido" : "Error: " + (msg || x.status);
+    if (x.status === 200) { await cargar(); pintar(); }
+  };
+  x.onerror = () => { barra.textContent = "Se cortó la conexión. Inténtalo de nuevo."; };
+  x.send(f);
+});
 $("#vista").addEventListener("click", (e) => {
   const b = e.target.closest("[data-video]");
   if (!b) return;
