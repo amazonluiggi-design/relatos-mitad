@@ -114,7 +114,8 @@ async function api(env: Env, req: Request, url: URL) {
   if (ruta.startsWith("/medio/")) return medio(env, req, decodeURIComponent(ruta.slice(7)));
   if (ruta === "/animaciones") return Response.json((await env.DB.prepare(`SELECT a.*, h.titulo, h.semana FROM animaciones a JOIN historias h ON h.id = a.historia_id
       WHERE h.estado != 'publicado' ORDER BY h.semana, a.orden`).all()).results);
-  const sub = /^\/animaciones\/([a-z0-9-]+:[a-z0-9]+)\/clip$/.exec(ruta);
+  // El panel codifica el id ("llanganates%3Ag2"): se decodifica antes de comparar.
+  const sub = /^\/animaciones\/([a-z0-9-]+:[a-z0-9]+)\/clip$/.exec(decodeURIComponent(ruta));
   if (sub && req.method === "POST") {
     const a = await env.DB.prepare("SELECT * FROM animaciones WHERE id = ?").bind(sub[1]).first<{ historia_id: string; escena: string }>();
     if (!a) return Response.json({ error: "no existe" }, { status: 404 });
