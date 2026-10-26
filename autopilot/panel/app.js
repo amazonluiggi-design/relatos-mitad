@@ -69,7 +69,7 @@ function porVideo(pubs) {
 function itemAgenda(v) {
   return `<div class="item">
     <div class="item-fecha"><b>${esc(fecha(v.cuando, { day: "2-digit" }))}</b>${esc(fecha(v.cuando, { month: "short" }))}<br>${esc(fecha(v.cuando, { hour: "2-digit", minute: "2-digit" }))}</div>
-    <div class="item-txt"><b>${esc(v.titulo)}</b><span class="nd">${v.tipo === "largo" ? "Video largo" : "Reel"} · ${esc(v.historia_id)}</span>
+    <div class="item-txt"><b>${esc(v.titulo)}</b><span class="nd">${v.tipo === "largo" ? "Video largo" : v.tipo === "parte" ? "Parte (TikTok)" : "Reel"} · ${esc(v.historia_id)}</span>
       <div class="chips">${v.redes.map(chip).join("")}</div></div></div>`;
 }
 
@@ -114,7 +114,7 @@ const VISTAS = {
       const vistas = v.redes.reduce((a, p) => a + (p.vistas || 0), 0);
       const fondo = v.miniatura ? `style="background-image:url('/api/medio/${encodeURIComponent(v.miniatura)}')"` : "";
       return `<div class="video"><button class="video-cara ${v.tipo === "largo" ? "largo" : ""}" ${fondo} ${v.archivo ? `data-video="${esc(v.archivo)}"` : ""} aria-label="Ver ${esc(v.titulo)}">
-          <em>${v.tipo === "largo" ? "Video largo" : "Reel"}</em>${v.archivo ? "<span>▶</span>" : ""}</button>
+          <em>${v.tipo === "largo" ? "Video largo" : v.tipo === "parte" ? "Parte (TikTok)" : "Reel"}</em>${v.archivo ? "<span>▶</span>" : ""}</button>
         <div class="video-info"><b>${esc(v.titulo)}</b><span class="nd">${esc(fecha(v.cuando, { dateStyle: "medium", timeStyle: "short" }))} · ${num(vistas)} vistas</span>
           <div class="chips">${v.redes.map(chip).join("")}</div></div></div>`;
     }).join("")}</div>`;
@@ -127,7 +127,7 @@ const VISTAS = {
       tiktok: lista.some((p) => p.estado === "privado") ? `<div class="aviso-caja">TikTok aún revisa la app: mientras tanto publica en <b>privado</b> y esos videos no suman vistas públicas.</div>` : "",
       youtube: lista.some((p) => p.estado === "privado") ? `<div class="aviso-caja">YouTube deja en privado los videos de apps sin auditoría de Google. Ya está pedida; mientras, se pueden pasar a públicos desde YouTube Studio.</div>` : "",
     };
-    const filas = lista.map((p) => `<tr><td><b>${esc(p.titulo)}</b><br><span class="nd">${p.tipo === "largo" ? "Video largo" : "Reel"}</span></td>
+    const filas = lista.map((p) => `<tr><td><b>${esc(p.titulo)}</b><br><span class="nd">${p.tipo === "largo" ? "Video largo" : p.tipo === "parte" ? "Parte (TikTok)" : "Reel"}</span></td>
       <td>${esc(fecha(p.cuando, { dateStyle: "short", timeStyle: "short" }))}</td><td>${chip(p)}</td>
       <td class="num">${p.vistas != null ? num(p.vistas) : "—"}</td><td class="num">${p.me_gusta != null ? num(p.me_gusta) : "—"}</td><td class="num">${p.comentarios != null ? num(p.comentarios) : "—"}</td>
       <td>${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">Abrir ↗</a>` : ""}</td></tr>`).join("");

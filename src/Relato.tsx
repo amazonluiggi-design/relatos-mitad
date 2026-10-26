@@ -1,12 +1,13 @@
 import React from "react";
 import {
-  AbsoluteFill, Audio, Img, Sequence, interpolate, Easing, random, staticFile, useCurrentFrame, useVideoConfig,
+  AbsoluteFill, Audio, Img, OffthreadVideo, Sequence, interpolate, Easing, random, staticFile, useCurrentFrame, useVideoConfig,
 } from "remotion";
 import { AMBAR, TEXTO, TITULO } from "./marca";
 
 export type Palabra = { texto: string; desde: number; hasta: number };
 export type Escena = {
   id: string; mov: string; h: string | null; v: string | null; desde: number; cuadros: number;
+  clip?: { src: string; dur: number } | null; // video animado (Flow/Veo) que reemplaza la imagen
   audio: { archivo: string; recorte: number; duracion: number };
   palabras: Palabra[]; capitulo: string | null;
 };
@@ -45,8 +46,50 @@ const KenBurns: React.FC<{ src: string; mov: string; dur: number; fondo?: boolea
   );
 };
 
+// Clip animado sobre la imagen: arranca con la escena, acerca un poco la cámara y, si se acaba
+// antes que la escena, se funde de vuelta a la imagen. Va mudo (la narración manda).
+const Clip: React.FC<{ clip: NonNullable<Escena["clip"]>; dur: number; fondo?: boolean }> = ({ clip, dur, fondo }) => {
+  const f = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const largo = Math.min(dur, Math.floor(clip.dur * fps) - 2);
+  const opacidad = interpolate(f, [largo - 12, largo], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const s = interpolate(f, [0, dur], [1.02, 1.08]);
+  return (
+    <Sequence durationInFrames={largo} layout="none">
+      <AbsoluteFill style={{ opacity: opacidad }}>
+        <OffthreadVideo src={staticFile(clip.src)} muted style={{
+          width: "100%", height: "100%", objectFit: "cover", transform: `scale(${s})`,
+          // Iguala el color al resto del relato (sombras frías, luces cálidas).
+          filter: fondo ? "blur(28px) brightness(.55)" : "saturate(1.08) contrast(1.06) sepia(.12) hue-rotate(-8deg)",
+        }} />
+      </AbsoluteFill>
+    </Sequence>
+  );
+};
+
+const Fondo: React.FC<{ e: Escena; dur: number }> = ({ e, dur }) => (
+  <AbsoluteFill>
+    <KenBurns src={e.h!} mov={e.mov} dur={dur} />
+    {e.clip && <Clip clip={e.clip} dur={dur} />}
+  </AbsoluteFill>
+);
+
 // Imagen vertical: si no hay versión 9:16, la horizontal va al centro sobre su propio fondo desenfocado.
+// Con clip (siempre 16:9) se usa el mismo recurso: clip al centro y su versión desenfocada de fondo.
 const CuadroVertical: React.FC<{ e: Escena; dur: number }> = ({ e, dur }) => {
+  if (e.clip) {
+    return (
+      <AbsoluteFill>
+        {e.v ? <KenBurns src={e.v} mov={e.mov} dur={dur} /> : <KenBurns src={e.h!} mov="acercar" dur={dur} fondo />}
+        <Clip clip={e.clip} dur={dur} fondo />
+        <AbsoluteFill style={{ justifyContent: "center" }}>
+          <div style={{ width: "100%", aspectRatio: "16 / 9", overflow: "hidden", transform: "scale(1.45)" }}>
+            <Clip clip={e.clip} dur={dur} />
+          </div>
+        </AbsoluteFill>
+      </AbsoluteFill>
+    );
+  }
   if (e.v) return <KenBurns src={e.v} mov={e.mov} dur={dur} />;
   return (
     <AbsoluteFill>
@@ -171,7 +214,7 @@ export const Relato: React.FC<{ plan: Plan; musica?: string }> = ({ plan, musica
     <AbsoluteFill style={{ background: "#000" }}>
       {plan.escenas.map((e) => (
         <Sequence key={e.id} from={Math.max(0, e.desde - ENTRA)} durationInFrames={e.cuadros + ENTRA * 2}>
-          <Fundido><KenBurns src={e.h!} mov={e.mov} dur={e.cuadros + ENTRA * 2} /></Fundido>
+          <Fundido><Fondo e={e} dur={e.cuadros + ENTRA * 2} /></Fundido>
         </Sequence>
       ))}
       <Grano />

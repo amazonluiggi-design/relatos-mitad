@@ -97,3 +97,7 @@ export const REELS = [
   { id: "parte3", tiktok: true, gancho: "Llanganates · Parte 3: los que desaparecieron", escenas: ["f1", "f2", "f3", "f3b", "f4", "f5", "z1", "z2", "z3", "z3b"], cierre: "Parte 4 en mi perfil · Sígueme" },
   { id: "parte4", tiktok: true, gancho: "Llanganates · Parte 4: la cueva de oro", escenas: ["i1", "i2", "i3", "i4", "i4b", "i5", "i6", "i7", "h1", "h2", "h2b", "h3", "h4", "h5", "c1"], cierre: "Sígueme para el próximo relato" },
 ];
+
+// Segundos máximos que se usan de cada clip animado (el resto se descarta).
+// i4: desde el segundo 5 Veo dibujó estatuas egipcias, que no corresponden al oro inca.
+export const CLIPS_MAX = { i4: 4 };

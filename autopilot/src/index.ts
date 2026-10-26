@@ -44,6 +44,9 @@ async function sincronizar(env: Env) {
   for (const [red, f] of tareas) {
     try { await f(); } catch (e) { await evento(env, `No se pudieron leer las estadísticas: ${String(e).slice(0, 200)}`, "error", red); }
   }
+  // Una historia pasa a "publicada" cuando su video largo ya salió en alguna red.
+  await env.DB.prepare(`UPDATE historias SET estado = 'publicado' WHERE estado = 'listo' AND id IN (
+      SELECT v.historia_id FROM publicaciones p JOIN videos v ON v.id = p.video_id WHERE v.tipo = 'largo' AND p.estado = 'publicado')`).run();
   await env.KV.put("ultima-sync", new Date().toISOString());
 }
 

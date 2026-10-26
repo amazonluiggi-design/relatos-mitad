@@ -30,13 +30,17 @@ async function tokenTikTok(env: Env) {
 }
 
 export async function publicarTikTok(env: Env, p: Pub, archivo: string) {
-  const obj = await env.VIDEOS.get(archivo);
+  const obj = await env.VIDEOS.head(archivo);
   if (!obj) throw new Error("falta el archivo " + archivo);
+  // TikTok: trozos de 5 a 64 MB; el último absorbe el resto (hasta 128 MB).
+  const TROZO = 32 * 1024 * 1024;
+  const trozos = obj.size <= 64 * 1024 * 1024 ? 1 : Math.floor(obj.size / TROZO);
+  const tamTrozo = trozos === 1 ? obj.size : TROZO;
   const tok = await tokenTikTok(env);
   const H = { Authorization: `Bearer ${tok}`, "Content-Type": "application/json; charset=UTF-8" };
   const iniciar = async (privacidad: string) => (await (await fetch(`${TT}/post/publish/video/init/`, { method: "POST", headers: H, body: JSON.stringify({
     post_info: { title: (p.texto || "").slice(0, 2200), privacy_level: privacidad, disable_comment: false, disable_duet: false, disable_stitch: false, is_aigc: true },
-    source_info: { source: "FILE_UPLOAD", video_size: obj.size, chunk_size: obj.size, total_chunk_count: 1 },
+    source_info: { source: "FILE_UPLOAD", video_size: obj.size, chunk_size: tamTrozo, total_chunk_count: trozos },
   }) })).json()) as { data?: { publish_id: string; upload_url: string }; error?: { code: string; message: string } };
   let privacidad = "PUBLIC_TO_EVERYONE";
   let ini = await iniciar(privacidad);
@@ -46,12 +50,17 @@ export async function publicarTikTok(env: Env, p: Pub, archivo: string) {
     ini = await iniciar(privacidad);
   }
   if (ini.error?.code !== "ok" || !ini.data) throw new Error(`init ${ini.error?.code}: ${ini.error?.message}`);
-  const up = await fetch(ini.data.upload_url, {
-    method: "PUT",
-    headers: { "Content-Type": "video/mp4", "Content-Length": String(obj.size), "Content-Range": `bytes 0-${obj.size - 1}/${obj.size}` },
-    body: obj.body,
-  });
-  if (!up.ok) throw new Error(`subida ${up.status}: ${(await up.text()).slice(0, 200)}`);
+  for (let i = 0; i < trozos; i++) {
+    const ini0 = i * tamTrozo;
+    const fin = i === trozos - 1 ? obj.size - 1 : ini0 + tamTrozo - 1;
+    const parte = await env.VIDEOS.get(archivo, { range: { offset: ini0, length: fin - ini0 + 1 } });
+    const up = await fetch(ini.data.upload_url, {
+      method: "PUT",
+      headers: { "Content-Type": "video/mp4", "Content-Length": String(fin - ini0 + 1), "Content-Range": `bytes ${ini0}-${fin}/${obj.size}` },
+      body: parte!.body,
+    });
+    if (!up.ok) throw new Error(`subida trozo ${i + 1}/${trozos} ${up.status}: ${(await up.text()).slice(0, 200)}`);
+  }
   await actualizar(env, p, { estado: "enviado", externo_id: ini.data.publish_id, privacidad });
   await evento(env, `Reel enviado a TikTok (${privacidad === "SELF_ONLY" ? "privado" : "público"}): ${p.video_id}`, "info", "tiktok");
 }

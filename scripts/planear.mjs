@@ -1,11 +1,14 @@
 // Arma el plan de montaje (cuadros por escena) a partir de la voz grabada.
 // node scripts/planear.mjs cantuna  → src/datos/<historia>-plan.json
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 const nombre = process.argv[2];
 const FPS = 30;
-const { HISTORIA, REELS, CAPITULOS = {}, TITULO_CARTEL } = await import(`../historias/${nombre}.mjs`);
+const { HISTORIA, REELS, CAPITULOS = {}, TITULO_CARTEL, CLIPS_MAX = {} } = await import(`../historias/${nombre}.mjs`);
 const voz = JSON.parse(fs.readFileSync(`src/datos/${nombre}-voz.json`, "utf8"));
 const porId = Object.fromEntries(voz.map((v) => [v.id, v]));
+
+const duracion = (f) => +execFileSync(process.execPath, ["node_modules/@remotion/cli/remotion-cli.js", "ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", f]).toString().trim();
 
 const armar = (escenas, inicio = 0.6, cola = 2.5, solo = false) => {
   let t = inicio;
@@ -15,9 +18,12 @@ const armar = (escenas, inicio = 0.6, cola = 2.5, solo = false) => {
     const pausa = !sig ? 0 : solo ? 0.25 : CAPITULOS[sig.id] || sig.id[0] !== e.id[0] ? 0.9 : 0.3;
     const desde = Math.round(t * FPS);
     t += v.duracion + pausa;
+    // Clip animado subido desde el panel (public/<h>/clips/<escena>.mp4).
+    const archivoClip = `public/${nombre}/clips/${e.id}.mp4`;
+    const clip = fs.existsSync(archivoClip) ? { src: `${nombre}/clips/${e.id}.mp4`, dur: Math.min(duracion(archivoClip), CLIPS_MAX[e.id] ?? Infinity) } : null;
     const img = (o) => (fs.existsSync(`public/${nombre}/${o}/${e.id}.jpg`) ? `${nombre}/${o}/${e.id}.jpg` : null);
     return {
-      id: e.id, mov: e.mov, h: img("h"), v: img("v"),
+      id: e.id, mov: e.mov, h: img("h"), v: img("v"), clip,
       desde, cuadros: Math.round(t * FPS) - desde,
       audio: { archivo: v.archivo, recorte: v.recorte, duracion: v.duracion },
       palabras: v.palabras, capitulo: CAPITULOS[e.id] || null,
