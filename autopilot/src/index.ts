@@ -1,105 +1,143 @@
-// Relatos Autopilot: publicador en la nube.
-// KV: "agenda" = lista de publicaciones; "tiktok-token" = tokens; "pausa" = interruptor global; "log" = últimos eventos.
-// R2: archivos de video. Cada 5 min publica en TikTok lo que ya venció y revisa el estado de lo enviado.
-interface Env { KV: KVNamespace; VIDEOS: R2Bucket; CLAVE: string }
+// Relatos Autopilot: panel privado + publicador y estadísticas en la nube (Cloudflare).
+// Cron cada 5 min: publica en TikTok lo que venció y revisa estados. Cada hora (minuto 0-4): estadísticas de las 3 redes.
+import { login, salir, sesionValida } from "./auth";
+import { cuentaTikTok, publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarYouTube } from "./redes";
+import { type Env, type Pub, evento } from "./tipos";
 
-type Pub = {
-  id: string; red: "tiktok"; archivo: string; texto: string; cuando: string;
-  estado: "pendiente" | "enviado" | "publicado" | "fallido"; publish_id?: string; privacidad?: string; error?: string; intentos?: number;
-};
-type Token = { client_key: string; client_secret: string; access_token: string; refresh_token: string; expires_in: number; obtenido: number };
-
-const TT = "https://open.tiktokapis.com/v2";
-
-async function registrar(env: Env, msg: string) {
-  const log: string[] = JSON.parse((await env.KV.get("log")) || "[]");
-  log.unshift(`${new Date().toISOString()} ${msg}`);
-  await env.KV.put("log", JSON.stringify(log.slice(0, 200)));
+async function pubs(env: Env, where = "1=1", ...args: unknown[]) {
+  return (await env.DB.prepare(`SELECT * FROM publicaciones WHERE ${where} ORDER BY cuando`).bind(...args).all<Pub>()).results;
 }
 
-async function tokenTikTok(env: Env): Promise<string> {
-  const t = JSON.parse((await env.KV.get("tiktok-token"))!) as Token;
-  if (Date.now() < t.obtenido + (t.expires_in - 900) * 1000) return t.access_token;
-  const r = await fetch(`${TT}/oauth/token/`, {
-    method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ client_key: t.client_key, client_secret: t.client_secret, grant_type: "refresh_token", refresh_token: t.refresh_token }),
-  });
-  const n = (await r.json()) as Partial<Token>;
-  if (!n.access_token) throw new Error("no se pudo renovar el token de TikTok: " + JSON.stringify(n).slice(0, 200));
-  await env.KV.put("tiktok-token", JSON.stringify({ ...t, ...n, obtenido: Date.now() }));
-  await registrar(env, "token de TikTok renovado");
-  return n.access_token!;
-}
-
-async function publicarTikTok(env: Env, p: Pub) {
-  const obj = await env.VIDEOS.get(p.archivo);
-  if (!obj) throw new Error("no está el archivo " + p.archivo);
-  const tok = await tokenTikTok(env);
-  const H = { Authorization: `Bearer ${tok}`, "Content-Type": "application/json; charset=UTF-8" };
-  const iniciar = async (privacidad: string) => (await (await fetch(`${TT}/post/publish/video/init/`, { method: "POST", headers: H, body: JSON.stringify({
-    post_info: { title: p.texto.slice(0, 2200), privacy_level: privacidad, disable_comment: false, disable_duet: false, disable_stitch: false, is_aigc: true },
-    source_info: { source: "FILE_UPLOAD", video_size: obj.size, chunk_size: obj.size, total_chunk_count: 1 },
-  }) })).json()) as { data?: { publish_id: string; upload_url: string }; error?: { code: string; message: string } };
-  let privacidad = "PUBLIC_TO_EVERYONE";
-  let ini = await iniciar(privacidad);
-  if (ini.error?.code !== "ok") {
-    await registrar(env, `${p.id}: TikTok no permitió público (${ini.error?.code}), se publica privado`);
-    privacidad = "SELF_ONLY";
-    ini = await iniciar(privacidad);
-  }
-  if (ini.error?.code !== "ok" || !ini.data) throw new Error(`init: ${ini.error?.code} ${ini.error?.message}`);
-  const up = await fetch(ini.data.upload_url, {
-    method: "PUT",
-    headers: { "Content-Type": "video/mp4", "Content-Length": String(obj.size), "Content-Range": `bytes 0-${obj.size - 1}/${obj.size}` },
-    body: obj.body,
-  });
-  if (!up.ok) throw new Error(`subida ${up.status}: ${(await up.text()).slice(0, 200)}`);
-  p.estado = "enviado"; p.publish_id = ini.data.publish_id; p.privacidad = privacidad;
-}
-
-async function revisarTikTok(env: Env, p: Pub) {
-  const tok = await tokenTikTok(env);
-  const r = (await (await fetch(`${TT}/post/publish/status/fetch/`, { method: "POST",
-    headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json; charset=UTF-8" }, body: JSON.stringify({ publish_id: p.publish_id }) })).json()) as { data?: { status: string; fail_reason?: string } };
-  if (r.data?.status === "PUBLISH_COMPLETE") { p.estado = "publicado"; await registrar(env, `${p.id}: publicado en TikTok (${p.privacidad})`); }
-  if (r.data?.status === "FAILED") { p.estado = "fallido"; p.error = r.data.fail_reason; await registrar(env, `${p.id}: TikTok rechazó: ${p.error}`); }
-}
-
-async function ciclo(env: Env) {
-  if ((await env.KV.get("pausa")) === "1") return;
-  const agenda: Pub[] = JSON.parse((await env.KV.get("agenda")) || "[]");
-  const ahora = Date.now();
-  let cambio = false;
-  for (const p of agenda) {
+async function publicarPendientes(env: Env) {
+  if ((await env.DB.prepare("SELECT valor FROM config WHERE clave = 'pausa'").first<string>("valor")) === "1") return;
+  for (const p of await pubs(env, "red = 'tiktok' AND estado IN ('pendiente', 'enviado') AND cuando <= ?", new Date().toISOString())) {
     try {
-      if (p.estado === "pendiente" && new Date(p.cuando).getTime() <= ahora) {
-        // Marca antes de enviar para no duplicar si dos ciclos se cruzan.
-        p.intentos = (p.intentos || 0) + 1;
-        if (p.intentos > 3) { p.estado = "fallido"; p.error = p.error || "demasiados intentos"; cambio = true; continue; }
-        await env.KV.put("agenda", JSON.stringify(agenda));
-        await publicarTikTok(env, p);
-        await registrar(env, `${p.id}: enviado a TikTok (${p.privacidad})`);
-        cambio = true;
-      } else if (p.estado === "enviado") {
+      if (p.estado === "pendiente") {
+        // Se cuenta el intento ANTES de enviar: si dos ciclos se cruzan, no se duplica.
+        const r = await env.DB.prepare("UPDATE publicaciones SET intentos = intentos + 1 WHERE id = ? AND estado = 'pendiente' AND intentos = ?").bind(p.id, p.intentos).run();
+        if (!r.meta.changes) continue;
+        if (p.intentos >= 3) {
+          await env.DB.prepare("UPDATE publicaciones SET estado = 'fallido' WHERE id = ?").bind(p.id).run();
+          await evento(env, `Se dejó de intentar ${p.id} tras 3 fallos: ${p.error}`, "error", "tiktok");
+          continue;
+        }
+        const v = await env.DB.prepare("SELECT archivo, calidad FROM videos WHERE id = ?").bind(p.video_id).first<{ archivo: string; calidad: string }>();
+        if (v?.calidad === "bloqueado") { await evento(env, `No se publica ${p.id}: control de calidad bloqueado`, "aviso", "tiktok"); continue; }
+        await publicarTikTok(env, p, v!.archivo);
+      } else {
         await revisarTikTok(env, p);
-        cambio = true;
       }
     } catch (e) {
-      p.error = String(e).slice(0, 300);
-      await registrar(env, `${p.id}: ERROR ${p.error}`);
-      cambio = true;
+      await env.DB.prepare("UPDATE publicaciones SET error = ? WHERE id = ?").bind(String(e).slice(0, 300), p.id).run();
+      await evento(env, `Error con ${p.id}: ${String(e).slice(0, 200)}`, "error", "tiktok");
     }
   }
-  if (cambio) await env.KV.put("agenda", JSON.stringify(agenda));
+}
+
+async function sincronizar(env: Env) {
+  const todas = await pubs(env, "estado != 'pendiente'");
+  const tareas: [string, () => Promise<unknown>][] = [
+    ["youtube", () => sincronizarYouTube(env, todas.filter((p) => p.red === "youtube"))],
+    ["facebook", () => sincronizarFacebook(env, todas.filter((p) => p.red === "facebook"))],
+    ["tiktok", () => cuentaTikTok(env)],
+  ];
+  for (const [red, f] of tareas) {
+    try { await f(); } catch (e) { await evento(env, `No se pudieron leer las estadísticas: ${String(e).slice(0, 200)}`, "error", red); }
+  }
+  await env.KV.put("ultima-sync", new Date().toISOString());
+}
+
+/* ───────────── API del panel ───────────── */
+async function resumen(env: Env) {
+  const redes = ["facebook", "youtube", "tiktok"];
+  const cuentas: Record<string, unknown> = {};
+  for (const r of redes) {
+    const ult = await env.DB.prepare("SELECT * FROM cuentas_hist WHERE red = ? ORDER BY momento DESC LIMIT 1").bind(r).first();
+    const hace7 = await env.DB.prepare("SELECT seguidores FROM cuentas_hist WHERE red = ? AND momento <= datetime('now', '-7 days') ORDER BY momento DESC LIMIT 1").bind(r).first<number>("seguidores");
+    const vistas = await env.DB.prepare(`SELECT SUM(m.vistas) v, SUM(m.me_gusta) l, SUM(m.comentarios) c FROM metricas m
+      JOIN (SELECT pub_id, MAX(momento) mx FROM metricas GROUP BY pub_id) u ON u.pub_id = m.pub_id AND u.mx = m.momento
+      JOIN publicaciones p ON p.id = m.pub_id WHERE p.red = ?`).bind(r).first<{ v: number; l: number; c: number }>();
+    const cuenta = await env.DB.prepare("SELECT SUM(estado IN ('publicado','privado')) pub, SUM(estado IN ('pendiente','programado','enviado')) prox, SUM(estado = 'fallido') fal FROM publicaciones WHERE red = ?").bind(r).first();
+    cuentas[r] = { ultimo: ult, seguidores_7d: hace7 ?? null, vistas: vistas?.v ?? null, me_gusta: vistas?.l ?? null, comentarios: vistas?.c ?? null, ...cuenta };
+  }
+  return {
+    pausa: (await env.DB.prepare("SELECT valor FROM config WHERE clave = 'pausa'").first<string>("valor")) === "1",
+    ultima_sync: await env.KV.get("ultima-sync"),
+    cuentas,
+    eventos: (await env.DB.prepare("SELECT * FROM eventos ORDER BY id DESC LIMIT 40").all()).results,
+  };
+}
+
+async function listaPublicaciones(env: Env) {
+  return (await env.DB.prepare(`SELECT p.*, v.titulo, v.tipo, v.historia_id, v.archivo, v.miniatura, v.calidad,
+      (SELECT vistas FROM metricas WHERE pub_id = p.id ORDER BY momento DESC LIMIT 1) vistas,
+      (SELECT me_gusta FROM metricas WHERE pub_id = p.id ORDER BY momento DESC LIMIT 1) me_gusta,
+      (SELECT comentarios FROM metricas WHERE pub_id = p.id ORDER BY momento DESC LIMIT 1) comentarios
+    FROM publicaciones p JOIN videos v ON v.id = p.video_id ORDER BY p.cuando`).all()).results;
+}
+
+async function serie(env: Env) {
+  // Vistas acumuladas por día y red (último dato de cada publicación en cada día).
+  return (await env.DB.prepare(`SELECT substr(m.momento, 1, 10) dia, p.red, SUM(m.vistas) vistas FROM metricas m
+      JOIN (SELECT pub_id, substr(momento, 1, 10) d, MAX(momento) mx FROM metricas GROUP BY pub_id, d) u ON u.pub_id = m.pub_id AND u.mx = m.momento
+      JOIN publicaciones p ON p.id = m.pub_id GROUP BY dia, p.red ORDER BY dia`).all()).results;
+}
+
+async function medio(env: Env, req: Request, clave: string) {
+  const rango = req.headers.get("range");
+  const obj = await env.VIDEOS.get(clave, rango ? { range: req.headers } : undefined);
+  if (!obj) return new Response("no", { status: 404 });
+  const h = new Headers({ "Content-Type": obj.httpMetadata?.contentType || "application/octet-stream", "Accept-Ranges": "bytes", "Cache-Control": "private, max-age=3600" });
+  if (rango && obj.range && "offset" in obj.range) {
+    const ini = obj.range.offset ?? 0, largo = obj.range.length ?? obj.size - ini;
+    h.set("Content-Range", `bytes ${ini}-${ini + largo - 1}/${obj.size}`);
+    h.set("Content-Length", String(largo));
+    return new Response(obj.body, { status: 206, headers: h });
+  }
+  h.set("Content-Length", String(obj.size));
+  return new Response(obj.body, { headers: h });
+}
+
+async function api(env: Env, req: Request, url: URL) {
+  const ruta = url.pathname.slice(4);
+  if (ruta === "/login" && req.method === "POST") return login(env, req);
+  if (ruta === "/salir" && req.method === "POST") return salir();
+  const deScript = req.headers.get("x-clave") === env.CLAVE;
+  if (!deScript && !(await sesionValida(env, req))) return Response.json({ error: "sin sesión" }, { status: 401 });
+  // Protección CSRF: las escrituras desde el navegador deben venir del mismo origen.
+  if (req.method !== "GET" && !deScript && req.headers.get("origin") !== url.origin) return Response.json({ error: "origen" }, { status: 403 });
+
+  if (ruta === "/resumen") return Response.json(await resumen(env));
+  if (ruta === "/publicaciones") return Response.json(await listaPublicaciones(env));
+  if (ruta === "/serie") return Response.json(await serie(env));
+  if (ruta === "/historias") return Response.json((await env.DB.prepare("SELECT h.*, (SELECT COUNT(*) FROM videos WHERE historia_id = h.id) videos FROM historias h ORDER BY creada DESC").all()).results);
+  if (ruta.startsWith("/medio/")) return medio(env, req, decodeURIComponent(ruta.slice(7)));
+  if (ruta === "/pausa" && req.method === "POST") {
+    const { valor } = (await req.json()) as { valor: boolean };
+    await env.DB.prepare("UPDATE config SET valor = ? WHERE clave = 'pausa'").bind(valor ? "1" : "0").run();
+    await evento(env, valor ? "Publicación automática PAUSADA desde el panel" : "Publicación automática REANUDADA desde el panel", "aviso");
+    return Response.json({ ok: true });
+  }
+  if (ruta === "/sincronizar" && req.method === "POST") { await publicarPendientes(env); await sincronizar(env); return Response.json({ ok: true }); }
+  return Response.json({ error: "no existe" }, { status: 404 });
 }
 
 export default {
-  async scheduled(_: ScheduledController, env: Env, ctx: ExecutionContext) { ctx.waitUntil(ciclo(env)); },
+  async scheduled(c: ScheduledController, env: Env, ctx: ExecutionContext) {
+    ctx.waitUntil((async () => {
+      await publicarPendientes(env);
+      if (new Date(c.scheduledTime).getUTCMinutes() < 5) await sincronizar(env);
+    })());
+  },
   async fetch(req: Request, env: Env) {
-    if (req.headers.get("x-clave") !== env.CLAVE) return new Response("no", { status: 403 });
-    const u = new URL(req.url);
-    if (u.pathname === "/estado") return Response.json({ pausa: (await env.KV.get("pausa")) === "1", agenda: JSON.parse((await env.KV.get("agenda")) || "[]"), log: JSON.parse((await env.KV.get("log")) || "[]").slice(0, 30) });
-    if (u.pathname === "/ciclo" && req.method === "POST") { await ciclo(env); return Response.json({ ok: true }); }
-    return new Response("no", { status: 404 });
+    const url = new URL(req.url);
+    const r = url.pathname.startsWith("/api/") ? await api(env, req, url) : await env.ASSETS.fetch(req);
+    const h = new Headers(r.headers);
+    h.set("X-Content-Type-Options", "nosniff");
+    h.set("Referrer-Policy", "no-referrer");
+    h.set("X-Frame-Options", "DENY");
+    if ((h.get("content-type") || "").includes("text/html"))
+      h.set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; frame-ancestors 'none'");
+    return new Response(r.body, { status: r.status, headers: h });
   },
 };

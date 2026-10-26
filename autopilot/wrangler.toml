@@ -2,9 +2,14 @@ name = "relatos-autopilot"
 main = "src/index.ts"
 compatibility_date = "2026-10-01"
 
-# Cada 5 minutos revisa la agenda y publica lo que toque (funciona con el PC apagado).
+# Cada 5 minutos: publica lo que toque; al inicio de cada hora, estadísticas. Funciona con el PC apagado.
 [triggers]
 crons = ["*/5 * * * *"]
+
+[assets]
+directory = "./panel"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
 
 [[kv_namespaces]]
 binding = "KV"
@@ -13,3 +18,9 @@ id = "99bae21dfbdc455c93c18b9374c10240"
 [[r2_buckets]]
 binding = "VIDEOS"
 bucket_name = "relatos-videos"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "relatos-autopilot"
+database_id = "44f0fd9d-e6cd-42db-894f-a912346d6d8b"
+migrations_dir = "migrations"

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0f12">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Relatos Autopilot</title>
+  <link rel="icon" href="/icono.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/estilos.css">
+</head>
+<body>
+  <section id="login" class="login" hidden>
+    <form id="form-login" class="login-caja">
+      <img src="/icono.png" alt="" class="login-logo">
+      <h1 class="marca">RELATOS <span>DE LA MITAD</span></h1>
+      <p class="sub">Panel de control · Autopilot</p>
+      <label for="clave">Contraseña</label>
+      <input id="clave" type="password" autocomplete="current-password" required>
+      <button type="submit">Entrar</button>
+      <p id="login-error" class="error" role="alert"></p>
+    </form>
+  </section>
+
+  <div id="app" class="app" hidden>
+    <aside class="menu">
+      <div class="menu-marca"><img src="/icono.png" alt=""><div><b>RELATOS</b><span>Autopilot</span></div></div>
+      <nav>
+        <a href="#resumen" data-vista="resumen"><i>◉</i><span>Resumen</span></a>
+        <a href="#agenda" data-vista="agenda"><i>▦</i><span>Agenda</span></a>
+        <a href="#videos" data-vista="videos"><i>▶</i><span>Videos</span></a>
+        <a href="#facebook" data-vista="facebook"><i class="fb">f</i><span>Facebook</span></a>
+        <a href="#youtube" data-vista="youtube"><i class="yt">▶</i><span>YouTube</span></a>
+        <a href="#tiktok" data-vista="tiktok"><i class="tt">♪</i><span>TikTok</span></a>
+        <a href="#actividad" data-vista="actividad"><i>≡</i><span>Actividad</span></a>
+      </nav>
+      <button id="salir" class="salir">Salir</button>
+    </aside>
+
+    <main>
+      <header class="barra">
+        <div>
+          <h2 id="titulo">Resumen</h2>
+          <p id="sync" class="sync"></p>
+        </div>
+        <div class="acciones">
+          <button id="btn-sync" class="boton-sec" title="Actualizar estadísticas ahora">↻ Actualizar</button>
+          <label class="interruptor" title="Pausar o reanudar toda la publicación automática">
+            <input id="pausa" type="checkbox"><span></span><b id="pausa-txt">Automático activo</b>
+          </label>
+        </div>
+      </header>
+      <div id="vista" class="vista" aria-live="polite"></div>
+    </main>
+  </div>
+
+  <dialog id="reproductor"><button class="cerrar" aria-label="Cerrar">✕</button><video controls playsinline></video></dialog>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
