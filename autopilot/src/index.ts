@@ -36,6 +36,9 @@ async function publicarPendientes(env: Env) {
 }
 
 async function sincronizar(env: Env) {
+  // TikTok programado a mano en TikTok Studio (app sin auditar): pasa a publicado al llegar su hora.
+  await env.DB.prepare("UPDATE publicaciones SET estado = 'publicado', publicado_en = cuando WHERE red = 'tiktok' AND estado = 'programado' AND externo_id IS NULL AND cuando <= ?")
+    .bind(new Date().toISOString()).run();
   const todas = await pubs(env, "estado != 'pendiente'");
   const tareas: [string, () => Promise<unknown>][] = [
     ["youtube", () => sincronizarYouTube(env, todas.filter((p) => p.red === "youtube"))],
