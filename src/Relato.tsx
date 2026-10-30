@@ -141,6 +141,35 @@ const Subtitulos: React.FC<{ palabras: Palabra[]; vertical?: boolean }> = ({ pal
   );
 };
 
+// Ambiente en movimiento sobre todas las escenas: niebla que se desplaza, polvo flotando y luz de farol que titila.
+const POLVO = Array.from({ length: 36 }, (_, i) => ({ x: random(`px${i}`), y: random(`py${i}`), r: 1.5 + random(`pr${i}`) * 3.5, v: 0.3 + random(`pv${i}`) * 0.9, fase: random(`pf${i}`) * 6.28 }));
+const Ambiente: React.FC = () => {
+  const f = useCurrentFrame();
+  const { width: W, height: H } = useVideoConfig();
+  const titila = 0.05 + 0.025 * Math.sin(f * 0.21) + 0.02 * Math.sin(f * 0.53 + 1.3) + 0.012 * (random(Math.floor(f / 3)) - 0.5);
+  const niebla = (vel: number, op: number, semilla: number, esc: number) => (
+    <svg width={W * 2} height={H} style={{ position: "absolute", left: -((f * vel) % W), top: 0, opacity: op, mixBlendMode: "screen" }}>
+      <filter id={`n${semilla}`}>
+        <feTurbulence type="fractalNoise" baseFrequency={`${0.0018 * esc} ${0.004 * esc}`} numOctaves="3" seed={semilla} stitchTiles="stitch" />
+        <feColorMatrix values="0 0 0 0 0.86  0 0 0 0 0.9  0 0 0 0 0.92  0 0 0 1.4 -0.55" />
+      </filter>
+      <rect width="100%" height="100%" filter={`url(#n${semilla})`} />
+    </svg>
+  );
+  return (
+    <AbsoluteFill style={{ pointerEvents: "none", overflow: "hidden" }}>
+      {niebla(0.55, 0.22, 3, 1)}
+      {niebla(1.1, 0.14, 7, 1.6)}
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 30%, rgba(255,170,80,1) 0%, transparent 60%)", opacity: titila, mixBlendMode: "screen" }} />
+      {POLVO.map((p, i) => {
+        const y = (((p.y * H - f * p.v) % H) + H) % H;
+        const x = p.x * W + Math.sin(f * 0.02 + p.fase) * 18;
+        return <div key={i} style={{ position: "absolute", left: x, top: y, width: p.r, height: p.r, borderRadius: "50%", background: "rgba(255,214,160,.8)", filter: "blur(1px)", opacity: 0.25 + 0.35 * Math.abs(Math.sin(f * 0.03 + p.fase)) }} />;
+      })}
+    </AbsoluteFill>
+  );
+};
+
 const Grano: React.FC = () => {
   const f = useCurrentFrame();
   return (
@@ -217,6 +246,7 @@ export const Relato: React.FC<{ plan: Plan; musica?: string }> = ({ plan, musica
           <Fundido><Fondo e={e} dur={e.cuadros + ENTRA * 2} /></Fundido>
         </Sequence>
       ))}
+      <Ambiente />
       <Grano />
       {plan.escenas.map((e) => {
         if (e.capitulo) cap++;
@@ -247,6 +277,7 @@ export const Reel: React.FC<{ reel: Plan["reels"][number]; musica?: string }> = 
           <Fundido><CuadroVertical e={e} dur={e.cuadros + ENTRA * 2} /></Fundido>
         </Sequence>
       ))}
+      <Ambiente />
       <Grano />
       {reel.escenas.map((e) => (
         <Sequence key={e.id} from={e.desde} durationInFrames={e.cuadros}>

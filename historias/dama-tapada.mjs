@@ -4,7 +4,7 @@
 // cerro Santa Ana (444 escalones hoy), las tapadas limeñas (saya y manto) y la Sayona venezolana.
 const ESTILO =
   "cinematic film still from an epic historical mystery documentary, ultra realistic, colonial port city of Guayaquil Ecuador, humid tropical night, moody dramatic lighting, light mist, warm lantern glow against deep teal shadows, 35mm film grain, high detail, no text, no gore";
-const DAMA = "tall elegant woman in a long black 18th century colonial gown, her whole face hidden under a heavy black lace veil and mantle, gloved hands";
+const DAMA = "tall elegant woman in a long black 18th century colonial gown, her head and face completely covered by a heavy opaque black veil and mantle so that no facial features are visible at all, only darkness where the face should be, gloved hands";
 const CABALLERO = "mestizo gentleman in his thirties with tan skin and a thin moustache, 18th century colonial frock coat and tricorn hat";
 
 export const HISTORIA = {
@@ -65,7 +65,7 @@ export const HISTORIA = {
     { id: "h3", texto: "Ahora hay luces, malecón y edificios. Pero cuando cae la noche y sube la neblina del río, todavía hay quien baja la voz para hablar de ella.", img: "modern Guayaquil riverside boardwalk at night with mist rising from the Guayas river, city lights, a lone figure in a dark veil in the distance", mov: "alejar" },
     { id: "h4", texto: "Y quién sabe. Tal vez la Dama Tapada sigue caminando por ahí, buscando al próximo que se atreva a seguirla.", img: `${DAMA}, walking away slowly up old stone stairs with lanterns in a historic hillside neighborhood at night, mist`, mov: "subir" },
     // CIERRE
-    { id: "c1", texto: "¿Tú la seguirías? ¿O conoces a alguien que dice haberla visto? Cuéntamelo en los comentarios.", img: `${DAMA}, standing under a single lantern at the end of a misty street, looking toward the viewer, inviting and mysterious`, mov: "acercar" },
+    { id: "c1", texto: "¿Tú la seguirías? ¿O conoces a alguien que dice haberla visto? Cuéntamelo en los comentarios.", img: `${DAMA}, seen from behind, standing under a single lantern at the end of a misty street, half turned as if waiting for someone to follow her, inviting and mysterious, full frame composition`, mov: "acercar" },
     { id: "c2", texto: "Y suscríbete, porque en el próximo relato volvemos a Quito, a la historia del cura que se escapaba de noche… y del Cristo que le habló: el Padre Almeida.", img: "a colonial monk in a brown habit climbing down from a church tower window at night in Quito, moonlight, playful but mysterious", mov: "acercar" },
   ],
 };
@@ -85,12 +85,12 @@ export const CAPITULOS = {
 // Avances (miércoles y jueves antes del estreno) + reels (sábado a martes) para las 3 redes,
 // y PARTES solo para TikTok (la historia completa en vertical).
 export const REELS = [
-  { id: "reel1", gancho: "Si hueles flores a medianoche… no la sigas", escenas: ["g1", "g2", "g3", "a2", "a3", "a5", "r1"], cierre: "Este viernes, la historia completa" },
-  { id: "reel2", gancho: "La mujer que nadie lograba alcanzar", escenas: ["a1", "a3", "a4", "a5", "a6", "r1", "r3"], cierre: "Este viernes, en el canal" },
-  { id: "reel3", gancho: "Levantó el velo… y no tenía rostro", escenas: ["r1", "r2", "r3", "r4", "r5", "r6", "r7"], cierre: "La leyenda completa, en el canal" },
-  { id: "reel4", gancho: "Hasta los guardias le tenían miedo", escenas: ["t1", "t2", "t3", "t4", "t5", "q6"], cierre: "Relato completo en el canal" },
-  { id: "reel5", gancho: "¿Quién era la Dama Tapada?", escenas: ["q1", "q2", "q3", "q4", "q5", "q6"], cierre: "Tú, ¿qué crees? Míralo en el canal" },
-  { id: "reel6", gancho: "No solo en Guayaquil: está en toda Latinoamérica", escenas: ["l1", "l2", "l3", "l4", "h3", "h4"], cierre: "La historia completa, en el canal" },
+  { id: "reel1", gancho: "Si hueles flores a medianoche… no la sigas", escenas: ["g2", "g3", "a3", "a5", "r1"], cierre: "Este viernes, la historia completa" },
+  { id: "reel2", gancho: "La mujer que nadie lograba alcanzar", escenas: ["a1", "a4", "a5", "a6"], cierre: "Este viernes, en el canal" },
+  { id: "reel3", gancho: "Levantó el velo… y no tenía rostro", escenas: ["r1", "r2", "r3", "r4", "r5", "r6"], cierre: "La leyenda completa, en el canal" },
+  { id: "reel4", gancho: "Hasta los guardias le tenían miedo", escenas: ["t1", "t2", "t3", "t4", "t5"], cierre: "Relato completo en el canal" },
+  { id: "reel5", gancho: "¿Quién era la Dama Tapada?", escenas: ["q1", "q2", "q3", "q5", "q6"], cierre: "Tú, ¿qué crees? Míralo en el canal" },
+  { id: "reel6", gancho: "No solo en Guayaquil: está en toda Latinoamérica", escenas: ["l1", "l2", "l3", "l4"], cierre: "La historia completa, en el canal" },
   { id: "parte1", tiktok: true, gancho: "La Dama Tapada · Parte 1: el puerto", escenas: ["g1", "g2", "g3", "g4", "p1", "p2", "p3", "p4", "p5", "p6"], cierre: "Parte 2 en mi perfil · Sígueme" },
   { id: "parte2", tiktok: true, gancho: "La Dama Tapada · Parte 2: la aparición", escenas: ["a1", "a2", "a3", "a4", "a5", "a6", "r1", "r2", "r3", "r4", "r5", "r6", "r7"], cierre: "Parte 3 en mi perfil · Sígueme" },
   { id: "parte3", tiktok: true, gancho: "La Dama Tapada · Parte 3: ¿quién era?", escenas: ["t1", "t2", "t3", "t4", "t5", "q1", "q2", "q3", "q4", "q5", "q6"], cierre: "Parte 4 en mi perfil · Sígueme" },
