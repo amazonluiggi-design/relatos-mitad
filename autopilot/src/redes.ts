@@ -86,20 +86,33 @@ export async function revisarTikTok(env: Env, p: Pub) {
 
 export async function sincronizarTikTok(env: Env, pubs: Pub[]) {
   const tok = await tokenTikTok(env);
-  const r = (await (await fetch(`${TT}/user/info/?fields=follower_count,video_count,likes_count`, { headers: { Authorization: `Bearer ${tok}` } })).json()) as
-    { data?: { user?: { follower_count?: number; video_count?: number } }; error?: { code: string } };
+  const H = { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" };
+  const r = (await (await fetch(`${TT}/user/info/?fields=follower_count,video_count,likes_count`, { headers: H })).json()) as
+    { data?: { user?: { follower_count?: number; video_count?: number; likes_count?: number } } };
   const u = r.data?.user;
-  if (u?.follower_count !== undefined) await guardarCuenta(env, "tiktok", u.follower_count, null, u.video_count ?? null);
-  // Vistas por video (permiso video.list). Se cruzan por el id del post guardado en la URL.
-  const conId = pubs.map((p) => ({ p, id: /\/video\/(\d+)/.exec(p.url || "")?.[1] })).filter((x) => x.id);
-  if (!conId.length) return;
-  const l = (await (await fetch(`${TT}/video/query/?fields=id,view_count,like_count,comment_count,share_count`, {
-    method: "POST", headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ filters: { video_ids: conId.slice(0, 20).map((x) => x.id) } }),
-  })).json()) as { data?: { videos?: { id: string; view_count: number; like_count: number; comment_count: number; share_count: number }[] } };
-  for (const v of l.data?.videos || []) {
-    const p = conId.find((x) => x.id === v.id)?.p;
-    if (p) await guardarMetrica(env, p.id, { vistas: v.view_count, me_gusta: v.like_count, comentarios: v.comment_count, compartidos: v.share_count });
+  // Lista de videos de la cuenta (permiso video.list): incluye los programados en TikTok Studio.
+  type V = { id: string; video_description?: string; title?: string; create_time: number; view_count: number; like_count: number; comment_count: number; share_count: number; share_url?: string };
+  const videos: V[] = [];
+  let cursor: number | undefined;
+  for (let i = 0; i < 5; i++) {
+    const l = (await (await fetch(`${TT}/video/list/?fields=id,title,video_description,create_time,view_count,like_count,comment_count,share_count,share_url`, {
+      method: "POST", headers: H, body: JSON.stringify({ max_count: 20, ...(cursor ? { cursor } : {}) }),
+    })).json()) as { data?: { videos?: V[]; cursor?: number; has_more?: boolean }; error?: { code: string; message: string } };
+    if (l.error && l.error.code !== "ok") throw new Error(`video/list: ${l.error.code} ${l.error.message}`);
+    videos.push(...(l.data?.videos || []));
+    if (!l.data?.has_more) break;
+    cursor = l.data.cursor;
+  }
+  const vistasTotales = videos.reduce((a, v) => a + (v.view_count || 0), 0);
+  if (u?.follower_count !== undefined) await guardarCuenta(env, "tiktok", u.follower_count, vistasTotales, u.video_count ?? videos.length);
+  // Une cada publicación con su video por el inicio del texto (los de TikTok Studio no traen id).
+  const norm = (t: string) => (t || "").normalize("NFKD").replace(/[^p{L}p{N}]+/gu, " ").trim().toLowerCase().slice(0, 45);
+  for (const p of pubs.filter((x) => x.estado === "publicado" || x.externo_id)) {
+    let v = p.externo_id ? videos.find((x) => x.id === p.externo_id) : undefined;
+    if (!v && p.texto) v = videos.find((x) => norm(x.video_description || x.title || "") === norm(p.texto!) && !pubs.some((q) => q.externo_id === x.id));
+    if (!v) continue;
+    if (p.externo_id !== v.id) await actualizar(env, p, { externo_id: v.id, url: v.share_url || `https://www.tiktok.com/@relatosdelamitad/video/${v.id}`, publicado_en: new Date(v.create_time * 1000).toISOString() });
+    await guardarMetrica(env, p.id, { vistas: v.view_count, me_gusta: v.like_count, comentarios: v.comment_count, compartidos: v.share_count });
   }
 }
 
@@ -164,18 +177,14 @@ export async function sincronizarFacebook(env: Env, pubs: Pub[]) {
       await evento(env, `Facebook no pudo procesar ${p.video_id}`, "error", "facebook");
     }
     if (!v.published) continue;
-    // Vistas: requiere el permiso read_insights; si falta se avisa una sola vez.
-    const ins = (await (await fetch(`${G}/${p.externo_id}/video_insights?metric=total_video_views,total_video_reactions_by_type_total&access_token=${env.FB_TOKEN}`)).json()) as
-      { data?: { name: string; values: { value: number | Record<string, number> }[] }[]; error?: { message: string } };
-    if (ins.error) {
-      if (!(await env.KV.get("fb-aviso-insights"))) {
-        await env.KV.put("fb-aviso-insights", "1", { expirationTtl: 86400 * 7 });
-        await evento(env, "Para ver las vistas de Facebook falta el permiso read_insights en la app de Meta.", "aviso", "facebook");
-      }
-      continue;
-    }
-    const val = (n: string) => ins.data?.find((d) => d.name === n)?.values?.[0]?.value;
-    const reac = val("total_video_reactions_by_type_total");
-    await guardarMetrica(env, p.id, { vistas: (val("total_video_views") as number) ?? null, me_gusta: reac && typeof reac === "object" ? Object.values(reac).reduce((a, b) => a + b, 0) : null });
+    // Reels: "views" del video + reproducciones y tiempo medio de visualización (permiso read_insights).
+    const d = (await (await fetch(`${G}/${p.externo_id}?fields=views,likes.summary(true).limit(0),comments.summary(true).limit(0)&access_token=${env.FB_TOKEN}`)).json()) as
+      { views?: number; likes?: { summary?: { total_count: number } }; comments?: { summary?: { total_count: number } } };
+    const ins = (await (await fetch(`${G}/${p.externo_id}/video_insights?metric=fb_reels_total_plays,post_video_avg_time_watched,fb_reels_replay_count&access_token=${env.FB_TOKEN}`)).json()) as
+      { data?: { name: string; values: { value: number }[] }[] };
+    const val = (n: string) => ins.data?.find((x) => x.name === n)?.values?.[0]?.value;
+    const vistas = Math.max(d.views ?? 0, val("fb_reels_total_plays") ?? 0);
+    await guardarMetrica(env, p.id, { vistas, me_gusta: d.likes?.summary?.total_count ?? null, comentarios: d.comments?.summary?.total_count ?? null,
+      extra: { seg_medio: val("post_video_avg_time_watched") != null ? Math.round(val("post_video_avg_time_watched")! / 100) / 10 : null, repeticiones: val("fb_reels_replay_count") ?? null } });
   }
 }

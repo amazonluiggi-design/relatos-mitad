@@ -90,6 +90,20 @@ async function serie(env: Env) {
       JOIN publicaciones p ON p.id = m.pub_id GROUP BY dia, p.red ORDER BY dia`).all()).results;
 }
 
+/** Datos para la vista de crecimiento: historial de cuentas y cada publicación con su ritmo de las últimas 24 h. */
+async function crecimiento(env: Env) {
+  const cuentas = (await env.DB.prepare(`SELECT c.red, substr(c.momento, 1, 10) dia, c.seguidores, c.vistas_totales FROM cuentas_hist c
+      JOIN (SELECT red, substr(momento, 1, 10) d, MAX(momento) mx FROM cuentas_hist GROUP BY red, d) u ON u.red = c.red AND u.mx = c.momento ORDER BY dia`).all()).results;
+  const pubs = (await env.DB.prepare(`SELECT p.id, p.red, p.estado, p.cuando, p.publicado_en, p.url, v.id video_id, v.titulo, v.gancho, v.tipo, v.historia_id, v.duracion,
+      m.vistas, m.me_gusta, m.comentarios, m.compartidos, m.extra, m.momento,
+      (SELECT vistas FROM metricas WHERE pub_id = p.id AND momento <= strftime('%Y-%m-%dT%H:00', 'now', '-24 hours') ORDER BY momento DESC LIMIT 1) vistas_24h
+    FROM publicaciones p JOIN videos v ON v.id = p.video_id
+    LEFT JOIN metricas m ON m.pub_id = p.id AND m.momento = (SELECT MAX(momento) FROM metricas WHERE pub_id = p.id)
+    WHERE p.estado IN ('publicado', 'privado') ORDER BY p.cuando`).all()).results;
+  const recomendaciones = (await env.DB.prepare("SELECT * FROM recomendaciones WHERE estado != 'descartado' ORDER BY estado = 'hecho', CASE prioridad WHEN 'alta' THEN 0 WHEN 'media' THEN 1 ELSE 2 END, id DESC").all()).results;
+  return { cuentas, pubs, recomendaciones };
+}
+
 async function medio(env: Env, req: Request, clave: string) {
   const rango = req.headers.get("range");
   const obj = await env.VIDEOS.get(clave, rango ? { range: req.headers } : undefined);
@@ -142,6 +156,14 @@ async function api(env: Env, req: Request, url: URL) {
   if (ruta === "/publicaciones") return Response.json(await listaPublicaciones(env));
   if (ruta === "/serie") return Response.json(await serie(env));
   if (ruta === "/historias") return Response.json((await env.DB.prepare("SELECT h.*, (SELECT COUNT(*) FROM videos WHERE historia_id = h.id) videos FROM historias h ORDER BY creada DESC").all()).results);
+  if (ruta === "/crecimiento") return Response.json(await crecimiento(env));
+  const rec = /^\/recomendaciones\/(\d+)$/.exec(ruta);
+  if (rec && req.method === "POST") {
+    const { estado } = (await req.json()) as { estado: string };
+    if (!["pendiente", "hecho", "descartado"].includes(estado)) return Response.json({ error: "estado no válido" }, { status: 400 });
+    await env.DB.prepare("UPDATE recomendaciones SET estado = ?, actualizado = datetime('now') WHERE id = ?").bind(estado, +rec[1]).run();
+    return Response.json({ ok: true });
+  }
   if (ruta.startsWith("/medio/")) return medio(env, req, decodeURIComponent(ruta.slice(7)));
   if (ruta === "/animaciones") return Response.json((await env.DB.prepare(`SELECT a.*, h.titulo, h.semana FROM animaciones a JOIN historias h ON h.id = a.historia_id
       WHERE h.estado != 'publicado' ORDER BY h.semana, a.orden`).all()).results);
