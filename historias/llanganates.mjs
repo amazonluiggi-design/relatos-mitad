@@ -98,6 +98,7 @@ export const REELS = [
   { id: "reel7", gancho: "Dos marineros encontraron la cueva de oro", escenas: ["i1", "i2", "i3", "i4"], cierre: "¿Verdad o mentira? En el canal" },
   { id: "reel8", gancho: "El parque donde la niebla se traga a la gente", escenas: ["h1", "h2", "h2b", "h3"], cierre: "La historia completa, en el canal" },
   { id: "reel9", gancho: "Prometió una habitación llena de oro", escenas: ["a1", "a2", "a3", "a4"], cierre: "¿Dónde está ese oro? En el canal" },
+  { id: "reel10", gancho: "El día que encontró el oro", escenas: ["v3", "v4", "v5", "v6"], cierre: "La historia completa, en el canal" },
   { id: "parte1", tiktok: true, gancho: "Llanganates · Parte 1: el oro de Rumiñahui", escenas: ["g1", "g2", "g3", "g4", "a1", "a2", "a3", "a4", "a5", "a6"], cierre: "Parte 2 en mi perfil · Sígueme" },
   { id: "parte2", tiktok: true, gancho: "Llanganates · Parte 2: el soldado Valverde", escenas: ["v1", "v2", "v2b", "v3", "v4", "v5", "v6", "d1", "d2", "d3", "d3b", "d4"], cierre: "Parte 3 en mi perfil · Sígueme" },
   { id: "parte3", tiktok: true, gancho: "Llanganates · Parte 3: los que desaparecieron", escenas: ["f1", "f2", "f3", "f3b", "f4", "f5", "z1", "z2", "z3", "z3b"], cierre: "Parte 4 en mi perfil · Sígueme" },

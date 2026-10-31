@@ -94,6 +94,7 @@ export const REELS = [
   { id: "reel6", gancho: "Cantuña sí existió… y era millonario", escenas: ["r2", "r3", "r4", "r5b"], cierre: "¿De dónde salió su oro? En el canal" },
   { id: "reel7", gancho: "La mentira perfecta de Cantuña", escenas: ["r5c", "r6", "r7", "r8"], cierre: "La historia completa, en el canal" },
   { id: "reel8", gancho: "¿Ya buscaste la piedra que falta?", escenas: ["h1", "h2", "h3"], cierre: "La leyenda completa, en el canal" },
+  { id: "reel9", gancho: "Un niño vio dónde escondieron el oro", escenas: ["a5", "a6", "a7", "a8"], cierre: "La leyenda completa, en el canal" },
 ];
 
 export const TITULO_CARTEL = { en: "g5", titulo: "CANTUÑA", sub: "El hombre que engañó al diablo" };

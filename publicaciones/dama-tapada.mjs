@@ -109,3 +109,7 @@ YOUTUBE.reels.push(
   { titulo: "El incendio que borró el Guayaquil colonial 🔥 #guayaquil #shorts" },
   { titulo: "Primero llegaba el perfume… 🌸 #misterio #shorts" },
 );
+
+// Relleno del mismo día (sáb 31-oct): más publicaciones desde hoy.
+PUBLICACION.reels.push({"archivo":"out/dama-tapada-reel11.mp4","cuando":"2026-10-31T21:30:00-05:00","texto":"Los encontraban al amanecer, tirados en el barro, con la cara llena de espanto… 😱 Esto les pasaba a los que seguían a la Dama Tapada.\n\nLa leyenda completa en la página 👆 ¿Tú la seguirías? SÍ o NO\n#damatapada #guayaquil #leyendas #misterio #terror"});
+YOUTUBE.reels.push({"titulo":"Lo que les pasó a los que la siguieron 😱 #misterio #shorts"});

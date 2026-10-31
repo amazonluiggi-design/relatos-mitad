@@ -90,3 +90,7 @@ YOUTUBE.episodios = [
   { titulo: "Llanganates | Episodio 1: el oro de Rumiñahui y el derrotero de Valverde" },
   { titulo: "Llanganates | Episodio 2: el fraile, el minero y la cueva de oro" },
 ];
+
+// Relleno del mismo día (sáb 31-oct): más publicaciones desde hoy.
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel10.mp4","cuando":"2026-10-31T16:00:00-05:00","texto":"Su suegro lo llevó a las montañas… y ahí vio más oro del que un soldado pobre podía imaginar ✨\n\nLa historia completa en la página 👆 ¿Tú habrías vuelto por más?\n#llanganates #tesoroinca #valverde #misterio #ecuador"});
+YOUTUBE.reels.push({"titulo":"El día que encontró el oro inca ✨ #tesoro #shorts"});

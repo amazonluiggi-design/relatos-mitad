@@ -81,3 +81,7 @@ YOUTUBE.episodios = [
   { titulo: "Cantuña | Episodio 1: el oro perdido de Atahualpa (leyenda de Quito)" },
   { titulo: "Cantuña | Episodio 2: el pacto con el diablo y la piedra que falta" },
 ];
+
+// Relleno del mismo día (sáb 31-oct): más publicaciones desde hoy.
+PUBLICACION.reels.push({"archivo":"out/cantuna-reel9.mp4","cuando":"2026-10-31T12:30:00-05:00","texto":"Antes de que llegaran los españoles, un niño vio dónde escondieron el oro de Atahualpa 👀 Ese niño era Cantuña.\n\nLa leyenda completa en la página 👆 ¿La conocías? SÍ o NO\n#cantuña #atahualpa #oroinca #leyendas #ecuador"});
+YOUTUBE.reels.push({"titulo":"Un niño vio dónde escondieron el oro 👀 #leyendas #shorts"});
