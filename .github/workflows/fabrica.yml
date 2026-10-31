@@ -65,7 +65,7 @@ jobs:
           if [ "$C" = "miniatura" ]; then
             $R still src/index.ts "$H-miniatura" "out/$H-miniatura.jpg" --log=error
           else
-            $R render src/index.ts "$H-$C" "out/$H-$C-crudo.mp4" --codec=h264 --crf=18 --log=error --concurrency=4 --timeout=120000
+            $R render src/index.ts "$H-$C" "out/$H-$C-crudo.mp4" --codec=h264 --crf=18 --log=error --concurrency=2 --timeout=120000
             $R ffmpeg -y -loglevel error -i "out/$H-$C-crudo.mp4" -c:v copy -af "loudnorm=I=-14:TP=-1:LRA=11,aformat=channel_layouts=stereo" -c:a aac -b:a 192k -ar 48000 "out/$H-$C.mp4"
             rm "out/$H-$C-crudo.mp4"
           fi
