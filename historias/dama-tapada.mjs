@@ -91,6 +91,11 @@ export const REELS = [
   { id: "reel4", gancho: "Hasta los guardias le tenían miedo", escenas: ["t1", "t2", "t3", "t4", "t5"], cierre: "Relato completo en el canal" },
   { id: "reel5", gancho: "¿Quién era la Dama Tapada?", escenas: ["q1", "q2", "q3", "q5", "q6"], cierre: "Tú, ¿qué crees? Míralo en el canal" },
   { id: "reel6", gancho: "No solo en Guayaquil: está en toda Latinoamérica", escenas: ["l1", "l2", "l3", "l4"], cierre: "La historia completa, en el canal" },
+  // Reels cortos de "un dato" (25-35 s) para el horario de las 12:30.
+  { id: "reel7", gancho: "En Lima, las mujeres tapadas eran reales", escenas: ["l1", "l2", "l4"], cierre: "La leyenda completa, en el canal" },
+  { id: "reel8", gancho: "La versión venezolana: la Sayona", escenas: ["l3", "l4", "q4"], cierre: "La historia completa, en el canal" },
+  { id: "reel9", gancho: "El incendio que borró el Guayaquil colonial", escenas: ["h1", "h2", "h3"], cierre: "La leyenda completa, en el canal" },
+  { id: "reel10", gancho: "Primero llegaba el perfume…", escenas: ["a2", "a3", "a4", "a5"], cierre: "Si lo hueles, no la sigas" },
   { id: "parte1", tiktok: true, gancho: "La Dama Tapada · Parte 1: el puerto", escenas: ["g1", "g2", "g3", "g4", "p1", "p2", "p3", "p4", "p5", "p6"], cierre: "Parte 2 en mi perfil · Sígueme" },
   { id: "parte2", tiktok: true, gancho: "La Dama Tapada · Parte 2: la aparición", escenas: ["a1", "a2", "a3", "a4", "a5", "a6", "r1", "r2", "r3", "r4", "r5", "r6", "r7"], cierre: "Parte 3 en mi perfil · Sígueme" },
   { id: "parte3", tiktok: true, gancho: "La Dama Tapada · Parte 3: ¿quién era?", escenas: ["t1", "t2", "t3", "t4", "t5", "q1", "q2", "q3", "q4", "q5", "q6"], cierre: "Parte 4 en mi perfil · Sígueme" },

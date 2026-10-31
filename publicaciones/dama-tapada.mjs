@@ -83,3 +83,29 @@ YOUTUBE.episodios = [
   { titulo: "La Dama Tapada | Episodio 1: la aparición en el Guayaquil colonial" },
   { titulo: "La Dama Tapada | Episodio 2: ¿quién era la mujer del velo?" },
 ];
+
+// Reels cortos de "un dato" a las 12:30.
+PUBLICACION.reels.push(
+  { archivo: "out/dama-tapada-reel7.mp4", cuando: "2026-11-10T12:30:00-05:00", texto: `En Lima, durante siglos, las mujeres salían a la calle tapadas con un manto que solo dejaba ver un ojo 👁️ ¡Y eran reales!
+
+La leyenda de la Dama Tapada en la página 👆 ¿Lo sabías?
+#tapadaslimeñas #lima #historia #damatapada #leyendas` },
+  { archivo: "out/dama-tapada-reel8.mp4", cuando: "2026-11-12T12:30:00-05:00", texto: `En Venezuela y Colombia la llaman la Sayona 👻 y castiga a los hombres infieles en los caminos.
+
+La versión ecuatoriana, en la página 👆 ¿De qué país me escribes?
+#lasayona #leyendas #venezuela #colombia #misterio` },
+  { archivo: "out/dama-tapada-reel9.mp4", cuando: "2026-11-14T12:30:00-05:00", texto: `En 1896 el Fuego Grande consumió buena parte del Guayaquil de madera 🔥 Pero la leyenda sobrevivió.
+
+La historia completa en la página 👆
+#guayaquil #historia #fuegogrande #damatapada #ecuador` },
+  { archivo: "out/dama-tapada-reel10.mp4", cuando: "2026-11-16T12:30:00-05:00", texto: `Si a medianoche hueles nardos o violetas en una calle vacía… no sigas a nadie 🌸
+
+La leyenda completa en la página 👆 ¿Tú la seguirías?
+#damatapada #guayaquil #leyendas #misterio #terror` },
+);
+YOUTUBE.reels.push(
+  { titulo: "Las mujeres tapadas de Lima eran reales 👁️ #historia #shorts" },
+  { titulo: "La Sayona: la versión venezolana 👻 #leyendas #shorts" },
+  { titulo: "El incendio que borró el Guayaquil colonial 🔥 #guayaquil #shorts" },
+  { titulo: "Primero llegaba el perfume… 🌸 #misterio #shorts" },
+);
