@@ -37,7 +37,7 @@ jobs:
         run: |
           node -e '
             const p = require("./src/datos/${{ inputs.historia }}-plan.json");
-            const todas = ["miniatura", "largo", ...p.reels.map((r) => r.id)];
+            const todas = ["miniatura", "largo", ...p.reels.map((r) => r.id), ...(p.episodios || []).map((e) => e.id)];
             const solo = "${{ inputs.solo }}".split(" ").filter(Boolean);
             console.log("comps=" + JSON.stringify(solo.length ? todas.filter((c) => solo.includes(c)) : todas));
           ' >> "$GITHUB_OUTPUT"
