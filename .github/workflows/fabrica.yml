@@ -1,0 +1,112 @@
+# Fábrica de Relatos de la Mitad: renderiza una historia en la nube y la programa en Facebook, YouTube y el panel.
+# Se lanza a mano (Actions → Fábrica → Run workflow) o desde un script con la API de GitHub.
+name: Fábrica
+
+on:
+  workflow_dispatch:
+    inputs:
+      historia:
+        description: "Id de la historia (ej. dama-tapada)"
+        required: true
+      solo:
+        description: "Composiciones a renderizar separadas por espacio (vacío = todas)"
+        required: false
+        default: ""
+      publicar:
+        description: "Publicar al terminar (si / no)"
+        required: false
+        default: "si"
+
+concurrency:
+  group: fabrica-${{ inputs.historia }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      comps: ${{ steps.c.outputs.comps }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Plan de la historia
+        run: node scripts/planear.mjs "${{ inputs.historia }}"
+      - id: c
+        name: Lista de composiciones
+        run: |
+          node -e '
+            const p = require("./src/datos/${{ inputs.historia }}-plan.json");
+            const todas = ["miniatura", "largo", ...p.reels.map((r) => r.id)];
+            const solo = "${{ inputs.solo }}".split(" ").filter(Boolean);
+            console.log("comps=" + JSON.stringify(solo.length ? todas.filter((c) => solo.includes(c)) : todas));
+          ' >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with: { name: plan, path: "src/datos/${{ inputs.historia }}-*" }
+
+  render:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        comp: ${{ fromJson(needs.plan.outputs.comps) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with: { name: plan, path: src/datos }
+      - name: Render ${{ matrix.comp }}
+        run: |
+          H="${{ inputs.historia }}"; C="${{ matrix.comp }}"
+          R="node node_modules/@remotion/cli/remotion-cli.js"
+          mkdir -p out
+          if [ "$C" = "miniatura" ]; then
+            $R still src/index.ts "$H-miniatura" "out/$H-miniatura.jpg" --log=error
+          else
+            $R render src/index.ts "$H-$C" "out/$H-$C-crudo.mp4" --codec=h264 --crf=18 --log=error --concurrency=4 --timeout=120000
+            $R ffmpeg -y -loglevel error -i "out/$H-$C-crudo.mp4" -c:v copy -af "loudnorm=I=-14:TP=-1:LRA=11,aformat=channel_layouts=stereo" -c:a aac -b:a 192k -ar 48000 "out/$H-$C.mp4"
+            rm "out/$H-$C-crudo.mp4"
+          fi
+      - uses: actions/upload-artifact@v4
+        with: { name: "out-${{ matrix.comp }}", path: out/, retention-days: 3 }
+
+  publicar:
+    needs: render
+    if: inputs.publicar == 'si'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with: { name: plan, path: src/datos }
+      - uses: actions/download-artifact@v4
+        with: { pattern: "out-*", path: out, merge-multiple: true }
+      - name: Credenciales (desde los secretos del repositorio)
+        env:
+          FB_PAGINA_JSON: ${{ secrets.FB_PAGINA_JSON }}
+          FB_TXT: ${{ secrets.FB_TXT }}
+          GOOGLE_TXT: ${{ secrets.GOOGLE_TXT }}
+          YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
+        run: |
+          mkdir -p ~/.relatos-secretos
+          printf '%s' "$FB_PAGINA_JSON" > ~/.relatos-secretos/facebook-pagina.json
+          printf '%s' "$FB_TXT" > ~/.relatos-secretos/facebook.txt
+          printf '%s' "$GOOGLE_TXT" > ~/.relatos-secretos/google.txt
+          printf '%s' "$YOUTUBE_TOKEN_JSON" > ~/.relatos-secretos/youtube-token.json
+      - name: Publicar
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: bash scripts/publicar-historia.sh "${{ inputs.historia }}"
+      - name: Guardar IDs de Facebook y YouTube
+        run: |
+          git config user.name "Relatos de la Mitad"; git config user.email "amazonluiggi@gmail.com"
+          git add publicaciones/*.json && git commit -m "IDs publicados: ${{ inputs.historia }}" && git push || echo "sin cambios"
