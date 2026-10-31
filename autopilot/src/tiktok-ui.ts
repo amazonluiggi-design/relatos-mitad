@@ -26,7 +26,7 @@ export async function urlConectar(env: Env) {
   const t = JSON.parse((await env.KV.get("tiktok-token"))!) as Token;
   const estado = crypto.randomUUID().replace(/-/g, "");
   await env.KV.put("tiktok-estado", estado, { expirationTtl: 900 });
-  return `https://www.tiktok.com/v2/auth/authorize/?client_key=${t.client_key}&scope=${ALCANCE}&response_type=code&redirect_uri=${encodeURIComponent(REGRESO)}&state=${estado}`;
+  return `https://www.tiktok.com/v2/auth/authorize/?client_key=${t.client_key}&scope=${ALCANCE}&response_type=code&redirect_uri=${encodeURIComponent(REGRESO)}&state=${estado}&disable_auto_auth=1`;
 }
 
 /** Canjea el código que dejó la página de regreso y guarda la nueva conexión. */
