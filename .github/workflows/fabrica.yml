@@ -30,6 +30,10 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - name: Recursos de la historia (imágenes, voz y clips desde R2 si no están en el repo)
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: node scripts/recursos.mjs bajar "${{ inputs.historia }}"
       - name: Plan de la historia
         run: node scripts/planear.mjs "${{ inputs.historia }}"
       - id: c
@@ -56,6 +60,10 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - name: Recursos de la historia (imágenes, voz y clips desde R2 si no están en el repo)
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: node scripts/recursos.mjs bajar "${{ inputs.historia }}"
       - run: node scripts/planear.mjs "${{ inputs.historia }}"
       - name: Render ${{ matrix.comp }}
         run: |
@@ -92,6 +100,10 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - name: Recursos de la historia (imágenes, voz y clips desde R2 si no están en el repo)
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: node scripts/recursos.mjs bajar "${{ inputs.historia }}"
       - run: node scripts/planear.mjs "${{ inputs.historia }}"
       - name: Credenciales (desde los secretos del repositorio)
         env:
@@ -105,6 +117,8 @@ jobs:
           printf '%s' "$FB_TXT" > ~/.relatos-secretos/facebook.txt
           printf '%s' "$GOOGLE_TXT" > ~/.relatos-secretos/google.txt
           printf '%s' "$YOUTUBE_TOKEN_JSON" > ~/.relatos-secretos/youtube-token.json
+          # Si el JSON de la página llegó roto, se regenera desde facebook.txt.
+          node -e 'JSON.parse(require("fs").readFileSync(require("os").homedir()+"/.relatos-secretos/facebook-pagina.json","utf8"))' 2>/dev/null || node scripts/fb-token.mjs
       - name: Publicar
         env:
           RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
@@ -113,4 +127,5 @@ jobs:
       - name: Guardar IDs de Facebook y YouTube
         run: |
           git config user.name "Relatos de la Mitad"; git config user.email "amazonluiggi@gmail.com"
-          git add publicaciones/*.json && git commit -m "IDs publicados: ${{ inputs.historia }}" && git push || echo "sin cambios"
+          git add publicaciones/*.json && git commit -m "IDs publicados: ${{ inputs.historia }}" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 10; done

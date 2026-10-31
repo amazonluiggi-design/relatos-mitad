@@ -32,6 +32,15 @@ export async function sql(sentencias) {
   return j;
 }
 
+/** { "reel5": "externo_id", ... } de una historia y red, según el panel. */
+export async function yaProgramados(h, red) {
+  const r = await fetch("https://relatos-autopilot.probador-worker.workers.dev/api/publicaciones", { headers: H });
+  const l = await r.json();
+  const out = {};
+  for (const p of l) if (p.red === red && p.externo_id && p.video_id.startsWith(h + "-")) out[p.video_id.slice(h.length + 1)] = p.externo_id;
+  return out;
+}
+
 export async function bajar(clave, archivo) {
   const r = await fetch(`https://relatos-autopilot.probador-worker.workers.dev/api/medio/${encodeURIComponent(clave)}`, { headers: H });
   if (!r.ok) throw new Error(`bajar ${clave}: ${r.status}`);

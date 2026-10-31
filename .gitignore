@@ -5,3 +5,4 @@ muestras
 .env
 .wrangler
 *.log
+public/padre-almeida/

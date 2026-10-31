@@ -33,6 +33,8 @@ jobs:
           printf '%s' "$FB_TXT" > ~/.relatos-secretos/facebook.txt
           printf '%s' "$GOOGLE_TXT" > ~/.relatos-secretos/google.txt
           printf '%s' "$YOUTUBE_TOKEN_JSON" > ~/.relatos-secretos/youtube-token.json
+          # Si el JSON de la página llegó roto, se regenera desde facebook.txt.
+          node -e 'JSON.parse(require("fs").readFileSync(require("os").homedir()+"/.relatos-secretos/facebook-pagina.json","utf8"))' 2>/dev/null || node scripts/fb-token.mjs
       - name: Programar lo pendiente
         env:
           RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
@@ -50,4 +52,5 @@ jobs:
       - name: Guardar IDs publicados
         run: |
           git config user.name "Relatos de la Mitad"; git config user.email "amazonluiggi@gmail.com"
-          git add publicaciones/*.json && git commit -m "Programación diaria $(date +%F)" && git push || echo "sin cambios"
+          git add publicaciones/*.json && git commit -m "Programación diaria $(date +%F)" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 10; done

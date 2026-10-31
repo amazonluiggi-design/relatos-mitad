@@ -5,7 +5,8 @@ import { bajar } from "./nube.mjs";
 const h = process.argv[2];
 const { PUBLICACION } = await import(`../publicaciones/${h}.mjs`);
 const leer = (r) => (fs.existsSync(`publicaciones/${h}-${r}.json`) ? JSON.parse(fs.readFileSync(`publicaciones/${h}-${r}.json`, "utf8")) : {});
-const fb = leer("fb"), yt = leer("yt");
+const { yaProgramados } = await import("./nube.mjs");
+const fb = { ...(await yaProgramados(h, "facebook").catch(() => ({}))), ...leer("fb") }, yt = { ...(await yaProgramados(h, "youtube").catch(() => ({}))), ...leer("yt") };
 const tareas = [["largo", PUBLICACION.largo], ...PUBLICACION.reels.map((r, i) => [`reel${i + 1}`, r]), ...(PUBLICACION.episodios || []).map((e, i) => [`episodio${i + 1}`, e])];
 fs.mkdirSync("out", { recursive: true });
 for (const [k, p] of tareas) {

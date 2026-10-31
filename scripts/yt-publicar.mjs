@@ -7,6 +7,12 @@ const { PUBLICACION, YOUTUBE } = await import(`../publicaciones/${nombre}.mjs`);
 const T = JSON.parse(fs.readFileSync(os.homedir() + "/.relatos-secretos/youtube-token.json", "utf8"));
 const registro = `publicaciones/${nombre}-yt.json`;
 const hecho = fs.existsSync(registro) ? JSON.parse(fs.readFileSync(registro, "utf8")) : {};
+
+// El panel (D1) también sabe qué está programado: si el JSON del repo se perdió, no se duplica.
+try {
+  const { yaProgramados } = await import("./nube.mjs");
+  for (const [k, id] of Object.entries(await yaProgramados(nombre, "youtube"))) if (!hecho[k]) hecho[k] = { id, desdePanel: true };
+} catch (e) { console.log("aviso: no se pudo consultar el panel", String(e).slice(0, 80)); }
 const tok = (await (await fetch("https://oauth2.googleapis.com/token", { method: "POST", body: new URLSearchParams({ client_id: T.client_id, client_secret: T.client_secret, refresh_token: T.refresh_token, grant_type: "refresh_token" }) })).json()).access_token;
 const H = { Authorization: `Bearer ${tok}` };
 

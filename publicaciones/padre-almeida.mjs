@@ -41,12 +41,6 @@ Imágenes: recreaciones generadas con IA. La leyenda tiene varias versiones; con
     { archivo: "out/padre-almeida-parte3.mp4", cuando: "2026-11-15T13:00:00-05:00", texto: `El Padre Almeida · Parte 3 ⚰️ El cortejo fúnebre… y el muerto era él.\n\nSígueme para la Parte 4 👆\n#padrealmeida #quito #leyendas #misterio #parte3` },
     { archivo: "out/padre-almeida-parte4.mp4", cuando: "2026-11-16T13:00:00-05:00", texto: `El Padre Almeida · Parte 4 (final) 🙏 Lo que cambió después de esa noche.\n\n¿Tú qué le habrías respondido? Comenta 👇\n#padrealmeida #quito #leyendasdeecuador #historia #final` },
   ],
-  episodios: [
-    { archivo: "out/padre-almeida-episodio1.mp4", cuando: "2026-11-18T20:00:00-05:00", titulo: "El Padre Almeida · Episodio 1: las escapadas",
-      texto: `El Padre Almeida · Episodio 1 🕯️ El convento, el fraile y sus escapadas nocturnas por la torre.\n\nMañana, el Episodio 2: la voz y el cortejo. ¿La conocías? Comenta 👇\n#padrealmeida #quito #leyendasdeecuador #leyendas #historia` },
-    { archivo: "out/padre-almeida-episodio2.mp4", cuando: "2026-11-19T20:00:00-05:00", titulo: "El Padre Almeida · Episodio 2: ¿hasta cuándo?",
-      texto: `El Padre Almeida · Episodio 2 ⚰️ La voz en la torre, el cortejo fúnebre y la noche que lo cambió todo.\n\n¿Aviso del cielo o efecto de la chicha? Comenta 👇\n#padrealmeida #quito #leyendas #misterio #ecuador` },
-  ],
 };
 
 export const YOUTUBE = {
@@ -73,9 +67,5 @@ Las imágenes son recreaciones generadas con IA. La leyenda tiene varias version
     { titulo: "«¿Hasta cuándo, Padre Almeida?» 😂 #ecuador #shorts" },
     { titulo: "Lo que pasó después del cortejo 🙏 #leyendas #shorts" },
     { titulo: "La ventana del Padre Almeida todavía existe 📍 #quito #shorts" },
-  ],
-  episodios: [
-    { titulo: "El Padre Almeida | Episodio 1: el fraile que se escapaba de noche" },
-    { titulo: "El Padre Almeida | Episodio 2: ¿hasta cuándo? La voz y el cortejo" },
   ],
 };

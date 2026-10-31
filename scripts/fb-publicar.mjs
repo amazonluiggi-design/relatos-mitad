@@ -8,6 +8,12 @@ const P = JSON.parse(fs.readFileSync(os.homedir() + "/.relatos-secretos/facebook
 const G = "https://graph.facebook.com/v23.0", GV = "https://graph-video.facebook.com/v23.0";
 const registro = `publicaciones/${nombre}-fb.json`;
 const hecho = fs.existsSync(registro) ? JSON.parse(fs.readFileSync(registro, "utf8")) : {};
+
+// El panel (D1) también sabe qué está programado: si el JSON del repo se perdió, no se duplica.
+try {
+  const { yaProgramados } = await import("./nube.mjs");
+  for (const [k, id] of Object.entries(await yaProgramados(nombre, "facebook"))) if (!hecho[k]) hecho[k] = { id, desdePanel: true };
+} catch (e) { console.log("aviso: no se pudo consultar el panel", String(e).slice(0, 80)); }
 const unix = (s) => Math.floor(new Date(s).getTime() / 1000);
 const pedir = async (url, cuerpo) => {
   const r = await fetch(url, { method: "POST", body: cuerpo });
