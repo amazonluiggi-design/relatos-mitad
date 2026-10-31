@@ -39,10 +39,26 @@ const reels = (REELS || []).map((r) => {
   const sub = r.escenas.map((id) => HISTORIA.escenas[ids.indexOf(id)]);
   return { ...r, ...armar(sub, 0.3, 3.2, true) };
 });
-const plan = { fps: FPS, titulo: HISTORIA.titulo, cartel: TITULO_CARTEL || null, ...largo, reels };
+// Episodios horizontales de 3 a 5 min (Facebook con anuncios, YouTube): capítulos completos agrupados.
+const MIN_EP = 185;
+const bloques = [];
+for (const e of HISTORIA.escenas) { if (!bloques.length || (CAPITULOS[e.id] && bloques.at(-1).some((x) => CAPITULOS[x.id]))) bloques.push([]); bloques.at(-1).push(e); }
+const dur = (l) => l.reduce((a, e) => a + porId[e.id].duracion + 0.5, 0);
+const grupos = [];
+for (const b of bloques) { if (grupos.length && dur(grupos.at(-1)) < MIN_EP) grupos.at(-1).push(...b); else grupos.push([...b]); }
+if (grupos.length > 1 && dur(grupos.at(-1)) < MIN_EP) grupos.at(-2).push(...grupos.pop());
+let capsAntes = 0;
+const episodios = grupos.map((g, i) => {
+  const caps = g.filter((e) => CAPITULOS[e.id]).map((e) => CAPITULOS[e.id]);
+  const ep = { id: `episodio${i + 1}`, capitulos: caps, capInicial: capsAntes, ...armar(g) };
+  capsAntes += caps.length;
+  return ep;
+});
+const plan = { fps: FPS, titulo: HISTORIA.titulo, cartel: TITULO_CARTEL || null, ...largo, reels, episodios };
 fs.writeFileSync(`src/datos/${nombre}-plan.json`, JSON.stringify(plan));
 console.log(`largo: ${(largo.total / FPS / 60).toFixed(2)} min`);
 reels.forEach((r) => console.log(`${r.id}: ${(r.total / FPS).toFixed(1)} s`));
+episodios.forEach((e) => console.log(`${e.id}: ${(e.total / FPS / 60).toFixed(2)} min · ${e.capitulos.join(" / ")}`));
 // Capítulos para la descripción de YouTube.
 let marcas = ["0:00 Introducción"];
 for (const e of largo.escenas) if (e.capitulo) {

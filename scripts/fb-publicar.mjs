@@ -57,10 +57,13 @@ async function reel(p) {
   return { id: ini.video_id };
 }
 
-const tareas = [["largo", PUBLICACION.largo, videoLargo], ...PUBLICACION.reels.map((r, i) => [`reel${i + 1}`, r, reel])];
+const tareas = [["largo", PUBLICACION.largo, videoLargo], ...PUBLICACION.reels.map((r, i) => [`reel${i + 1}`, r, reel]),
+  ...(PUBLICACION.episodios || []).map((e, i) => [`episodio${i + 1}`, e, videoLargo])];
 for (const [id, p, f] of tareas) {
   if (solo && solo !== id) continue;
   if (hecho[id]) { console.log(id, "ya programado:", hecho[id].id); continue; }
+  if (!fs.existsSync(p.archivo)) { console.log(id, "sin archivo todavía"); continue; }
+  if (new Date(p.cuando) < new Date(Date.now() + 15 * 60000)) { console.log(id, "su hora ya pasó, no se programa"); continue; }
   console.log(id, "→", p.cuando);
   const r = await f(p);
   hecho[id] = { id: r.id, cuando: p.cuando };

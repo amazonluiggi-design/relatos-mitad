@@ -64,3 +64,29 @@ Las imágenes y animaciones son recreaciones generadas con IA. La leyenda tiene 
     { titulo: "Dijeron que encontraron el oro… y murieron 🌊 #tesoro #shorts" },
   ],
 };
+
+// ── Ritmo alto (nov 2026): reels cortos de "un dato" a las 12:30 y episodios de 3-5 min a las 20:00 (Facebook con anuncios + YouTube).
+PUBLICACION.reels.push(
+  { archivo: "out/llanganates-reel5.mp4", cuando: "2026-11-03T12:30:00-05:00", texto: `Antes de morir, le dejó al rey de España el camino exacto al tesoro 📜\n\nLa historia completa en la página 👆 ¿Lo seguirías?\n#llanganates #derrotero #tesoroinca #leyendas #ecuador` },
+  { archivo: "out/llanganates-reel6.mp4", cuando: "2026-11-05T12:30:00-05:00", texto: `Un minero hizo el mapa del tesoro de los Llanganates… y murió antes de reclamarlo 🗺️\n\nRelato completo en la página 👆 ¿Maldición o casualidad?\n#llanganates #tesoro #misterio #ecuador #leyendas` },
+  { archivo: "out/llanganates-reel7.mp4", cuando: "2026-11-07T12:30:00-05:00", texto: `Dos marineros ingleses dijeron que encontraron una cueva llena de oro inca ✨\n\n¿Verdad o mentira? La historia en la página 👆\n#llanganates #tesoroinca #misterio #historia #leyendas` },
+  { archivo: "out/llanganates-reel8.mp4", cuando: "2026-11-09T12:30:00-05:00", texto: `En los Llanganates la niebla cae en minutos… y algunos exploradores nunca volvieron 🌫️\n\nLa historia completa en la página 👆 ¿Irías?\n#llanganates #ecuador #misterio #aventura #leyendas` },
+  { archivo: "out/llanganates-reel9.mp4", cuando: "2026-11-01T12:30:00-05:00", texto: `Atahualpa prometió una habitación llena de oro para salvar su vida… y una parte nunca llegó 👑\n\n¿Dónde está ese oro? En la página 👆\n#atahualpa #oroinca #historia #misterio #ecuador` },
+);
+YOUTUBE.reels.push(
+  { titulo: "El mapa del tesoro que le dejó al rey 📜 #tesoro #shorts" },
+  { titulo: "Hizo el mapa del tesoro… y murió 🗺️ #misterio #shorts" },
+  { titulo: "Encontraron una cueva llena de oro inca ✨ #tesoro #shorts" },
+  { titulo: "El parque donde la niebla se traga a la gente 🌫️ #ecuador #shorts" },
+  { titulo: "Prometió una habitación llena de oro 👑 #atahualpa #shorts" },
+);
+PUBLICACION.episodios = [
+  { archivo: "out/llanganates-episodio1.mp4", cuando: "2026-11-03T20:00:00-05:00", titulo: "Llanganates · Episodio 1: el oro de Rumiñahui",
+    texto: `Llanganates · Episodio 1 🏔️ El oro que Rumiñahui escondió, el soldado Valverde y el mapa que le dejó al rey.\n\nMañana, el Episodio 2: los que siguieron el mapa. ¿Lo seguirías tú? 👇\n#llanganates #rumiñahui #tesoroinca #leyendasdeecuador #misterio` },
+  { archivo: "out/llanganates-episodio2.mp4", cuando: "2026-11-04T20:00:00-05:00", titulo: "Llanganates · Episodio 2: los que siguieron el mapa",
+    texto: `Llanganates · Episodio 2 🌫️ El fraile que desapareció, el minero del mapa y la cueva de oro de los marineros ingleses.\n\n¿Crees que el oro sigue ahí? Comenta 👇\n#llanganates #tesoroinca #misterio #ecuador #leyendas` },
+];
+YOUTUBE.episodios = [
+  { titulo: "Llanganates | Episodio 1: el oro de Rumiñahui y el derrotero de Valverde" },
+  { titulo: "Llanganates | Episodio 2: el fraile, el minero y la cueva de oro" },
+];

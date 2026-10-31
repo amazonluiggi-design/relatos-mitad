@@ -27,12 +27,19 @@ const meta = (titulo, descripcion, etiquetas, cuando) => ({
   status: { privacyStatus: "private", publishAt: new Date(cuando).toISOString(), selfDeclaredMadeForKids: false, containsSyntheticMedia: true },
 });
 
-const tareas = [["largo", PUBLICACION.largo, YOUTUBE.largo], ...PUBLICACION.reels.map((r, i) => [`reel${i + 1}`, r, YOUTUBE.reels[i]])];
+const tareas = [["largo", PUBLICACION.largo, YOUTUBE.largo], ...PUBLICACION.reels.map((r, i) => [`reel${i + 1}`, r, YOUTUBE.reels[i]]),
+  ...(PUBLICACION.episodios || []).map((e, i) => [`episodio${i + 1}`, e, YOUTUBE.episodios[i]])];
 for (const [id, p, y] of tareas) {
   if (solo && solo !== id) continue;
   if (hecho[id]) { console.log(id, "ya subido:", hecho[id].id); continue; }
-  const desc = id === "largo" ? y.descripcion(fs.readFileSync(`src/datos/${nombre}-capitulos.txt`, "utf8")) : p.texto.replace("en la página", "en el canal");
-  const v = await subir(p.archivo, meta(y.titulo, desc, YOUTUBE.largo.etiquetas, p.cuando));
+  if (!fs.existsSync(p.archivo)) { console.log(id, "sin archivo todavía"); continue; }
+  if (new Date(p.cuando) < new Date(Date.now() + 15 * 60000)) { console.log(id, "su hora ya pasó, no se sube"); continue; }
+  const desc = id.startsWith("episodio") ? `${p.texto.replace("en la página", "en el canal")}
+
+Historia completa en el canal.` : id === "largo" ? y.descripcion(fs.readFileSync(`src/datos/${nombre}-capitulos.txt`, "utf8")) : p.texto.replace("en la página", "en el canal");
+  let v;
+  try { v = await subir(p.archivo, meta(y.titulo, desc, YOUTUBE.largo.etiquetas, p.cuando)); }
+  catch (e) { if (/quota/i.test(String(e))) { console.log("Cuota diaria de YouTube agotada: el resto se sube mañana."); break; } throw e; }
   console.log(id, "subido", v.id, "| estado:", v.status.privacyStatus, "| publica:", v.status.publishAt, "| sintético:", v.status.containsSyntheticMedia);
   if (id === "largo" && p.miniatura) {
     const m = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${v.id}`, { method: "POST", headers: { ...H, "Content-Type": "image/jpeg" }, body: fs.readFileSync(p.miniatura) });

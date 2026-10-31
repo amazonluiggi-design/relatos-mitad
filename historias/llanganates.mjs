@@ -92,6 +92,12 @@ export const REELS = [
   { id: "reel2", gancho: "Un soldado pobre se casó… y se volvió millonario", escenas: ["v1", "v2", "v3", "v4", "v5", "v6", "d2"], cierre: "Lo que escribió antes de morir, en el canal" },
   { id: "reel3", gancho: "El fraile que desapareció buscando oro", escenas: ["d3", "d4", "f1", "f2", "f3", "f4", "f5"], cierre: "La historia completa, en el canal" },
   { id: "reel4", gancho: "Dijeron que encontraron el oro… y murieron", escenas: ["i2", "i3", "i4", "i5", "i6", "i7", "h4"], cierre: "¿Verdad o mentira? Míralo en el canal" },
+  // Reels cortos de "un dato" (25-40 s), para publicar más seguido.
+  { id: "reel5", gancho: "El mapa del tesoro que le dejó al rey", escenas: ["d2", "d3", "d3b"], cierre: "La historia completa, en el canal" },
+  { id: "reel6", gancho: "Hizo el mapa del tesoro… y murió", escenas: ["z1", "z2", "z3", "z3b"], cierre: "La historia completa, en el canal" },
+  { id: "reel7", gancho: "Dos marineros encontraron la cueva de oro", escenas: ["i1", "i2", "i3", "i4"], cierre: "¿Verdad o mentira? En el canal" },
+  { id: "reel8", gancho: "El parque donde la niebla se traga a la gente", escenas: ["h1", "h2", "h2b", "h3"], cierre: "La historia completa, en el canal" },
+  { id: "reel9", gancho: "Prometió una habitación llena de oro", escenas: ["a1", "a2", "a3", "a4"], cierre: "¿Dónde está ese oro? En el canal" },
   { id: "parte1", tiktok: true, gancho: "Llanganates · Parte 1: el oro de Rumiñahui", escenas: ["g1", "g2", "g3", "g4", "a1", "a2", "a3", "a4", "a5", "a6"], cierre: "Parte 2 en mi perfil · Sígueme" },
   { id: "parte2", tiktok: true, gancho: "Llanganates · Parte 2: el soldado Valverde", escenas: ["v1", "v2", "v2b", "v3", "v4", "v5", "v6", "d1", "d2", "d3", "d3b", "d4"], cierre: "Parte 3 en mi perfil · Sígueme" },
   { id: "parte3", tiktok: true, gancho: "Llanganates · Parte 3: los que desaparecieron", escenas: ["f1", "f2", "f3", "f3b", "f4", "f5", "z1", "z2", "z3", "z3b"], cierre: "Parte 4 en mi perfil · Sígueme" },

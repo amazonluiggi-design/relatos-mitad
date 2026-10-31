@@ -8,10 +8,7 @@ COMPS=$(node -e "const p=require('./src/datos/$H-plan.json');console.log(p.reels
 mkdir -p out/portadas
 # En la nube los videos ya están en R2 (SIN_SUBIR=1): se bajan para Facebook y YouTube.
 if [ -n "$SIN_SUBIR" ]; then
-  mkdir -p out
-  node scripts/nube.mjs bajar $H/miniatura.jpg out/$H-miniatura.jpg
-  node scripts/nube.mjs bajar $H/largo.mp4 out/$H-largo.mp4
-  for k in $COMPS; do case $k in reel*) node scripts/nube.mjs bajar $H/$k.mp4 out/$H-$k.mp4;; esac; done
+  node scripts/bajar-pendientes.mjs $H
 else
 node scripts/nube.mjs subir out/$H-miniatura.jpg $H/miniatura.jpg image/jpeg
 for k in $COMPS; do

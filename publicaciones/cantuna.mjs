@@ -57,3 +57,27 @@ Las imágenes son recreaciones artísticas generadas con IA. La leyenda tiene va
     { titulo: "La verdad que nadie te cuenta de Cantuña 🕯️ #quito #shorts" },
   ],
 };
+
+// ── Ritmo alto (nov 2026): reels cortos de "un dato" a las 12:30 y episodios de 3-5 min a las 20:00 (Facebook con anuncios + YouTube).
+PUBLICACION.reels.push(
+  { archivo: "out/cantuna-reel5.mp4", cuando: "2026-11-02T12:30:00-05:00", texto: `La noche que cientos de sombras construyeron una iglesia en Quito 🔥\n\nLa leyenda completa en la página 👆 ¿La conocías? SÍ o NO\n#cantuña #quito #leyendas #misterio #ecuador` },
+  { archivo: "out/cantuna-reel6.mp4", cuando: "2026-11-04T12:30:00-05:00", texto: `Cantuña sí existió… y fue tan rico que pagó su propia capilla 😳 ¿De dónde salió su oro?\n\nRelato completo en la página 👆 ¿Tú qué crees?\n#cantuña #historia #quito #misterio #leyendas` },
+  { archivo: "out/cantuna-reel7.mp4", cuando: "2026-11-06T12:30:00-05:00", texto: `¿Y si el pacto con el diablo fue una mentira para esconder un tesoro? 🤫\n\nLa historia completa en la página 👆 ¿Diablo o tesoro? Comenta\n#cantuña #tesoroinca #misterio #quito #leyendas` },
+  { archivo: "out/cantuna-reel8.mp4", cuando: "2026-11-08T12:30:00-05:00", texto: `Todavía hay gente que busca la piedra que falta en San Francisco 👀 ¿Tú ya la buscaste?\n\nLa leyenda completa en la página 👆\n#cantuña #quito #sanfrancisco #leyendas #ecuador` },
+);
+YOUTUBE.reels.push(
+  { titulo: "La noche que los demonios construyeron una iglesia 🔥 #leyendas #shorts" },
+  { titulo: "Cantuña sí existió… y era millonario 😳 #historia #shorts" },
+  { titulo: "La mentira perfecta de Cantuña 🤫 #misterio #shorts" },
+  { titulo: "¿Ya buscaste la piedra que falta? 👀 #quito #shorts" },
+);
+PUBLICACION.episodios = [
+  { archivo: "out/cantuna-episodio1.mp4", cuando: "2026-11-01T20:00:00-05:00", titulo: "Cantuña · Episodio 1: el oro perdido de Atahualpa",
+    texto: `Cantuña · Episodio 1 🕯️ El oro perdido de Atahualpa y el atrio imposible de San Francisco.\n\nMañana, el Episodio 2: el pacto con el diablo. ¿Lo conocías? Comenta 👇\n#cantuña #quito #leyendasdeecuador #misterio #historia` },
+  { archivo: "out/cantuna-episodio2.mp4", cuando: "2026-11-02T20:00:00-05:00", titulo: "Cantuña · Episodio 2: el pacto con el diablo",
+    texto: `Cantuña · Episodio 2 🔥 El pacto, la noche de las sombras y la piedra que falta… y lo que casi nadie te cuenta.\n\n¿Engañó al diablo o engañó a todos? Comenta 👇\n#cantuña #quito #leyendasdeecuador #misterio #pactoconeldiablo` },
+];
+YOUTUBE.episodios = [
+  { titulo: "Cantuña | Episodio 1: el oro perdido de Atahualpa (leyenda de Quito)" },
+  { titulo: "Cantuña | Episodio 2: el pacto con el diablo y la piedra que falta" },
+];

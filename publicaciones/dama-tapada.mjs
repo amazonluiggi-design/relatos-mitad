@@ -71,3 +71,15 @@ Las imágenes y animaciones son recreaciones generadas con IA. La leyenda tiene 
     { titulo: "La misma leyenda en toda Latinoamérica 👻 #misterio #shorts" },
   ],
 };
+
+// Episodios de 3-5 min (Facebook con anuncios + YouTube), después del estreno.
+PUBLICACION.episodios = [
+  { archivo: "out/dama-tapada-episodio1.mp4", cuando: "2026-11-11T20:00:00-05:00", titulo: "La Dama Tapada · Episodio 1: la aparición",
+    texto: `La Dama Tapada · Episodio 1 🕯️ El Guayaquil colonial, la aparición… y el rostro bajo el velo.\n\nMañana, el Episodio 2: ¿quién era? ¿Tú la seguirías? SÍ o NO 👇\n#damatapada #guayaquil #leyendasdeecuador #misterio #leyendas` },
+  { archivo: "out/dama-tapada-episodio2.mp4", cuando: "2026-11-12T20:00:00-05:00", titulo: "La Dama Tapada · Episodio 2: ¿quién era?",
+    texto: `La Dama Tapada · Episodio 2 👻 Los que la vieron, quién era en realidad y por qué está en toda Latinoamérica.\n\n¿En tu ciudad hay una leyenda así? Comenta 👇\n#damatapada #leyendas #latinoamerica #misterio #guayaquil` },
+];
+YOUTUBE.episodios = [
+  { titulo: "La Dama Tapada | Episodio 1: la aparición en el Guayaquil colonial" },
+  { titulo: "La Dama Tapada | Episodio 2: ¿quién era la mujer del velo?" },
+];

@@ -89,6 +89,11 @@ export const REELS = [
   { id: "reel2", gancho: "Hizo un pacto con el diablo… y le ganó", escenas: ["p6", "p7", "n2", "n3", "n5", "x1", "x2", "x3", "x4"], cierre: "¿Cómo lo engañó? El final, en el canal" },
   { id: "reel3", gancho: "El oro de Atahualpa nunca llegó", escenas: ["a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8"], cierre: "La historia de ese niño, completa en el canal" },
   { id: "reel4", gancho: "La verdad que nadie te cuenta de Cantuña", escenas: ["r1", "r2", "r3", "r4", "r5b", "r5c", "r6", "r8"], cierre: "Mira el relato completo en el canal" },
+  // Reels cortos de "un dato" (25-40 s), para publicar más seguido.
+  { id: "reel5", gancho: "La noche que los demonios construyeron una iglesia", escenas: ["n1", "n2", "n3", "n4", "n5"], cierre: "La leyenda completa, en el canal" },
+  { id: "reel6", gancho: "Cantuña sí existió… y era millonario", escenas: ["r2", "r3", "r4", "r5b"], cierre: "¿De dónde salió su oro? En el canal" },
+  { id: "reel7", gancho: "La mentira perfecta de Cantuña", escenas: ["r5c", "r6", "r7", "r8"], cierre: "La historia completa, en el canal" },
+  { id: "reel8", gancho: "¿Ya buscaste la piedra que falta?", escenas: ["h1", "h2", "h3"], cierre: "La leyenda completa, en el canal" },
 ];
 
 export const TITULO_CARTEL = { en: "g5", titulo: "CANTUÑA", sub: "El hombre que engañó al diablo" };

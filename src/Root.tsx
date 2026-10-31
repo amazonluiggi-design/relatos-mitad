@@ -30,6 +30,10 @@ export const Root: React.FC = () => (
       <Folder key={id} name={id}>
         <Composition id={`${id}-miniatura`} component={Miniatura} width={1280} height={720} fps={30} durationInFrames={1} defaultProps={MINIATURAS[id]} />
         <Composition id={`${id}-largo`} component={Relato} width={1920} height={1080} fps={30} durationInFrames={plan.total} defaultProps={{ plan, musica: MUSICA }} />
+        {(plan.episodios || []).map((e, i) => (
+          <Composition key={e.id} id={`${id}-${e.id}`} component={Relato} width={1920} height={1080} fps={30} durationInFrames={e.total}
+            defaultProps={{ plan: { ...plan, escenas: e.escenas, total: e.total, cartel: i === 0 ? plan.cartel : null, capInicial: e.capInicial, reels: [], episodios: [] }, musica: MUSICA }} />
+        ))}
         {plan.reels.map((r) => (
           <Composition key={r.id} id={`${id}-${r.id}`} component={Reel} width={1080} height={1920} fps={30} durationInFrames={r.total} defaultProps={{ reel: r, musica: "musica/reel.mp3" }} />
         ))}

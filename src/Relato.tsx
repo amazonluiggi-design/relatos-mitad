@@ -14,7 +14,9 @@ export type Escena = {
 export type Plan = {
   fps: number; total: number; titulo: string; escenas: Escena[];
   cartel: { en: string; titulo: string; sub: string } | null;
-  reels: (Omit<Plan, "reels" | "titulo" | "cartel"> & { id: string; gancho: string; cierre: string })[];
+  reels: (Omit<Plan, "reels" | "titulo" | "cartel" | "episodios"> & { id: string; gancho: string; cierre: string })[];
+  episodios?: { id: string; capitulos: string[]; capInicial: number; escenas: Escena[]; total: number }[];
+  capInicial?: number;
 };
 
 const ENTRA = 14; // cuadros de fundido entre imágenes
@@ -238,7 +240,7 @@ const Musica: React.FC<{ total: number; src?: string }> = ({ total, src }) => {
 };
 
 export const Relato: React.FC<{ plan: Plan; musica?: string }> = ({ plan, musica }) => {
-  let cap = -1;
+  let cap = (plan.capInicial ?? 0) - 1;
   return (
     <AbsoluteFill style={{ background: "#000" }}>
       {plan.escenas.map((e) => (
