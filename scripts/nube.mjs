@@ -32,6 +32,17 @@ export async function sql(sentencias) {
   return j;
 }
 
+export async function bajar(clave, archivo) {
+  const r = await fetch(`https://relatos-autopilot.probador-worker.workers.dev/api/medio/${encodeURIComponent(clave)}`, { headers: H });
+  if (!r.ok) throw new Error(`bajar ${clave}: ${r.status}`);
+  fs.writeFileSync(archivo, Buffer.from(await r.arrayBuffer()));
+}
+
+// node scripts/nube.mjs bajar <clave> <archivo>
+if (process.argv[1]?.endsWith("nube.mjs") && process.argv[2] === "bajar") {
+  await bajar(process.argv[3], process.argv[4]);
+  console.log("bajado", process.argv[3]);
+}
 // node scripts/nube.mjs subir <archivo> <clave> <tipo>
 if (process.argv[1]?.endsWith("nube.mjs") && process.argv[2] === "subir") {
   await subir(process.argv[3], process.argv[4], process.argv[5] || "application/octet-stream");

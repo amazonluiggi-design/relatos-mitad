@@ -6,12 +6,20 @@ H=$1
 R="node node_modules/@remotion/cli/remotion-cli.js"
 COMPS=$(node -e "const p=require('./src/datos/$H-plan.json');console.log(p.reels.map(r=>r.id).join(' '))")
 mkdir -p out/portadas
+# En la nube los videos ya están en R2 (SIN_SUBIR=1): se bajan para Facebook y YouTube.
+if [ -n "$SIN_SUBIR" ]; then
+  mkdir -p out
+  node scripts/nube.mjs bajar $H/miniatura.jpg out/$H-miniatura.jpg
+  node scripts/nube.mjs bajar $H/largo.mp4 out/$H-largo.mp4
+  for k in $COMPS; do case $k in reel*) node scripts/nube.mjs bajar $H/$k.mp4 out/$H-$k.mp4;; esac; done
+else
 node scripts/nube.mjs subir out/$H-miniatura.jpg $H/miniatura.jpg image/jpeg
 for k in $COMPS; do
   $R ffmpeg -y -loglevel error -ss 1.5 -i out/$H-$k.mp4 -frames:v 1 -vf scale=540:-1 -q:v 3 out/portadas/$H-$k.jpg
   node scripts/nube.mjs subir out/portadas/$H-$k.jpg $H/$k.jpg image/jpeg
   node scripts/nube.mjs subir out/$H-$k.mp4 $H/$k.mp4 video/mp4
 done
+fi
 echo "== Facebook"; node scripts/fb-publicar.mjs $H 2>&1 | grep -vE "subido [0-9]+%" | tail -12
 echo "== YouTube"; node scripts/yt-publicar.mjs $H 2>&1 | grep -E "subido|rror" | tail -12
 echo "== Panel"; node autopilot/scripts/registrar-historia.mjs $H

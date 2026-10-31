@@ -41,8 +41,6 @@ jobs:
             const solo = "${{ inputs.solo }}".split(" ").filter(Boolean);
             console.log("comps=" + JSON.stringify(solo.length ? todas.filter((c) => solo.includes(c)) : todas));
           ' >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v4
-        with: { name: plan, path: "src/datos/${{ inputs.historia }}-*" }
 
   render:
     needs: plan
@@ -58,8 +56,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
-      - uses: actions/download-artifact@v4
-        with: { name: plan, path: src/datos }
+      - run: node scripts/planear.mjs "${{ inputs.historia }}"
       - name: Render ${{ matrix.comp }}
         run: |
           H="${{ inputs.historia }}"; C="${{ matrix.comp }}"
@@ -72,8 +69,17 @@ jobs:
             $R ffmpeg -y -loglevel error -i "out/$H-$C-crudo.mp4" -c:v copy -af "loudnorm=I=-14:TP=-1:LRA=11,aformat=channel_layouts=stereo" -c:a aac -b:a 192k -ar 48000 "out/$H-$C.mp4"
             rm "out/$H-$C-crudo.mp4"
           fi
-      - uses: actions/upload-artifact@v4
-        with: { name: "out-${{ matrix.comp }}", path: out/, retention-days: 3 }
+      - name: Subir a R2
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: |
+          H="${{ inputs.historia }}"; C="${{ matrix.comp }}"
+          if [ "$C" = "miniatura" ]; then node scripts/nube.mjs subir "out/$H-miniatura.jpg" "$H/miniatura.jpg" image/jpeg
+          else
+            node scripts/nube.mjs subir "out/$H-$C.mp4" "$H/$C.mp4" video/mp4
+            node node_modules/@remotion/cli/remotion-cli.js ffmpeg -y -loglevel error -ss 1.5 -i "out/$H-$C.mp4" -frames:v 1 -vf scale=540:-1 -q:v 3 "out/$H-$C.jpg"
+            node scripts/nube.mjs subir "out/$H-$C.jpg" "$H/$C.jpg" image/jpeg
+          fi
 
   publicar:
     needs: render
@@ -86,10 +92,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
-      - uses: actions/download-artifact@v4
-        with: { name: plan, path: src/datos }
-      - uses: actions/download-artifact@v4
-        with: { pattern: "out-*", path: out, merge-multiple: true }
+      - run: node scripts/planear.mjs "${{ inputs.historia }}"
       - name: Credenciales (desde los secretos del repositorio)
         env:
           FB_PAGINA_JSON: ${{ secrets.FB_PAGINA_JSON }}
@@ -105,6 +108,7 @@ jobs:
       - name: Publicar
         env:
           RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+          SIN_SUBIR: "1"
         run: bash scripts/publicar-historia.sh "${{ inputs.historia }}"
       - name: Guardar IDs de Facebook y YouTube
         run: |
