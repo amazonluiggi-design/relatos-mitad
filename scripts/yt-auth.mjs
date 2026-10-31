@@ -7,7 +7,7 @@ const dir = os.homedir() + "/.relatos-secretos";
 const txt = fs.readFileSync(dir + "/google.txt", "utf8").replace(/^\uFEFF/, "");
 const v = Object.fromEntries(txt.split(/\r?\n/).map((l) => l.split("=")).filter((p) => p.length >= 2).map(([k, ...r]) => [k.trim(), r.join("=").trim()]));
 if (!v.CLIENT_ID || !v.CLIENT_SECRET) throw new Error("Faltan CLIENT_ID o CLIENT_SECRET en google.txt");
-const SCOPES = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly";
+const SCOPES = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.force-ssl";
 const srv = http.createServer();
 await new Promise((r) => srv.listen(0, "127.0.0.1", r));
 const redirect = `http://127.0.0.1:${srv.address().port}`;
