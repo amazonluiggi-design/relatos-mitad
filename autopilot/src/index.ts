@@ -4,6 +4,7 @@ import { login, salir, sesionValida } from "./auth";
 import { entrarDesdePortal, leerPase } from "./portal";
 import { publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube } from "./redes";
 import { type Env, type Pub, evento } from "./tipos";
+import { aprobar, canjear, creador, urlConectar } from "./tiktok-ui";
 
 async function pubs(env: Env, where = "1=1", ...args: unknown[]) {
   return (await env.DB.prepare(`SELECT * FROM publicaciones WHERE ${where} ORDER BY cuando`).bind(...args).all<Pub>()).results;
@@ -156,6 +157,40 @@ async function api(env: Env, req: Request, url: URL) {
   if (ruta === "/publicaciones") return Response.json(await listaPublicaciones(env));
   if (ruta === "/serie") return Response.json(await serie(env));
   if (ruta === "/historias") return Response.json((await env.DB.prepare("SELECT h.*, (SELECT COUNT(*) FROM videos WHERE historia_id = h.id) videos FROM historias h ORDER BY creada DESC").all()).results);
+  // Fábrica en la nube (GitHub Actions): sube archivos a R2 y registra en D1. Solo con la clave de scripts.
+  if (ruta.startsWith("/fabrica/")) {
+    if (!deScript) return Response.json({ error: "solo scripts" }, { status: 403 });
+    const clave = url.searchParams.get("clave") || "";
+    if (ruta === "/fabrica/archivo" && req.method === "PUT") {
+      await env.VIDEOS.put(clave, req.body, { httpMetadata: { contentType: req.headers.get("content-type") || "application/octet-stream" } });
+      return Response.json({ ok: true });
+    }
+    if (ruta === "/fabrica/multi" && req.method === "POST" && url.searchParams.get("accion") === "crear") {
+      const m = await env.VIDEOS.createMultipartUpload(clave, { httpMetadata: { contentType: req.headers.get("content-type") || "video/mp4" } });
+      return Response.json({ id: m.uploadId });
+    }
+    if (ruta === "/fabrica/multi" && req.method === "PUT") {
+      const m = env.VIDEOS.resumeMultipartUpload(clave, url.searchParams.get("id")!);
+      const parte = await m.uploadPart(+url.searchParams.get("n")!, req.body!);
+      return Response.json(parte);
+    }
+    if (ruta === "/fabrica/multi" && req.method === "POST" && url.searchParams.get("accion") === "completar") {
+      const m = env.VIDEOS.resumeMultipartUpload(clave, url.searchParams.get("id")!);
+      await m.complete(((await req.json()) as { partes: R2UploadedPart[] }).partes);
+      return Response.json({ ok: true });
+    }
+    if (ruta === "/fabrica/sql" && req.method === "POST") {
+      const { sql } = (await req.json()) as { sql: string[] };
+      const r = await env.DB.batch(sql.map((s) => env.DB.prepare(s)));
+      return Response.json({ ok: true, filas: r.reduce((a, x) => a + (x.meta.changes || 0), 0) });
+    }
+    return Response.json({ error: "ruta" }, { status: 404 });
+  }
+  if (ruta === "/tiktok/conectar") return Response.json({ url: await urlConectar(env) });
+  if (ruta === "/tiktok/canjear" && req.method === "POST") return Response.json(await canjear(env));
+  if (ruta === "/tiktok/creador") return Response.json((await creador(env)) ?? { error: "sin datos" });
+  const apr = /^\/tiktok\/aprobar\/(.+)$/.exec(ruta);
+  if (apr && req.method === "POST") return Response.json(await aprobar(env, decodeURIComponent(apr[1]), await req.json()));
   if (ruta === "/crecimiento") return Response.json(await crecimiento(env));
   const rec = /^\/recomendaciones\/(\d+)$/.exec(ruta);
   if (rec && req.method === "POST") {

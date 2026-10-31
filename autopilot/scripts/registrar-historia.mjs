@@ -1,7 +1,7 @@
 // Registra en D1 una historia ya producida: videos y publicaciones (con los IDs reales de FB/YT).
 // node autopilot/scripts/registrar-historia.mjs cantuna   (desde ~/relatos-mitad)
 import fs from "node:fs";
-import { execFileSync } from "node:child_process";
+import { sql as ejecutar } from "../../scripts/nube.mjs";
 const h = process.argv[2];
 const { HISTORIA, REELS } = await import(`../../historias/${h}.mjs`);
 const { PUBLICACION, YOUTUBE } = await import(`../../publicaciones/${h}.mjs`);
@@ -25,5 +25,6 @@ PUBLICACION.reels.forEach((r, i) => {
 });
 (PUBLICACION.partes || []).forEach((p, i) => pub(`${h}-parte${i + 1}`, "tiktok", p.cuando, "pendiente", null, p.texto));
 sql.push(`INSERT INTO eventos (nivel, mensaje) VALUES ('info', ${q(`Historia "${HISTORIA.titulo}" registrada con ${REELS.length + 1} videos`)});`);
-fs.writeFileSync("prueba/registro.sql", sql.join("\n"));
-execFileSync("npx", ["wrangler", "d1", "execute", "relatos-autopilot", "--remote", "--file", "../prueba/registro.sql", "-y"], { cwd: "autopilot", stdio: "inherit", shell: true });
+// Las publicaciones de TikTok esperan la aprobación del creador en el panel (guías de TikTok).
+sql.push(`UPDATE publicaciones SET estado = 'por-aprobar' WHERE red = 'tiktok' AND video_id LIKE ${q(h + "-%")} AND estado = 'pendiente' AND privacidad IS NULL;`);
+console.log(await ejecutar(sql));

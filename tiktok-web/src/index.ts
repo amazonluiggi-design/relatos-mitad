@@ -29,6 +29,7 @@ export default {
     if (u.pathname === "/tiktok/regreso") {
       const code = u.searchParams.get("code");
       if (code) await env.KV.put("tiktok-code", JSON.stringify({ code, state: u.searchParams.get("state") }), { expirationTtl: 600 });
+      if (code) return Response.redirect("https://relatos-autopilot.probador-worker.workers.dev/#tiktok-conectado", 302);
       return pagina(code ? "Conectado" : "Sin permiso", code ? "<p>TikTok quedó conectado a Relatos de la Mitad. Ya puedes cerrar esta pestaña.</p>" : `<p>${u.searchParams.get("error_description") || "No se dio el permiso."}</p>`);
     }
     if (u.pathname === "/tiktok/codigo" && req.headers.get("x-clave") === env.CLAVE) {

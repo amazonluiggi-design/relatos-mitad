@@ -16,7 +16,7 @@ export interface Env {
 export type Pub = {
   id: string; video_id: string; red: "facebook" | "youtube" | "tiktok"; cuando: string; estado: string;
   externo_id: string | null; url: string | null; privacidad: string | null; texto: string | null;
-  error: string | null; intentos: number; publicado_en: string | null;
+  error: string | null; intentos: number; publicado_en: string | null; opciones?: string | null;
 };
 
 export type Metrica = { vistas?: number | null; me_gusta?: number | null; comentarios?: number | null; compartidos?: number | null; extra?: unknown };

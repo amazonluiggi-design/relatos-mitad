@@ -216,3 +216,36 @@ dialog video { display: block; max-width: 100%; max-height: 90dvh; }
 @media (max-width: 1100px) { .r4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .tabla-env table { min-width: 760px; }
 .tabla-env td a { white-space: nowrap; }
+
+/* TikTok: conexión y aprobación */
+.tt-panel { margin-bottom: 18px; }
+.tt-cab { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.tt-cuenta { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--panel2); }
+.tt-cuenta img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--tt); }
+.tt-cuenta b { display: block; }
+.tt-item { align-items: center; }
+.tt-item .boton-pri { margin-left: auto; white-space: nowrap; }
+.boton-pri { background: linear-gradient(135deg, var(--ambar), #d9822b); color: #1b1206; border: 0; border-radius: 12px; padding: 9px 14px; font-weight: 700; }
+.boton-pri:disabled { opacity: .45; cursor: not-allowed; }
+.tt-dialogo { width: min(880px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 1px solid var(--borde); border-radius: 18px; background: var(--panel); color: var(--texto); }
+.tt-dialogo::backdrop { background: rgba(0,0,0,.7); }
+.tt-cuerpo { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 20px; }
+.tt-prev video { width: 100%; aspect-ratio: 9/16; object-fit: cover; border-radius: 12px; background: #000; }
+.tt-form { display: grid; gap: 8px; align-content: start; }
+.tt-l { font-size: 13px; color: var(--tenue); margin-top: 6px; }
+.tt-form textarea, .tt-form select { background: var(--panel2); border: 1px solid var(--borde); border-radius: 10px; color: var(--texto); padding: 10px 12px; font: inherit; }
+.tt-checks { display: flex; gap: 16px; flex-wrap: wrap; }
+.tt-check { position: relative; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+.tt-check input { position: absolute; opacity: 0; }
+.tt-check span { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--borde); flex: none; }
+.tt-check input:checked + span { background: var(--tt); border-color: var(--tt); }
+.tt-check input:focus-visible + span { outline: 2px solid var(--ambar); }
+.tt-check.off { opacity: .5; cursor: not-allowed; }
+.tt-switch { margin-top: 8px; }
+.tt-divulgar { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--panel2); }
+.tt-etiqueta { color: var(--aviso); font-size: 13px; margin: 0; }
+.tt-aviso, .tt-consent { font-size: 13px; color: var(--tenue); margin: 4px 0 0; }
+.tt-consent a { color: var(--tt); }
+.tt-botones { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+.tt-listo { display: grid; gap: 10px; padding: 20px 0; }
+@media (max-width: 720px) { .tt-cuerpo { grid-template-columns: 1fr; } .tt-prev video { max-height: 50vh; } }

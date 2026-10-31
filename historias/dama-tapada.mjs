@@ -14,7 +14,7 @@ export const HISTORIA = {
   estilo: ESTILO,
   escenas: [
     // GANCHO
-    { id: "g1", texto: "Guayaquil, hace más de doscientos años. Es casi medianoche y en las calles de madera ya no queda nadie.", img: "empty muddy street of colonial Guayaquil at midnight, wooden houses with balconies and arcades, a single oil lantern, light mist", mov: "acercar" },
+    { id: "g1", texto: "Guayaquil, hace más de doscientos años. Es casi medianoche y en las calles de madera ya no queda nadie.", img: "narrow deserted colonial street in Guayaquil in the year 1750 at midnight, two-storey wooden houses with carved wooden balconies and arcades on both sides, a single oil lantern hanging from a wooden bracket on a wall, open starry misty sky above the rooftops, mud and puddles", mov: "acercar" },
     { id: "g2", texto: "De pronto, el aire se llena de un perfume de flores. Y al fondo de la calle aparece una mujer.", img: `${DAMA}, standing far away at the end of a misty colonial street at night, lantern light behind her`, mov: "acercar" },
     { id: "g3", texto: "Es alta, elegante, con un vestido largo. Pero tiene el rostro completamente cubierto por un velo.", img: `close portrait of a ${DAMA}, standing still under a lantern, mysterious and elegant, no face visible`, mov: "subir" },
     { id: "g4", texto: "Los hombres que la vieron dicen que no podían dejar de seguirla. Los que lograron alcanzarla… no volvieron a ser los mismos.", img: "silhouette of a colonial gentleman walking after a veiled woman down a long foggy street of wooden houses at night", mov: "derecha" },

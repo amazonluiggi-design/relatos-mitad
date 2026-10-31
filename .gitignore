@@ -4,8 +4,4 @@ prueba
 muestras
 .env
 .wrangler
-public/*/h
-public/*/v
-public/*/voz
-public/musica
-public/marca/*.jpg
+*.log

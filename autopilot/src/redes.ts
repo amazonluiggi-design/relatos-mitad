@@ -38,17 +38,15 @@ export async function publicarTikTok(env: Env, p: Pub, archivo: string) {
   const tamTrozo = trozos === 1 ? obj.size : TROZO;
   const tok = await tokenTikTok(env);
   const H = { Authorization: `Bearer ${tok}`, "Content-Type": "application/json; charset=UTF-8" };
-  const iniciar = async (privacidad: string) => (await (await fetch(`${TT}/post/publish/video/init/`, { method: "POST", headers: H, body: JSON.stringify({
-    post_info: { title: (p.texto || "").slice(0, 2200), privacy_level: privacidad, disable_comment: false, disable_duet: false, disable_stitch: false, is_aigc: true },
+  // Ajustes que el creador eligió al aprobar el video en el panel (sin valores por defecto impuestos).
+  const op = JSON.parse(p.opciones || "{}") as { comentarios?: boolean; duo?: boolean; stitch?: boolean; marca?: boolean; patrocinado?: boolean };
+  if (!p.privacidad) throw new Error("falta la aprobación del creador");
+  const privacidad = p.privacidad;
+  const ini = (await (await fetch(`${TT}/post/publish/video/init/`, { method: "POST", headers: H, body: JSON.stringify({
+    post_info: { title: (p.texto || "").slice(0, 2200), privacy_level: privacidad, disable_comment: !op.comentarios, disable_duet: !op.duo, disable_stitch: !op.stitch,
+      brand_content_toggle: !!op.patrocinado, brand_organic_toggle: !!op.marca, is_aigc: true },
     source_info: { source: "FILE_UPLOAD", video_size: obj.size, chunk_size: tamTrozo, total_chunk_count: trozos },
   }) })).json()) as { data?: { publish_id: string; upload_url: string }; error?: { code: string; message: string } };
-  let privacidad = "PUBLIC_TO_EVERYONE";
-  let ini = await iniciar(privacidad);
-  if (ini.error?.code !== "ok") {
-    await evento(env, `TikTok no permitió publicar en público (${ini.error?.code}); se publica en privado hasta que aprueben la app.`, "aviso", "tiktok");
-    privacidad = "SELF_ONLY";
-    ini = await iniciar(privacidad);
-  }
   if (ini.error?.code !== "ok" || !ini.data) throw new Error(`init ${ini.error?.code}: ${ini.error?.message}`);
   for (let i = 0; i < trozos; i++) {
     const ini0 = i * tamTrozo;

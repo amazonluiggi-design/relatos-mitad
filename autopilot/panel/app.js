@@ -5,7 +5,7 @@ const ZONA = "America/Guayaquil";
 const fecha = (iso, op) => new Date(iso).toLocaleString("es-EC", { timeZone: ZONA, ...op });
 const num = (n) => (n === null || n === undefined ? null : Number(n).toLocaleString("es-EC"));
 const REDES = { facebook: { nombre: "Facebook", c: "var(--fb)", i: "f" }, youtube: { nombre: "YouTube", c: "var(--yt)", i: "▶" }, tiktok: { nombre: "TikTok", c: "var(--tt)", i: "♪" } };
-const ESTADO = { pendiente: "En agenda", programado: "Programado", enviado: "Enviando", publicado: "Publicado", privado: "Privado", fallido: "Falló" };
+const ESTADO = { "por-aprobar": "Por aprobar", "por-programar": "Por aprobar", pendiente: "En agenda", programado: "Programado", enviado: "Enviando", publicado: "Publicado", privado: "Privado", fallido: "Falló" };
 const TITULOS = { resumen: "Resumen", crecimiento: "Crecimiento", historias: "Historias", animar: "Animar", agenda: "Agenda", videos: "Videos", facebook: "Facebook", youtube: "YouTube", tiktok: "TikTok", actividad: "Actividad" };
 
 async function api(ruta, op = {}) {
@@ -220,6 +220,94 @@ function vistaCrecimiento() {
       <tbody>${filas || `<tr><td colspan="10" class="vacio">Todavía no hay publicaciones medidas.</td></tr>`}</tbody></table></div></div>`;
 }
 
+/* ───── TikTok: conectar la cuenta y aprobar cada publicación (guías de Content Posting) ───── */
+const PRIVACIDAD_TT = { PUBLIC_TO_EVERYONE: "Todo el mundo", MUTUAL_FOLLOW_FRIENDS: "Amigos", FOLLOWER_OF_CREATOR: "Seguidores", SELF_ONLY: "Solo yo" };
+let creadorTT = null;
+
+async function cargarCreadorTT() {
+  try { creadorTT = await api("/tiktok/creador"); } catch { creadorTT = { error: "No se pudo leer tu cuenta de TikTok." }; }
+}
+
+function bloqueTikTok() {
+  const c = creadorTT;
+  const cuenta = !c ? `<div class="nd">Cargando tu cuenta de TikTok…</div>`
+    : c.error ? `<div class="aviso-caja">${esc(c.error)}</div>`
+    : `<div class="tt-cuenta"><img src="${esc(c.creator_avatar_url)}" alt=""><div><b>${esc(c.creator_nickname)}</b><span class="nd">@${esc(c.creator_username)} · publicará en esta cuenta</span></div></div>`;
+  const porAprobar = datos.pubs.filter((p) => p.red === "tiktok" && ["por-aprobar", "por-programar"].includes(p.estado));
+  const lista = porAprobar.map((p) => `<div class="item tt-item">
+      <div class="item-fecha"><b>${esc(fecha(p.cuando, { day: "2-digit" }))}</b>${esc(fecha(p.cuando, { month: "short" }))}<br>${esc(fecha(p.cuando, { hour: "2-digit", minute: "2-digit" }))}</div>
+      <div class="item-txt"><b>${esc(p.titulo)}</b><span class="nd">${p.tipo === "parte" ? "Parte" : "Reel"} · ${esc(p.historia_id)}</span></div>
+      <button class="boton-pri" data-aprobar="${esc(p.id)}">Revisar y aprobar</button></div>`).join("");
+  return `<div class="tarjeta tt-panel"><div class="tt-cab"><h3>Tu cuenta de TikTok</h3><button class="boton-sec" id="tt-conectar">Continuar con TikTok</button></div>${cuenta}
+    <h3 class="sub-h">Por aprobar <span class="nd">${porAprobar.length} video${porAprobar.length === 1 ? "" : "s"}</span></h3>
+    <div class="lista">${lista || `<div class="vacio">No hay videos esperando tu aprobación.</div>`}</div></div>`;
+}
+
+function abrirAprobacion(id) {
+  const p = datos.pubs.find((x) => x.id === id), c = creadorTT;
+  if (!p || !c || c.error) return;
+  const d = $("#aprobar-tt");
+  const casilla = (k, t, off) => `<label class="tt-check ${off ? "off" : ""}"><input type="checkbox" name="${k}" ${off ? "disabled" : ""}><span></span>${t}${off ? " <em>(desactivado en tu cuenta)</em>" : ""}</label>`;
+  d.querySelector(".tt-cuerpo").innerHTML = `
+    <div class="tt-prev">${p.archivo ? `<video src="/api/medio/${encodeURIComponent(p.archivo)}" controls playsinline preload="metadata"></video>` : ""}</div>
+    <form class="tt-form" data-id="${esc(id)}">
+      <div class="tt-cuenta"><img src="${esc(c.creator_avatar_url)}" alt=""><div><b>${esc(c.creator_nickname)}</b><span class="nd">Se publicará en esta cuenta · ${esc(fecha(p.cuando, { dateStyle: "medium", timeStyle: "short" }))}</span></div></div>
+      <label class="tt-l">Descripción</label>
+      <textarea name="texto" rows="5" maxlength="2200">${esc(p.texto || "")}</textarea>
+      <label class="tt-l">¿Quién puede ver este video?</label>
+      <select name="privacidad" required><option value="" selected disabled>Elige una opción</option>
+        ${c.privacy_level_options.map((o) => `<option value="${esc(o)}">${esc(PRIVACIDAD_TT[o] || o)}</option>`).join("")}</select>
+      <label class="tt-l">Permitir a los usuarios</label>
+      <div class="tt-checks">${casilla("comentarios", "Comentar", c.comment_disabled)}${casilla("duo", "Dúo", c.duet_disabled)}${casilla("stitch", "Stitch", c.stitch_disabled)}</div>
+      <label class="tt-check tt-switch"><input type="checkbox" name="divulgar"><span></span>Divulgar contenido comercial</label>
+      <div class="tt-divulgar" hidden>
+        <p class="nd">Indica si este video promociona una marca, un producto o un servicio.</p>
+        ${casilla("marca", "Tu marca: estás promocionándote a ti o a tu negocio", false)}
+        ${casilla("patrocinado", "Contenido de marca: promocionas a un tercero", false)}
+        <p class="tt-etiqueta" hidden></p>
+      </div>
+      <p class="tt-aviso">El video lleva la etiqueta de contenido generado con IA. TikTok puede tardar unos minutos en procesarlo después de publicarse.</p>
+      <p class="tt-consent">Al publicar, aceptas la <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" rel="noopener">Confirmación de uso de música</a> de TikTok<span class="tt-bc" hidden> y su <a href="https://www.tiktok.com/legal/page/global/bc-policy/en" target="_blank" rel="noopener">Política de contenido de marca</a></span>.</p>
+      <p class="error tt-error" role="alert"></p>
+      <div class="tt-botones"><button type="button" class="boton-sec" data-cerrar>Cancelar</button><button type="submit" class="boton-pri" disabled>Aprobar publicación</button></div>
+    </form>`;
+  d.showModal();
+}
+
+function validarAprobacion(f) {
+  const div = f.divulgar.checked, marca = f.marca.checked, pat = f.patrocinado.checked;
+  f.querySelector(".tt-divulgar").hidden = !div;
+  f.querySelector(".tt-bc").hidden = !(div && pat);
+  const et = f.querySelector(".tt-etiqueta");
+  et.hidden = !(div && (marca || pat));
+  et.textContent = pat ? "Tu video se etiquetará como «Colaboración pagada»." : marca ? "Tu video se etiquetará como «Contenido promocional»." : "";
+  const solo = f.privacidad.querySelector('option[value="SELF_ONLY"]');
+  if (solo) { solo.disabled = div && pat; if (solo.disabled && f.privacidad.value === "SELF_ONLY") f.privacidad.value = ""; }
+  f.querySelector("[type=submit]").disabled = !f.privacidad.value || (div && !marca && !pat);
+}
+
+document.addEventListener("input", (e) => { const f = e.target.closest(".tt-form"); if (f) validarAprobacion(f); });
+document.addEventListener("change", (e) => { const f = e.target.closest(".tt-form"); if (f) validarAprobacion(f); });
+document.addEventListener("submit", async (e) => {
+  const f = e.target.closest(".tt-form");
+  if (!f) return;
+  e.preventDefault();
+  const b = f.querySelector("[type=submit]"); b.disabled = true; b.textContent = "Aprobando…";
+  const div = f.divulgar.checked;
+  const r = await api(`/tiktok/aprobar/${encodeURIComponent(f.dataset.id)}`, { method: "POST", body: JSON.stringify({
+    texto: f.texto.value, privacidad: f.privacidad.value, comentarios: f.comentarios.checked, duo: f.duo.checked, stitch: f.stitch.checked,
+    marca: div && f.marca.checked, patrocinado: div && f.patrocinado.checked }) });
+  if (!r.ok) { f.querySelector(".tt-error").textContent = r.error; b.textContent = "Aprobar publicación"; validarAprobacion(f); return; }
+  f.innerHTML = `<div class="tt-listo"><b>✓ Aprobado</b><p>Se publicará en TikTok a la hora programada. Cuando se envíe, TikTok puede tardar unos minutos en mostrarlo en tu perfil.</p><button type="button" class="boton-pri" data-cerrar>Listo</button></div>`;
+  await cargar(); pintar();
+});
+document.addEventListener("click", async (e) => {
+  if (e.target.closest("[data-cerrar]")) { $("#aprobar-tt").close(); return; }
+  const a = e.target.closest("[data-aprobar]");
+  if (a) { if (!creadorTT || creadorTT.error) await cargarCreadorTT(); abrirAprobacion(a.dataset.aprobar); return; }
+  if (e.target.closest("#tt-conectar")) { const { url } = await api("/tiktok/conectar"); location.href = url; }
+});
+
 /* ───── Vistas ───── */
 const VISTAS = {
   crecimiento: vistaCrecimiento,
@@ -263,7 +351,7 @@ const VISTAS = {
       <td>${esc(fecha(p.cuando, { dateStyle: "short", timeStyle: "short" }))}</td><td>${chip(p)}</td>
       <td class="num">${p.vistas != null ? num(p.vistas) : "—"}</td><td class="num">${p.me_gusta != null ? num(p.me_gusta) : "—"}</td><td class="num">${p.comentarios != null ? num(p.comentarios) : "—"}</td>
       <td>${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">Abrir ↗</a>` : ""}</td></tr>`).join("");
-    return `${avisos[red]}<div class="rejilla r3">${tarjetaRed(red, c)}
+    return `${red === "tiktok" ? bloqueTikTok() : ""}${avisos[red]}<div class="rejilla r3">${tarjetaRed(red, c)}
         <div class="tarjeta"><h3>Me gusta</h3><div class="cifra">${c.me_gusta != null ? num(c.me_gusta) : "—"}</div><p class="nd">en todas las publicaciones</p></div>
         <div class="tarjeta"><h3>Comentarios</h3><div class="cifra">${c.comentarios != null ? num(c.comentarios) : "—"}</div><p class="nd">${num(c.fal || 0)} publicaciones con error</p></div></div>
       <div class="tarjeta seccion"><h3>Publicaciones en ${r.nombre}</h3><div class="tabla-env"><table>
@@ -315,6 +403,7 @@ function pintar() {
   document.querySelectorAll(".menu nav a").forEach((a) => a.classList.toggle("activo", a.dataset.vista === nombre));
   $("#titulo").textContent = TITULOS[nombre];
   const html = REDES[nombre] ? VISTAS.red(nombre) : VISTAS[nombre]();
+  if (nombre === "tiktok" && !creadorTT) cargarCreadorTT().then(() => { if ((location.hash || "").slice(1) === "tiktok") pintar(); });
   const cont = $("#vista");
   cont.innerHTML = html;
   cont.style.animation = "none"; void cont.offsetWidth; cont.style.animation = "";
@@ -380,6 +469,11 @@ async function iniciar() {
 setInterval(() => { if (!$("#app").hidden && !document.hidden) cargar().then(pintar).catch(() => {}); }, 120000);
 // Entrada desde el portal de empresas: el pase llega en #sso= y se canjea por una sesión (un solo uso).
 (async () => {
+  if (location.hash === "#tiktok-conectado") {
+    history.replaceState(null, "", location.pathname + "#tiktok");
+    const r = await fetch("/api/tiktok/canjear", { method: "POST", headers: { "Content-Type": "application/json" } }).then((x) => x.json()).catch(() => ({}));
+    if (!r.ok && r.error) alert(r.error);
+  }
   const pase = /^#sso=(.+)$/.exec(location.hash)?.[1];
   if (pase) {
     history.replaceState(null, "", location.pathname);
