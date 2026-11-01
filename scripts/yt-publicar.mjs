@@ -33,8 +33,11 @@ const meta = (titulo, descripcion, etiquetas, cuando) => ({
   status: { privacyStatus: "private", publishAt: new Date(cuando).toISOString(), selfDeclaredMadeForKids: false, containsSyntheticMedia: true },
 });
 
+const tituloParte = (t) => t.split("\n")[0].replace(/[^\p{L}\p{N}\s·:¿?¡!…,.()«»-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 95);
 const tareas = [["largo", PUBLICACION.largo, YOUTUBE.largo], ...PUBLICACION.reels.map((r, i) => [`reel${i + 1}`, r, YOUTUBE.reels[i]]),
-  ...(PUBLICACION.episodios || []).map((e, i) => [`episodio${i + 1}`, e, YOUTUBE.episodios[i]])];
+  ...(PUBLICACION.episodios || []).map((e, i) => [`episodio${i + 1}`, e, YOUTUBE.episodios[i]]),
+  // Partes de TikTok que también van a YouTube Shorts (llevan su propia hora en "yt").
+  ...(PUBLICACION.partes || []).map((p, i) => [`parte${i + 1}`, { ...p, cuando: p.yt, texto: p.texto.replace("Sígueme para la", "Suscríbete para la") }, { titulo: tituloParte(p.texto) }]).filter(([, p]) => p.cuando)];
 for (const [id, p, y] of tareas) {
   if (solo && solo !== id) continue;
   if (hecho[id]) { console.log(id, "ya subido:", hecho[id].id); continue; }

@@ -38,10 +38,10 @@ Imágenes y animaciones: recreaciones generadas con IA. La leyenda tiene varias 
   ],
   // Solo TikTok: la historia completa en vertical, por partes.
   partes: [
-    { archivo: "out/dama-tapada-parte1.mp4", cuando: "2026-11-06T21:00:00-05:00", texto: `La Dama Tapada · Parte 1 🕯️ El Guayaquil de la Colonia, donde todo empezó.\n\nSígueme para la Parte 2 👆\n#damatapada #guayaquil #leyendas #ecuador #parte1` },
-    { archivo: "out/dama-tapada-parte2.mp4", cuando: "2026-11-07T13:00:00-05:00", texto: `La Dama Tapada · Parte 2 💀 La aparición… y el rostro bajo el velo.\n\nSígueme para la Parte 3 👆\n#damatapada #misterio #leyendas #guayaquil #parte2` },
-    { archivo: "out/dama-tapada-parte3.mp4", cuando: "2026-11-08T13:00:00-05:00", texto: `La Dama Tapada · Parte 3 🤔 Los que la vieron, y quién era en realidad.\n\nSígueme para la Parte 4 👆\n#damatapada #leyendasdeecuador #misterio #guayaquil #parte3` },
-    { archivo: "out/dama-tapada-parte4.mp4", cuando: "2026-11-09T13:00:00-05:00", texto: `La Dama Tapada · Parte 4 (final) 👻 No está sola: la misma leyenda en toda Latinoamérica.\n\n¿Tú la seguirías? Comenta 👇\n#damatapada #leyendas #latinoamerica #misterio #final` },
+    { archivo: "out/dama-tapada-parte1.mp4", cuando: "2026-11-06T21:00:00-05:00", yt: "2026-11-06T22:00:00-05:00", texto: `La Dama Tapada · Parte 1 🕯️ El Guayaquil de la Colonia, donde todo empezó.\n\nSígueme para la Parte 2 👆\n#damatapada #guayaquil #leyendas #ecuador #parte1` },
+    { archivo: "out/dama-tapada-parte2.mp4", cuando: "2026-11-07T13:00:00-05:00", yt: "2026-11-07T22:00:00-05:00", texto: `La Dama Tapada · Parte 2 💀 La aparición… y el rostro bajo el velo.\n\nSígueme para la Parte 3 👆\n#damatapada #misterio #leyendas #guayaquil #parte2` },
+    { archivo: "out/dama-tapada-parte3.mp4", cuando: "2026-11-08T13:00:00-05:00", yt: "2026-11-08T22:00:00-05:00", texto: `La Dama Tapada · Parte 3 🤔 Los que la vieron, y quién era en realidad.\n\nSígueme para la Parte 4 👆\n#damatapada #leyendasdeecuador #misterio #guayaquil #parte3` },
+    { archivo: "out/dama-tapada-parte4.mp4", cuando: "2026-11-09T13:00:00-05:00", yt: "2026-11-09T22:00:00-05:00", texto: `La Dama Tapada · Parte 4 (final) 👻 No está sola: la misma leyenda en toda Latinoamérica.\n\n¿Tú la seguirías? Comenta 👇\n#damatapada #leyendas #latinoamerica #misterio #final` },
   ],
 };
 

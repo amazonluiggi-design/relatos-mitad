@@ -34,10 +34,10 @@ Imágenes: recreaciones generadas con IA. La leyenda tiene varias versiones; con
       texto: `Cada Viernes Santo, miles de cucuruchos recorren Quito… igual que en la leyenda de la Caja Ronca 🟣\n\nLa leyenda completa en la página 👆 ¿La has visto en persona?\n#cucuruchos #quito #semanasanta #cajaronca #leyendas` },
   ],
   partes: [
-    { archivo: "out/caja-ronca-parte1.mp4", cuando: "2026-11-20T21:00:00-05:00", texto: `La Caja Ronca · Parte 1 🥁 El tambor de medianoche.\n\nSígueme para la Parte 2 👆\n#cajaronca #quito #leyendas #ecuador #parte1` },
-    { archivo: "out/caja-ronca-parte2.mp4", cuando: "2026-11-21T13:00:00-05:00", texto: `La Caja Ronca · Parte 2 🕯️ El cortejo de encapuchados… y la vela.\n\nSígueme para la Parte 3 👆\n#cajaronca #misterio #leyendas #quito #parte2` },
-    { archivo: "out/caja-ronca-parte3.mp4", cuando: "2026-11-22T13:00:00-05:00", texto: `La Caja Ronca · Parte 3 💀 La vela que amaneció convertida en hueso.\n\nSígueme para la Parte 4 👆\n#cajaronca #terror #leyendas #quito #parte3` },
-    { archivo: "out/caja-ronca-parte4.mp4", cuando: "2026-11-23T13:00:00-05:00", texto: `La Caja Ronca · Parte 4 (final) 🟣 ¿Qué era realmente? Y la procesión que todavía existe.\n\n¿Te asomarías? Comenta 👇\n#cajaronca #quito #leyendasdeecuador #misterio #final` },
+    { archivo: "out/caja-ronca-parte1.mp4", cuando: "2026-11-20T22:00:00-05:00", yt: "2026-11-20T22:00:00-05:00", texto: `La Caja Ronca · Parte 1 🥁 El tambor de medianoche.\n\nSígueme para la Parte 2 👆\n#cajaronca #quito #leyendas #ecuador #parte1` },
+    { archivo: "out/caja-ronca-parte2.mp4", cuando: "2026-11-21T22:00:00-05:00", yt: "2026-11-21T22:00:00-05:00", texto: `La Caja Ronca · Parte 2 🕯️ El cortejo de encapuchados… y la vela.\n\nSígueme para la Parte 3 👆\n#cajaronca #misterio #leyendas #quito #parte2` },
+    { archivo: "out/caja-ronca-parte3.mp4", cuando: "2026-11-22T22:00:00-05:00", yt: "2026-11-22T22:00:00-05:00", texto: `La Caja Ronca · Parte 3 💀 La vela que amaneció convertida en hueso.\n\nSígueme para la Parte 4 👆\n#cajaronca #terror #leyendas #quito #parte3` },
+    { archivo: "out/caja-ronca-parte4.mp4", cuando: "2026-11-23T22:00:00-05:00", yt: "2026-11-23T22:00:00-05:00", texto: `La Caja Ronca · Parte 4 (final) 🟣 ¿Qué era realmente? Y la procesión que todavía existe.\n\n¿Te asomarías? Comenta 👇\n#cajaronca #quito #leyendasdeecuador #misterio #final` },
   ],
 };
 

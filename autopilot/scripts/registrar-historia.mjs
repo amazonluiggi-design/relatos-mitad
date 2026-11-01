@@ -32,7 +32,10 @@ const plan2 = plan.episodios || [];
   pub(id, "facebook", e.cuando, fb[k] ? "programado" : "pendiente", fb[k]?.id, e.texto);
   pub(id, "youtube", e.cuando, yt[k] ? "programado" : "pendiente", yt[k]?.id, YOUTUBE.episodios[i].titulo);
 });
-(PUBLICACION.partes || []).forEach((p, i) => pub(`${h}-parte${i + 1}`, "tiktok", p.cuando, "pendiente", null, p.texto));
+(PUBLICACION.partes || []).forEach((p, i) => {
+  pub(`${h}-parte${i + 1}`, "tiktok", p.cuando, "pendiente", null, p.texto);
+  if (p.yt) pub(`${h}-parte${i + 1}`, "youtube", p.yt, yt[`parte${i + 1}`] ? "programado" : "pendiente", yt[`parte${i + 1}`]?.id, p.texto.split("\n")[0]);
+});
 sql.push(`INSERT INTO eventos (nivel, mensaje) VALUES ('info', ${q(`Historia "${HISTORIA.titulo}" registrada con ${REELS.length + 1} videos`)});`);
 // Las publicaciones de TikTok esperan la aprobación del creador en el panel (guías de TikTok).
 sql.push(`UPDATE publicaciones SET estado = 'por-programar' WHERE red = 'tiktok' AND video_id LIKE ${q(h + "-%")} AND estado = 'pendiente' AND privacidad IS NULL;`);

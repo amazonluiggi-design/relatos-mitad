@@ -75,10 +75,10 @@ export const CAPITULOS = {
   h1: "San Diego hoy",
 };
 
-// Avances (miércoles y jueves) + reels (sábado a martes), 35-45 s, y PARTES solo para TikTok.
+// Avances (viernes y sábado) + estreno domingo + reels (lunes y martes), 35-45 s, y PARTES solo para TikTok.
 export const REELS = [
-  { id: "reel1", gancho: "La estatua le habló… y él le respondió", escenas: ["g1", "g2", "v1", "v2", "v3", "v4"], cierre: "Este viernes, la historia completa" },
-  { id: "reel2", gancho: "El fraile que se escapaba a las fiestas", escenas: ["f3", "e2", "e3", "e4", "e5"], cierre: "Este viernes, en el canal" },
+  { id: "reel1", gancho: "La estatua le habló… y él le respondió", escenas: ["g1", "g2", "v1", "v2", "v3", "v4"], cierre: "Este domingo, la historia completa" },
+  { id: "reel2", gancho: "El fraile que se escapaba a las fiestas", escenas: ["f3", "e2", "e3", "e4", "e5"], cierre: "Este domingo, en el canal" },
   { id: "reel3", gancho: "Abrió el ataúd… y se vio a sí mismo", escenas: ["k1", "k3", "k4", "k5", "k6"], cierre: "La leyenda completa, en el canal" },
   { id: "reel4", gancho: "«¿Hasta cuándo, Padre Almeida?»", escenas: ["v1", "v2", "v3", "v4", "v5"], cierre: "Relato completo en el canal" },
   { id: "reel5", gancho: "Lo que pasó después del cortejo", escenas: ["k7", "m1", "m2", "m3", "m4"], cierre: "La historia completa, en el canal" },

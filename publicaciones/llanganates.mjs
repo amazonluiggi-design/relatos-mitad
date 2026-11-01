@@ -33,10 +33,10 @@ Imágenes y animaciones: recreaciones generadas con IA. La leyenda tiene varias 
   ],
   // Solo TikTok: la historia completa en vertical, por partes.
   partes: [
-    { archivo: "out/llanganates-parte1.mp4", cuando: "2026-10-30T21:00:00-05:00", texto: `El tesoro de los Llanganates · Parte 1 🏔️ El oro que Rumiñahui escondió de los conquistadores.\n\nSígueme para la Parte 2 👆\n#llanganates #rumiñahui #incas #leyendas #parte1` },
-    { archivo: "out/llanganates-parte2.mp4", cuando: "2026-10-31T13:00:00-05:00", texto: `El tesoro de los Llanganates · Parte 2 ✨ El soldado Valverde y el mapa que le dejó al rey.\n\nSígueme para la Parte 3 👆\n#llanganates #tesoro #leyendas #ecuador #parte2` },
-    { archivo: "out/llanganates-parte3.mp4", cuando: "2026-11-01T13:00:00-05:00", texto: `El tesoro de los Llanganates · Parte 3 🕯️ Los que siguieron el mapa… y desaparecieron.\n\nSígueme para la Parte 4 👆\n#llanganates #misterio #leyendas #ecuador #parte3` },
-    { archivo: "out/llanganates-parte4.mp4", cuando: "2026-11-02T13:00:00-05:00", texto: `El tesoro de los Llanganates · Parte 4 (final) 🌊 La cueva de oro de los marineros ingleses.\n\n¿Existe el tesoro? Comenta 👇\n#llanganates #tesoroinca #leyendas #ecuador #final` },
+    { archivo: "out/llanganates-parte1.mp4", cuando: "2026-10-30T21:00:00-05:00", yt: "2026-11-02T22:00:00-05:00", texto: `El tesoro de los Llanganates · Parte 1 🏔️ El oro que Rumiñahui escondió de los conquistadores.\n\nSígueme para la Parte 2 👆\n#llanganates #rumiñahui #incas #leyendas #parte1` },
+    { archivo: "out/llanganates-parte2.mp4", cuando: "2026-10-31T13:00:00-05:00", yt: "2026-11-03T22:00:00-05:00", texto: `El tesoro de los Llanganates · Parte 2 ✨ El soldado Valverde y el mapa que le dejó al rey.\n\nSígueme para la Parte 3 👆\n#llanganates #tesoro #leyendas #ecuador #parte2` },
+    { archivo: "out/llanganates-parte3.mp4", cuando: "2026-11-01T13:00:00-05:00", yt: "2026-11-04T22:00:00-05:00", texto: `El tesoro de los Llanganates · Parte 3 🕯️ Los que siguieron el mapa… y desaparecieron.\n\nSígueme para la Parte 4 👆\n#llanganates #misterio #leyendas #ecuador #parte3` },
+    { archivo: "out/llanganates-parte4.mp4", cuando: "2026-11-02T13:00:00-05:00", yt: "2026-11-05T22:00:00-05:00", texto: `El tesoro de los Llanganates · Parte 4 (final) 🌊 La cueva de oro de los marineros ingleses.\n\n¿Existe el tesoro? Comenta 👇\n#llanganates #tesoroinca #leyendas #ecuador #final` },
   ],
 };
 
