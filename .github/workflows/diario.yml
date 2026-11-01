@@ -45,10 +45,19 @@ jobs:
             echo "== $H"
             node scripts/bajar-pendientes.mjs "$H"
             node scripts/fb-publicar.mjs "$H" 2>&1 | grep -vE "subido [0-9]+%" | tail -12 || true
-            node scripts/yt-publicar.mjs "$H" 2>&1 | grep -E "subido|rror|Cuota|pasó|archivo" | tail -12 || true
             node autopilot/scripts/registrar-historia.mjs "$H" || true
-            rm -rf out
           done
+          # YouTube tiene límite diario de subidas: primero lo que sale en 3 días, luego en 7, luego el resto.
+          for DIAS in 3 7 60; do
+            for f in publicaciones/*.mjs; do
+              H=$(basename "$f" .mjs)
+              [ -f "src/datos/$H-plan.json" ] || continue
+              echo "== YouTube $H (próximos $DIAS días)"
+              YT_DIAS=$DIAS node scripts/yt-publicar.mjs "$H" 2>&1 | grep -E "subido|rror|Cuota|pasó|archivo" | tail -12 || true
+              node autopilot/scripts/registrar-historia.mjs "$H" || true
+            done
+          done
+          rm -rf out
       - name: Guardar IDs publicados
         run: |
           git config user.name "Relatos de la Mitad"; git config user.email "amazonluiggi@gmail.com"

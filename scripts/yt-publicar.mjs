@@ -43,12 +43,14 @@ for (const [id, p, y] of tareas) {
   if (hecho[id]) { console.log(id, "ya subido:", hecho[id].id); continue; }
   if (!fs.existsSync(p.archivo)) { console.log(id, "sin archivo todavía"); continue; }
   if (new Date(p.cuando) < new Date(Date.now() + 15 * 60000)) { console.log(id, "su hora ya pasó, no se sube"); continue; }
+  // YT_DIAS: solo lo que sale en los próximos N días (el límite diario de subidas se gasta primero en lo urgente).
+  if (process.env.YT_DIAS && new Date(p.cuando) > Date.now() + +process.env.YT_DIAS * 864e5) continue;
   const desc = id.startsWith("episodio") ? `${p.texto.replace("en la página", "en el canal")}
 
 Historia completa en el canal.` : id === "largo" ? y.descripcion(fs.readFileSync(`src/datos/${nombre}-capitulos.txt`, "utf8")) : p.texto.replace("en la página", "en el canal");
   let v;
   try { v = await subir(p.archivo, meta(y.titulo, desc, YOUTUBE.largo.etiquetas, p.cuando)); }
-  catch (e) { if (/quota/i.test(String(e))) { console.log("Cuota diaria de YouTube agotada: el resto se sube mañana."); break; } throw e; }
+  catch (e) { if (/quota|uploadLimitExceeded|exceeded the number of videos/i.test(String(e))) { console.log("Cuota diaria de YouTube agotada: el resto se sube mañana."); break; } throw e; }
   console.log(id, "subido", v.id, "| estado:", v.status.privacyStatus, "| publica:", v.status.publishAt, "| sintético:", v.status.containsSyntheticMedia);
   if (id === "largo" && p.miniatura) {
     const m = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${v.id}`, { method: "POST", headers: { ...H, "Content-Type": "image/jpeg" }, body: fs.readFileSync(p.miniatura) });
