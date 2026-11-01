@@ -33,7 +33,7 @@ Imágenes y animaciones: recreaciones generadas con IA. La leyenda tiene varias 
       texto: `Hasta los guardias nocturnos de Guayaquil evitaban ciertas calles por ella 🏮\n\nRelato completo en la página 👆 ¿En tu ciudad hay una leyenda así?\n#damatapada #guayaquil #leyendasdeecuador #misterio #historia` },
     { archivo: "out/dama-tapada-reel5.mp4", cuando: "2026-11-09T19:30:00-05:00",
       texto: `¿Alma en pena, espíritu antiguo… o un invento de las esposas de Guayaquil? 🤔\n\nTodas las versiones en la página 👆 ¿Cuál crees tú?\n#damatapada #leyendas #guayaquil #misterio #ecuador` },
-    { archivo: "out/dama-tapada-reel6.mp4", cuando: "2026-11-10T19:30:00-05:00",
+    { archivo: "out/dama-tapada-reel6.mp4", cuando: "2026-11-10T12:30:00-05:00",
       texto: `Ecuador tiene a la Dama Tapada, Lima a las tapadas y Venezuela a la Sayona 👻 ¿Coincidencia?\n\nLa historia completa en la página 👆 ¿De qué país me escribes?\n#leyendaslatinoamericanas #damatapada #lasayona #misterio #leyendas` },
   ],
   // Solo TikTok: la historia completa en vertical, por partes.
@@ -86,19 +86,19 @@ YOUTUBE.episodios = [
 
 // Reels cortos de "un dato" a las 12:30.
 PUBLICACION.reels.push(
-  { archivo: "out/dama-tapada-reel7.mp4", cuando: "2026-11-10T12:30:00-05:00", texto: `En Lima, durante siglos, las mujeres salían a la calle tapadas con un manto que solo dejaba ver un ojo 👁️ ¡Y eran reales!
+  { archivo: "out/dama-tapada-reel7.mp4", cuando: "2026-11-10T19:30:00-05:00", texto: `En Lima, durante siglos, las mujeres salían a la calle tapadas con un manto que solo dejaba ver un ojo 👁️ ¡Y eran reales!
 
 La leyenda de la Dama Tapada en la página 👆 ¿Lo sabías?
 #tapadaslimeñas #lima #historia #damatapada #leyendas` },
-  { archivo: "out/dama-tapada-reel8.mp4", cuando: "2026-11-12T12:30:00-05:00", texto: `En Venezuela y Colombia la llaman la Sayona 👻 y castiga a los hombres infieles en los caminos.
+  { archivo: "out/dama-tapada-reel8.mp4", cuando: "2026-11-11T12:30:00-05:00", texto: `En Venezuela y Colombia la llaman la Sayona 👻 y castiga a los hombres infieles en los caminos.
 
 La versión ecuatoriana, en la página 👆 ¿De qué país me escribes?
 #lasayona #leyendas #venezuela #colombia #misterio` },
-  { archivo: "out/dama-tapada-reel9.mp4", cuando: "2026-11-14T12:30:00-05:00", texto: `En 1896 el Fuego Grande consumió buena parte del Guayaquil de madera 🔥 Pero la leyenda sobrevivió.
+  { archivo: "out/dama-tapada-reel9.mp4", cuando: "2026-11-11T19:30:00-05:00", texto: `En 1896 el Fuego Grande consumió buena parte del Guayaquil de madera 🔥 Pero la leyenda sobrevivió.
 
 La historia completa en la página 👆
 #guayaquil #historia #fuegogrande #damatapada #ecuador` },
-  { archivo: "out/dama-tapada-reel10.mp4", cuando: "2026-11-16T12:30:00-05:00", texto: `Si a medianoche hueles nardos o violetas en una calle vacía… no sigas a nadie 🌸
+  { archivo: "out/dama-tapada-reel10.mp4", cuando: "2026-11-12T12:30:00-05:00", texto: `Si a medianoche hueles nardos o violetas en una calle vacía… no sigas a nadie 🌸
 
 La leyenda completa en la página 👆 ¿Tú la seguirías?
 #damatapada #guayaquil #leyendas #misterio #terror` },
