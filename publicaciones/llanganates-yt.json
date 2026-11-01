@@ -18,5 +18,46 @@
  "reel4": {
   "id": "a9eE6PlIfV4",
   "cuando": "2026-11-03T19:30:00-05:00"
+ },
+ "reel10": {
+  "id": "-bwX4Wtknu8",
+  "cuando": "2026-11-01T14:39:19.715Z",
+  "adelantado": true
+ },
+ "reel9": {
+  "id": "BnxrSUfD1gs",
+  "desdePanel": true
+ },
+ "reel5": {
+  "id": "qbJBh9-GkpI",
+  "desdePanel": true
+ },
+ "reel6": {
+  "id": "nNrErskbNs8",
+  "desdePanel": true
+ },
+ "reel7": {
+  "id": "8eGQ04OifDQ",
+  "desdePanel": true
+ },
+ "reel8": {
+  "id": "tu83-xJNtko",
+  "desdePanel": true
+ },
+ "parte1": {
+  "id": "OHG_WJYOhB0",
+  "cuando": "2026-11-02T22:00:00-05:00"
+ },
+ "parte2": {
+  "id": "vKRCLtyzKQQ",
+  "cuando": "2026-11-03T22:00:00-05:00"
+ },
+ "parte3": {
+  "id": "eJXj38lFniA",
+  "cuando": "2026-11-04T22:00:00-05:00"
+ },
+ "parte4": {
+  "id": "Ejl5JXTq-ps",
+  "cuando": "2026-11-05T22:00:00-05:00"
  }
 }

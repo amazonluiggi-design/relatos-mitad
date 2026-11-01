@@ -18,5 +18,29 @@
  "reel4": {
   "id": "a5UPgYITyUU",
   "cuando": "2026-10-29T19:30:00-05:00"
+ },
+ "reel5": {
+  "id": "NOg6SANLnjE",
+  "desdePanel": true
+ },
+ "reel6": {
+  "id": "n-LAbjZxJmM",
+  "desdePanel": true
+ },
+ "reel7": {
+  "id": "1LeXeVS6PYg",
+  "desdePanel": true
+ },
+ "reel8": {
+  "id": "gnq4oSVhZ6w",
+  "desdePanel": true
+ },
+ "episodio1": {
+  "id": "8kb1uyWrwRc",
+  "cuando": "2026-11-01T20:00:00-05:00"
+ },
+ "episodio2": {
+  "id": "Ofb2Bw8WOdE",
+  "cuando": "2026-11-02T20:00:00-05:00"
  }
 }
