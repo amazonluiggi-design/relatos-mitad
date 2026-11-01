@@ -38,9 +38,9 @@ Imágenes y animaciones: recreaciones generadas con IA. La leyenda tiene varias 
   ],
   // Solo TikTok: la historia completa en vertical, por partes.
   partes: [
-    { archivo: "out/dama-tapada-parte1.mp4", cuando: "2026-11-06T21:00:00-05:00", yt: "2026-11-06T22:00:00-05:00", texto: `La Dama Tapada · Parte 1 🕯️ El Guayaquil de la Colonia, donde todo empezó.\n\nSígueme para la Parte 2 👆\n#damatapada #guayaquil #leyendas #ecuador #parte1` },
-    { archivo: "out/dama-tapada-parte2.mp4", cuando: "2026-11-07T13:00:00-05:00", yt: "2026-11-07T22:00:00-05:00", texto: `La Dama Tapada · Parte 2 💀 La aparición… y el rostro bajo el velo.\n\nSígueme para la Parte 3 👆\n#damatapada #misterio #leyendas #guayaquil #parte2` },
-    { archivo: "out/dama-tapada-parte3.mp4", cuando: "2026-11-08T13:00:00-05:00", yt: "2026-11-08T22:00:00-05:00", texto: `La Dama Tapada · Parte 3 🤔 Los que la vieron, y quién era en realidad.\n\nSígueme para la Parte 4 👆\n#damatapada #leyendasdeecuador #misterio #guayaquil #parte3` },
+    { archivo: "out/dama-tapada-parte1.mp4", cuando: "2026-11-06T21:00:00-05:00", yt: "2026-11-06T22:00:00-05:00", texto: `La Dama Tapada · Parte 1 🕯️ El Guayaquil de la Colonia, donde todo empezó. ¿Conocías esta leyenda de Guayaquil?\n\nSígueme para la Parte 2 👆\n#damatapada #guayaquil #leyendas #ecuador #parte1` },
+    { archivo: "out/dama-tapada-parte2.mp4", cuando: "2026-11-07T13:00:00-05:00", yt: "2026-11-07T22:00:00-05:00", texto: `La Dama Tapada · Parte 2 💀 La aparición… y el rostro bajo el velo. ¿Tú le habrías levantado el velo?\n\nSígueme para la Parte 3 👆\n#damatapada #misterio #leyendas #guayaquil #parte2` },
+    { archivo: "out/dama-tapada-parte3.mp4", cuando: "2026-11-08T13:00:00-05:00", yt: "2026-11-08T22:00:00-05:00", texto: `La Dama Tapada · Parte 3 🤔 Los que la vieron, y quién era en realidad. ¿Quién crees que era en realidad?\n\nSígueme para la Parte 4 👆\n#damatapada #leyendasdeecuador #misterio #guayaquil #parte3` },
     { archivo: "out/dama-tapada-parte4.mp4", cuando: "2026-11-09T13:00:00-05:00", yt: "2026-11-09T22:00:00-05:00", texto: `La Dama Tapada · Parte 4 (final) 👻 No está sola: la misma leyenda en toda Latinoamérica.\n\n¿Tú la seguirías? Comenta 👇\n#damatapada #leyendas #latinoamerica #misterio #final` },
   ],
 };
@@ -90,15 +90,15 @@ PUBLICACION.reels.push(
 
 La leyenda de la Dama Tapada en la página 👆 ¿Lo sabías?
 #tapadaslimeñas #lima #historia #damatapada #leyendas` },
-  { archivo: "out/dama-tapada-reel8.mp4", cuando: "2026-11-11T12:30:00-05:00", texto: `En Venezuela y Colombia la llaman la Sayona 👻 y castiga a los hombres infieles en los caminos.
+  { archivo: "out/dama-tapada-reel8.mp4", cuando: "2026-11-11T08:30:00-05:00", texto: `En Venezuela y Colombia la llaman la Sayona 👻 y castiga a los hombres infieles en los caminos.
 
 La versión ecuatoriana, en la página 👆 ¿De qué país me escribes?
 #lasayona #leyendas #venezuela #colombia #misterio` },
-  { archivo: "out/dama-tapada-reel9.mp4", cuando: "2026-11-11T19:30:00-05:00", texto: `En 1896 el Fuego Grande consumió buena parte del Guayaquil de madera 🔥 Pero la leyenda sobrevivió.
+  { archivo: "out/dama-tapada-reel9.mp4", cuando: "2026-11-11T19:30:00-05:00", texto: `En 1896 el Fuego Grande consumió buena parte del Guayaquil de madera 🔥 Pero la leyenda sobrevivió. ¿Sabías que Guayaquil casi desapareció en ese incendio?
 
 La historia completa en la página 👆
 #guayaquil #historia #fuegogrande #damatapada #ecuador` },
-  { archivo: "out/dama-tapada-reel10.mp4", cuando: "2026-11-12T12:30:00-05:00", texto: `Si a medianoche hueles nardos o violetas en una calle vacía… no sigas a nadie 🌸
+  { archivo: "out/dama-tapada-reel10.mp4", cuando: "2026-11-12T08:30:00-05:00", texto: `Si a medianoche hueles nardos o violetas en una calle vacía… no sigas a nadie 🌸
 
 La leyenda completa en la página 👆 ¿Tú la seguirías?
 #damatapada #guayaquil #leyendas #misterio #terror` },

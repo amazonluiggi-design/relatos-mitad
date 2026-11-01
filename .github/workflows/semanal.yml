@@ -1,0 +1,21 @@
+# Resumen semanal de Relatos de la Mitad: cada lunes 08:00 (Ecuador) deja en el panel qué funcionó y a qué hora.
+name: Resumen semanal
+
+on:
+  schedule:
+    - cron: "0 13 * * 1" # lunes 08:00 en Ecuador
+  workflow_dispatch:
+
+jobs:
+  resumen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Resumen de la semana
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: node scripts/semanal.mjs
