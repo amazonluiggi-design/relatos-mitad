@@ -160,17 +160,28 @@ function metas(a) {
 }
 
 function graficoSeguidores(cuentas) {
-  const dias = [...new Set(cuentas.map((c) => c.dia))];
-  const leyenda = `<div class="leyenda">${Object.entries(REDES).map(([r, x]) => { const u = [...cuentas].reverse().find((c) => c.red === r); return `<span><i style="background:${x.c}"></i>${x.nombre}: ${u ? num(u.seguidores) : "—"}</span>`; }).join("")}</div>`;
-  if (dias.length < 2) return `<div class="vacio">El gráfico aparece al juntar 2 días de datos (se guarda cada hora).</div>${leyenda}`;
-  const W = 600, H = 160;
-  const lineas = Object.keys(REDES).map((red) => {
-    const s = dias.map((d, i) => [i, cuentas.find((c) => c.dia === d && c.red === red)?.seguidores]).filter(([, v]) => v != null);
-    if (s.length < 2) return "";
-    const max = Math.max(...s.map(([, v]) => v)), min0 = Math.min(...s.map(([, v]) => v)), rango = Math.max(5, max * 0.05, max - min0), min = max - rango;
-    return `<polyline fill="none" stroke="${REDES[red].c}" stroke-width="3" stroke-linejoin="round" points="${s.map(([i, v]) => `${(i / (dias.length - 1)) * W},${H - 12 - ((v - min) / rango) * (H - 30)}`).join(" ")}"/>`;
-  }).join("");
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Seguidores por día">${lineas}</svg>${leyenda}<p class="nd">Cada línea va en su propia escala para que se note la tendencia.</p>`;
+  // Una mini gráfica por red (cada una con su escala y sus números), para no mezclar 3.368 con 12.
+  const dias = [...new Set(cuentas.map((c) => c.dia))].slice(-14);
+  const fecha = (d) => new Date(d + "T12:00:00").toLocaleDateString("es-EC", { day: "numeric", month: "short" });
+  return `<div class="seg-lista">${Object.entries(REDES).map(([red, x]) => {
+    const s = dias.map((d) => ({ d, v: cuentas.find((c) => c.dia === d && c.red === red)?.seguidores })).filter((p) => p.v != null);
+    if (!s.length) return "";
+    const ult = s.at(-1).v, cambio = ult - s[0].v;
+    const signo = cambio > 0 ? "sube" : cambio < 0 ? "baja" : "igual";
+    const txt = (cambio > 0 ? "+" : cambio < 0 ? "−" : "±") + num(Math.abs(cambio)) + " en " + (s.length - 1) + " días";
+    let svg = "";
+    if (s.length >= 2) {
+      const W = 300, H = 64, min = Math.min(...s.map((p) => p.v)), max = Math.max(...s.map((p) => p.v)), r = Math.max(1, max - min, max * 0.02), lo = min - (r - (max - min)) / 2;
+      const pt = (p, i) => [(i / (s.length - 1)) * W, H - 6 - ((p.v - lo) / r) * (H - 12)];
+      const pts = s.map(pt);
+      const hits = s.map((p, i) => `<rect x="${pts[i][0] - W / s.length / 2}" y="0" width="${W / s.length}" height="${H}" fill="transparent"><title>${fecha(p.d)}: ${num(p.v)} seguidores</title></rect>`).join("");
+      svg = `<svg class="seg-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Seguidores de ${x.nombre} por día">
+        <polygon points="0,${H} ${pts.map((p) => p.join(",")).join(" ")} ${W},${H}" fill="${x.c}" opacity=".12"/>
+        <polyline fill="none" stroke="${x.c}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" points="${pts.map((p) => p.join(",")).join(" ")}"/>${hits}</svg>
+        <div class="seg-ejes"><span>${fecha(s[0].d)}</span><span>mín ${num(min)} · máx ${num(max)}</span><span>${fecha(s.at(-1).d)}</span></div>`;
+    }
+    return `<div class="seg-fila"><div class="seg-cab"><span><i style="background:${x.c}"></i>${x.nombre}</span><b>${num(ult)}</b><em class="${signo}">${txt}</em></div>${svg}</div>`;
+  }).join("")}</div>`;
 }
 
 function recomendacionesHtml(lista) {

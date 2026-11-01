@@ -249,3 +249,15 @@ dialog video { display: block; max-width: 100%; max-height: 90dvh; }
 .tt-botones { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
 .tt-listo { display: grid; gap: 10px; padding: 20px 0; }
 @media (max-width: 720px) { .tt-cuerpo { grid-template-columns: 1fr; } .tt-prev video { max-height: 50vh; } }
+.seg-lista { display: grid; gap: 14px; }
+.seg-fila { border-bottom: 1px solid var(--borde); padding-bottom: 12px; }
+.seg-fila:last-child { border-bottom: 0; padding-bottom: 0; }
+.seg-cab { display: flex; align-items: baseline; gap: 10px; }
+.seg-cab span { display: inline-flex; align-items: center; gap: 7px; color: var(--tenue); font-size: 13px; flex: 1; }
+.seg-cab span i { width: 10px; height: 10px; border-radius: 3px; }
+.seg-cab b { font-size: 20px; color: var(--texto); }
+.seg-cab em { font-style: normal; font-size: 12px; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--borde); color: var(--tenue); white-space: nowrap; }
+.seg-cab em.sube { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+.seg-cab em.baja { color: var(--mal); border-color: color-mix(in srgb, var(--mal) 45%, transparent); }
+.grafico .seg-svg, .seg-svg { display: block; width: 100%; height: 64px; margin-top: 8px; }
+.seg-ejes { display: flex; justify-content: space-between; color: var(--tenue); font-size: 11px; margin-top: 4px; }
