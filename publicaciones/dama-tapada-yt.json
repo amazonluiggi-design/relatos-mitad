@@ -3,5 +3,37 @@
   "id": "e2GxCJyuGbw",
   "cuando": "2026-11-01T14:39:56.520Z",
   "adelantado": true
+ },
+ "reel1": {
+  "id": "DEF8hdbLVRg",
+  "cuando": "2026-11-04T19:30:00-05:00"
+ },
+ "largo": {
+  "id": "jVQK3gr3wKs",
+  "cuando": "2026-11-06T19:00:00-05:00"
+ },
+ "reel2": {
+  "id": "ZI0c-16jBTI",
+  "cuando": "2026-11-05T19:30:00-05:00"
+ },
+ "reel3": {
+  "id": "X3r-tkdAric",
+  "cuando": "2026-11-07T19:30:00-05:00"
+ },
+ "reel4": {
+  "id": "wXXYvbPWp30",
+  "cuando": "2026-11-08T19:30:00-05:00"
+ },
+ "parte1": {
+  "id": "5HF507vEW1A",
+  "cuando": "2026-11-06T22:00:00-05:00"
+ },
+ "parte2": {
+  "id": "B-xS_MZlQTY",
+  "cuando": "2026-11-07T22:00:00-05:00"
+ },
+ "parte3": {
+  "id": "Tg_ayfLNYjU",
+  "cuando": "2026-11-08T22:00:00-05:00"
  }
 }
