@@ -1,0 +1,40 @@
+# Historia de Facebook diaria: a las 20:15 (Ecuador) publica como historia de la página el reel del día.
+name: Historia de Facebook
+
+on:
+  schedule:
+    - cron: "15 1 * * *" # 20:15 en Ecuador
+  workflow_dispatch:
+
+concurrency:
+  group: historias-fb
+
+jobs:
+  historia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Credenciales
+        env:
+          FB_PAGINA_JSON: ${{ secrets.FB_PAGINA_JSON }}
+          FB_TXT: ${{ secrets.FB_TXT }}
+        run: |
+          mkdir -p ~/.relatos-secretos
+          printf '%s' "$FB_PAGINA_JSON" > ~/.relatos-secretos/facebook-pagina.json
+          printf '%s' "$FB_TXT" > ~/.relatos-secretos/facebook.txt
+          node -e 'JSON.parse(require("fs").readFileSync(require("os").homedir()+"/.relatos-secretos/facebook-pagina.json","utf8"))' 2>/dev/null || node scripts/fb-token.mjs
+      - name: Publicar la historia
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: node scripts/fb-historia.mjs
+      - name: Guardar registro
+        run: |
+          git config user.name "Relatos de la Mitad"; git config user.email "amazonluiggi@gmail.com"
+          git add publicaciones/fb-historias.json && git commit -m "Historia de Facebook $(date +%F)" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 10; done
