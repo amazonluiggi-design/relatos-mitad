@@ -90,7 +90,7 @@ function grafico(serie) {
 const eventosHtml = (ev) => ev.length ? ev.map((e) => `<div class="evento"><span class="punto ${esc(e.nivel)}"></span><div>${esc(e.mensaje)}<time>${esc(fecha(e.cuando.replace(" ", "T") + "Z", { dateStyle: "short", timeStyle: "short" }))}${e.red ? " · " + esc(REDES[e.red]?.nombre || e.red) : ""}</time></div></div>`).join("") : `<div class="vacio">Sin actividad todavía.</div>`;
 
 /* ───── Crecimiento: análisis automático + plan ───── */
-const TIPO = { largo: "Video largo", reel: "Reel", parte: "Parte (TikTok)" };
+const TIPO = { largo: "Video largo", reel: "Reel", parte: "Parte (TikTok)", episodio: "Episodio" };
 const mediana = (xs) => { const s = [...xs].sort((a, b) => a - b); return s.length ? (s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : 0; };
 const pct = (n) => (n == null || !isFinite(n) ? "—" : (n * 100).toLocaleString("es-EC", { maximumFractionDigits: 1 }) + " %");
 
@@ -184,8 +184,13 @@ function graficoSeguidores(cuentas) {
   }).join("")}</div>`;
 }
 
-function recomendacionesHtml(lista) {
-  if (!lista.length) return `<div class="vacio">Sin recomendaciones por ahora.</div>`;
+function recomendacionesHtml(todas) {
+  if (!todas.length) return `<div class="vacio">Sin recomendaciones por ahora.</div>`;
+  const pend = todas.filter((r) => r.estado !== "hecho"), hechas = todas.filter((r) => r.estado === "hecho");
+  return `${pend.length ? recItems(pend) : `<div class="vacio">Todo al día: no hay nada pendiente.</div>`}
+    ${hechas.length ? `<details class="rec-hechas"><summary>Ver las ${hechas.length} ya hechas</summary><div class="recs">${recItems(hechas)}</div></details>` : ""}`;
+}
+function recItems(lista) {
   const area = { contenido: "Contenido", youtube: "YouTube", facebook: "Facebook", tiktok: "TikTok", estrategia: "Estrategia" };
   return lista.map((r) => `<div class="rec ${esc(r.estado)}">
       <label class="rec-check" title="Marcar como hecho"><input type="checkbox" data-rec="${r.id}" ${r.estado === "hecho" ? "checked" : ""} aria-label="Hecho: ${esc(r.titulo)}"><span></span></label>
@@ -193,6 +198,50 @@ function recomendacionesHtml(lista) {
         <div class="chips"><span class="chip prio-${esc(r.prioridad)}">Prioridad ${esc(r.prioridad)}</span><span class="chip">${esc(area[r.area] || r.area)}</span>
         <span class="chip ${r.quien === "usuario" ? "tu" : "yo"}">${r.quien === "usuario" ? "Te toca a ti" : "Lo hago yo"}</span></div>
         ${r.detalle ? `<p>${esc(r.detalle)}</p>` : ""}</div></div>`).join("");
+}
+
+/* ───── Crecimiento: vistas por día, mejor horario y próximos 7 días ───── */
+function vistasPorDia(serie) {
+  // La serie trae vistas ACUMULADAS por día y red: lo nuevo de cada día es la diferencia con el día anterior.
+  const dias = [...new Set(serie.map((s) => s.dia))].sort().slice(-15);
+  if (dias.length < 2) return `<div class="vacio">El gráfico aparece al juntar 2 días de datos.</div>`;
+  const fechaCorta = (d) => new Date(d + "T12:00:00").toLocaleDateString("es-EC", { day: "numeric", month: "short" });
+  return `<div class="seg-lista">${Object.entries(REDES).map(([red, x]) => {
+    const acum = dias.map((d) => serie.find((s) => s.dia === d && s.red === red)?.vistas ?? null);
+    const nuevas = acum.slice(1).map((v, i) => (v == null || acum[i] == null ? 0 : Math.max(0, v - acum[i])));
+    const ds = dias.slice(1), max = Math.max(1, ...nuevas), hoy = nuevas.at(-1), mejor = nuevas.indexOf(Math.max(...nuevas));
+    const barras = nuevas.map((v, i) => `<i style="height:${Math.max(2, (v / max) * 100).toFixed(1)}%;background:${x.c}" title="${fechaCorta(ds[i])}: ${num(v)} vistas"></i>`).join("");
+    return `<div class="seg-fila"><div class="seg-cab"><span><i style="background:${x.c}"></i>${x.nombre}</span><b>${num(hoy)}</b><em>último día (en curso) · récord ${num(nuevas[mejor])} (${fechaCorta(ds[mejor])})</em></div>
+      <div class="barras-dia" role="img" aria-label="Vistas nuevas por día en ${x.nombre}">${barras}</div>
+      <div class="seg-ejes"><span>${fechaCorta(ds[0])}</span><span>vistas nuevas por día</span><span>${fechaCorta(ds.at(-1))}</span></div></div>`;
+  }).join("")}</div>`;
+}
+
+const FRANJAS = [["mañana", "8:30", 0, 11], ["mediodía", "12:30–13:00", 11, 16], ["noche", "19:00–20:00", 16, 21.5], ["noche tarde", "22:00", 21.5, 24]];
+function mejorHorario(pubs) {
+  const hora = (p) => { const d = new Date(new Date(p.publicado_en || p.cuando).getTime() - 5 * 36e5); return d.getUTCHours() + d.getUTCMinutes() / 60; };
+  const filas = Object.entries(REDES).map(([red, x]) => {
+    const l = pubs.filter((p) => p.red === red && p.tipo !== "largo");
+    const datosF = FRANJAS.map(([n, h, a, b]) => { const xs = l.filter((p) => hora(p) >= a && hora(p) < b).map((p) => p.vistas); return { n, h, prom: xs.length ? xs.reduce((s, v) => s + v, 0) / xs.length : null, cant: xs.length }; });
+    const max = Math.max(1, ...datosF.map((f) => f.prom || 0)), top = datosF.filter((f) => f.prom != null).sort((p, q) => q.prom - p.prom)[0];
+    return `<div class="horario"><div class="seg-cab"><span><i style="background:${x.c}"></i>${x.nombre}</span>${top ? `<em class="sube">mejor: ${top.n} (${top.h})</em>` : ""}</div>
+      ${datosF.map((f) => `<div class="franja"><span>${f.n} <small>${f.h}</small></span><div class="meta-barra"><i style="width:${f.prom == null ? 0 : ((f.prom / max) * 100).toFixed(1)}%;background:${x.c}"></i></div><b>${f.prom == null ? "—" : num(Math.round(f.prom))}</b><small>${f.cant ? f.cant + " videos" : "sin datos"}</small></div>`).join("")}</div>`;
+  }).join("");
+  return `${filas}<p class="nd">Promedio de vistas de reels, Shorts y partes según la hora en que salieron (hora de Ecuador). Los videos más nuevos todavía están sumando.</p>`;
+}
+
+function proximosDias(lista) {
+  if (!lista.length) return `<div class="vacio">No hay nada programado en los próximos 7 días.</div>`;
+  const dia = (iso) => fecha(iso, { weekday: "long", day: "numeric", month: "short" });
+  const grupos = {};
+  for (const p of lista) (grupos[dia(p.cuando)] ||= []).push(p);
+  return `<div class="proximos">${Object.entries(grupos).map(([d, l]) => {
+    const faltan = Object.keys(REDES).filter((r) => !l.some((p) => p.red === r));
+    const porHora = {};
+    for (const p of l) (porHora[fecha(p.cuando, { hour: "2-digit", minute: "2-digit", hour12: false }) + "|" + p.video_id] ||= []).push(p);
+    return `<div class="dia-prox"><div class="dia-cab"><b>${esc(d)}</b>${faltan.length ? `<span class="chip aviso">sin ${faltan.map((r) => REDES[r].nombre).join(" ni ")}</span>` : `<span class="chip ok">3 redes</span>`}</div>
+      ${Object.entries(porHora).map(([k, ps]) => `<div class="prox-item"><time>${esc(k.split("|")[0])}</time><span class="prox-redes">${ps.map((p) => `<i class="red-pt" style="background:${REDES[p.red].c}" title="${REDES[p.red].nombre} · ${esc(ESTADO[p.estado] || p.estado)}"></i>`).join("")}</span><span class="prox-tit">${esc(ps[0].titulo)}</span><small>${esc(TIPO[ps[0].tipo] || ps[0].tipo)} · ${esc(ps[0].historia_id)}</small></div>`).join("")}</div>`;
+  }).join("")}</div>`;
 }
 
 function vistaCrecimiento() {
@@ -224,6 +273,11 @@ function vistaCrecimiento() {
         <h3 class="sub-h">Vistas por red</h3>
         <div class="reparto">${Object.entries(a.porRed).map(([r, x]) => `<div><span>${REDES[r].nombre}</span><div class="meta-barra"><i style="width:${a.total ? ((x.vistas / a.total) * 100).toFixed(1) : 0}%;background:${REDES[r].c}"></i></div><b>${num(x.vistas)}</b></div>`).join("")}</div></div>
     </div>
+    <div class="rejilla r2 seccion">
+      <div class="tarjeta grafico"><h3>Vistas por día <span class="nd">últimas 2 semanas</span></h3>${vistasPorDia(datos.crec.serie || [])}</div>
+      <div class="tarjeta"><h3>Mejor hora para publicar <span class="nd">según tus propios videos</span></h3>${mejorHorario(a.pubs)}</div>
+    </div>
+    <div class="tarjeta seccion"><h3>Lo que sale en los próximos 7 días <span class="nd">cada punto es una red</span></h3>${proximosDias(datos.crec.proximas || [])}</div>
     <div class="tarjeta seccion"><h3>Mi plan para crecer más rápido <span class="nd">lo reviso y actualizo cada semana</span></h3><div class="recs">${recomendacionesHtml(datos.crec.recomendaciones)}</div></div>
     <div class="seccion">${metas(a)}</div>
     <div class="tarjeta seccion"><h3>Cómo va cada publicación <span class="nd">comparada con las demás de su misma red y formato</span></h3><div class="tabla-env"><table>

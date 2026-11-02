@@ -100,9 +100,12 @@ async function crecimiento(env: Env) {
       (SELECT vistas FROM metricas WHERE pub_id = p.id AND momento <= strftime('%Y-%m-%dT%H:00', 'now', '-24 hours') ORDER BY momento DESC LIMIT 1) vistas_24h
     FROM publicaciones p JOIN videos v ON v.id = p.video_id
     LEFT JOIN metricas m ON m.pub_id = p.id AND m.momento = (SELECT MAX(momento) FROM metricas WHERE pub_id = p.id)
-    WHERE p.estado IN ('publicado', 'privado') ORDER BY p.cuando`).all()).results;
+    WHERE p.estado IN ('publicado', 'privado') AND v.id NOT LIKE 'demo%' ORDER BY p.cuando`).all()).results;
   const recomendaciones = (await env.DB.prepare("SELECT * FROM recomendaciones WHERE estado != 'descartado' ORDER BY estado = 'hecho', CASE prioridad WHEN 'alta' THEN 0 WHEN 'media' THEN 1 ELSE 2 END, id DESC").all()).results;
-  return { cuentas, pubs, recomendaciones };
+  // Lo que sale en los próximos 7 días (para ver huecos y el orden de las historias).
+  const proximas = (await env.DB.prepare(`SELECT p.red, p.estado, p.cuando, v.id video_id, v.titulo, v.tipo, v.historia_id FROM publicaciones p JOIN videos v ON v.id = p.video_id
+    WHERE p.cuando > strftime('%Y-%m-%dT%H:%M:%fZ', 'now') AND p.cuando < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '+7 days') AND v.id NOT LIKE 'demo%' ORDER BY p.cuando`).all()).results;
+  return { cuentas, pubs, recomendaciones, serie: await serie(env), proximas };
 }
 
 async function medio(env: Env, req: Request, clave: string) {
