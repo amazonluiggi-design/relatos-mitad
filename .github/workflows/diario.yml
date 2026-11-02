@@ -58,6 +58,9 @@ jobs:
             done
           done
           rm -rf out
+      - name: Listas de reproducción de YouTube (necesita el token con permiso youtube.force-ssl)
+        continue-on-error: true
+        run: node scripts/yt-listas.mjs 2>&1 | tail -6
       - name: Guardar IDs publicados
         run: |
           git config user.name "Relatos de la Mitad"; git config user.email "amazonluiggi@gmail.com"
