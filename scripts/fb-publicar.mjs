@@ -70,6 +70,8 @@ for (const [id, p, f] of tareas) {
   if (hecho[id]) { console.log(id, "ya programado:", hecho[id].id); continue; }
   if (!fs.existsSync(p.archivo)) { console.log(id, "sin archivo todavía"); continue; }
   if (new Date(p.cuando) < new Date(Date.now() + 15 * 60000)) { console.log(id, "su hora ya pasó, no se programa"); continue; }
+  // Facebook no deja programar a más de ~30 días: se programa solo cuando entra en la ventana (el diario reintenta cada día).
+  if (new Date(p.cuando) > new Date(Date.now() + 28 * 864e5)) { console.log(id, "a más de 28 días: se programa más adelante"); continue; }
   console.log(id, "→", p.cuando);
   const r = await f(p);
   hecho[id] = { id: r.id, cuando: p.cuando };
