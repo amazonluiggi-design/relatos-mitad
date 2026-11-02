@@ -69,23 +69,10 @@ function porVideo(pubs) {
 function itemAgenda(v) {
   return `<div class="item">
     <div class="item-fecha"><b>${esc(fecha(v.cuando, { day: "2-digit" }))}</b>${esc(fecha(v.cuando, { month: "short" }))}<br>${esc(fecha(v.cuando, { hour: "2-digit", minute: "2-digit" }))}</div>
-    <div class="item-txt"><b>${esc(v.titulo)}</b><span class="nd">${v.tipo === "largo" ? "Video largo" : v.tipo === "parte" ? "Parte (TikTok)" : "Reel"} · ${esc(v.historia_id)}</span>
+    <div class="item-txt"><b>${esc(v.titulo)}</b><span class="nd">${esc(TIPO[v.tipo] || "Reel")} · ${esc(v.historia_id)}</span>
       <div class="chips">${v.redes.map(chip).join("")}</div></div></div>`;
 }
 
-function grafico(serie) {
-  if (!serie.some((s) => s.vistas > 0)) return `<div class="vacio">El gráfico aparece cuando las redes empiecen a reportar vistas (se revisa cada hora).</div>`;
-  const dias = [...new Set(serie.map((s) => s.dia))];
-  const max = Math.max(1, ...serie.map((s) => s.vistas || 0));
-  const W = 600, H = 200, x = (i) => (dias.length === 1 ? W / 2 : (i / (dias.length - 1)) * W), y = (v) => H - 10 - (v / max) * (H - 30);
-  const lineas = Object.keys(REDES).map((red) => {
-    const pts = dias.map((d, i) => { const s = serie.find((z) => z.dia === d && z.red === red); return s ? `${x(i)},${y(s.vistas || 0)}` : null; }).filter(Boolean);
-    return pts.length ? `<polyline fill="none" stroke="${REDES[red].c}" stroke-width="3" stroke-linejoin="round" points="${pts.join(" ")}"/>${pts.map((p) => `<circle cx="${p.split(",")[0]}" cy="${p.split(",")[1]}" r="4" fill="${REDES[red].c}"/>`).join("")}` : "";
-  }).join("");
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Vistas por día">
-      <line x1="0" y1="${H - 10}" x2="${W}" y2="${H - 10}" stroke="var(--borde)"/>${lineas}</svg>
-    <div class="leyenda">${Object.values(REDES).map((r) => `<span><i style="background:${r.c}"></i>${r.nombre}</span>`).join("")}<span>Máx. ${num(max)} vistas/día</span></div>`;
-}
 
 const eventosHtml = (ev) => ev.length ? ev.map((e) => `<div class="evento"><span class="punto ${esc(e.nivel)}"></span><div>${esc(e.mensaje)}<time>${esc(fecha(e.cuando.replace(" ", "T") + "Z", { dateStyle: "short", timeStyle: "short" }))}${e.red ? " · " + esc(REDES[e.red]?.nombre || e.red) : ""}</time></div></div>`).join("") : `<div class="vacio">Sin actividad todavía.</div>`;
 
@@ -384,10 +371,10 @@ const VISTAS = {
     return `<div class="rejilla r3">${Object.keys(REDES).map((r) => tarjetaRed(r, resumen.cuentas[r])).join("")}</div>
       <div class="rejilla r2 seccion">
         <div class="tarjeta"><h3>Lo que viene</h3><div class="lista">${proximas.map(itemAgenda).join("") || `<div class="vacio">No hay publicaciones en agenda.</div>`}</div></div>
-        <div class="tarjeta"><h3>Actividad reciente</h3>${eventosHtml(resumen.eventos.slice(0, 10))}</div>
+        <div class="tarjeta"><h3>Actividad reciente</h3>${eventosHtml(resumen.eventos.filter((e, i, l) => l.findIndex((x) => x.mensaje === e.mensaje) === i).slice(0, 10))}</div>
       </div>
       ${sig ? `<a class="tarjeta seccion historia red-tarjeta" href="#historias" style="--c:var(--ambar)"><span class="nd">Próxima historia · sale el ${esc(fecha(sig.semana + "T19:00:00-05:00", { weekday: "long", day: "numeric", month: "long" }))}</span><h4>${esc(sig.titulo)}</h4></a>` : ""}
-      <div class="tarjeta seccion grafico"><h3>Vistas por día</h3>${grafico(serie)}</div>`;
+      <div class="tarjeta seccion grafico"><h3>Vistas nuevas por día <span class="nd">últimas 2 semanas</span></h3>${vistasPorDia(serie)}</div>`;
   },
   agenda() {
     const grupos = porVideo(datos.pubs);
