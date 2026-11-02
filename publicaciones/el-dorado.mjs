@@ -1,5 +1,5 @@
 // Textos y horarios de El Dorado: la laguna de oro (hora de Ecuador, UTC-5). reel1 y reel2 son AVANCES.
-// Va después de la Isla de la Plata (termina el 1-dic): avances 2 y 3, estreno vie 4-dic, reels y partes 4-7.
+// Va después de la Isla de la Plata (termina el 1-dic): avances 2 y 3, estreno vie 4-dic, un reel diario 19:30 (5-8) y partes 22:00 (4-7).
 const YT = "https://www.youtube.com/@relatos.delamitad";
 const TT = "https://www.tiktok.com/@relatosdelamitad";
 const FB = "https://www.facebook.com/RelatosDeLaMitad";
@@ -25,13 +25,13 @@ Imágenes: recreaciones generadas con IA. La ceremonia y los intentos de desagü
       texto: `En los Andes hay una laguna redonda que miles intentaron vaciar… porque en el fondo hay siglos de oro 🌕\n\nLa historia completa este viernes en la página 👆 ¿La conocías? SÍ o NO\n#eldorado #guatavita #tesoro #leyendas #colombia` },
     { archivo: "out/el-dorado-reel2.mp4", cuando: "2026-12-03T19:30:00-05:00",
       texto: `Cubrían a su rey con polvo de oro y lo llevaban al centro de la laguna sagrada ✨ Así nació El Dorado.\n\nEste viernes, la historia completa en la página 👆 ¿Tú lo sabías?\n#eldorado #muiscas #oro #historia #latinoamerica` },
-    { archivo: "out/el-dorado-reel3.mp4", cuando: "2026-12-05T12:30:00-05:00",
+    { archivo: "out/el-dorado-reel3.mp4", cuando: "2026-12-05T19:30:00-05:00",
       texto: `Cavaron un corte gigante en el cráter para sacar el oro de la laguna… y las paredes se vinieron abajo ⛏️\n\nLa historia completa en la página 👆 ¿Tú lo habrías intentado?\n#eldorado #guatavita #tesoro #historia #colombia` },
-    { archivo: "out/el-dorado-reel4.mp4", cuando: "2026-12-05T19:30:00-05:00",
+    { archivo: "out/el-dorado-reel4.mp4", cuando: "2026-12-06T19:30:00-05:00",
       texto: `Por fin vaciaron la laguna de El Dorado… y el lodo del fondo se endureció como cemento 😳\n\nRelato completo en la página 👆 ¿Mala suerte o maldición?\n#eldorado #guatavita #misterio #tesoro #historia` },
-    { archivo: "out/el-dorado-reel5.mp4", cuando: "2026-12-06T12:30:00-05:00",
+    { archivo: "out/el-dorado-reel5.mp4", cuando: "2026-12-07T19:30:00-05:00",
       texto: `En 1969, unos campesinos encontraron en una cueva la prueba de que El Dorado existió 🛶\n\nLa historia completa en la página 👆 ¿La has visto en el Museo del Oro?\n#eldorado #museodeloro #muiscas #arqueologia #colombia` },
-    { archivo: "out/el-dorado-reel6.mp4", cuando: "2026-12-06T19:30:00-05:00",
+    { archivo: "out/el-dorado-reel6.mp4", cuando: "2026-12-08T19:30:00-05:00",
       texto: `Buscaron una ciudad de oro durante siglos… pero El Dorado nunca fue una ciudad 🤔\n\nToda la historia en la página 👆 ¿Tú qué crees?\n#eldorado #leyendas #tesoro #misterio #latinoamerica` },
   ],
   partes: [
