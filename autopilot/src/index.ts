@@ -140,10 +140,45 @@ async function resumenPortal(env: Env) {
   };
 }
 
+/** Salud del autopiloto para el monitor de avisos por WhatsApp (público: solo problemas resumidos y cifras públicas).
+ *  503 si algo necesita atención; "resumen" trae las cifras del día para el mensaje de la noche. */
+async function salud(env: Env) {
+  const problemas: string[] = [];
+  const hace = (h: number) => new Date(Date.now() - h * 3600e3).toISOString().replace("T", " ").slice(0, 19);
+  const errores = (await env.DB.prepare("SELECT red, mensaje FROM eventos WHERE nivel = 'error' AND cuando >= ? ORDER BY cuando DESC").bind(hace(2)).all<{ red: string | null; mensaje: string }>()).results;
+  // Errores que se repiten (un 520 suelto de una red no es un problema).
+  const veces: Record<string, number> = {};
+  for (const e of errores) { const k = e.mensaje.replace(/\d+/g, "#").slice(0, 80); veces[k] = (veces[k] || 0) + 1; }
+  for (const e of errores) { const k = e.mensaje.replace(/\d+/g, "#").slice(0, 80); if (veces[k] >= 2 && !problemas.some((p) => p.startsWith(e.mensaje.slice(0, 40)))) problemas.push(e.mensaje.slice(0, 160)); }
+  const viejos = (await env.DB.prepare("SELECT red, MAX(momento) m FROM cuentas_hist GROUP BY red").all<{ red: string; m: string }>()).results;
+  for (const v of viejos) if (new Date(v.m + (v.m.endsWith("Z") ? "" : "Z")).getTime() < Date.now() - 4 * 3600e3) problemas.push(`Las estadísticas de ${v.red} no se actualizan desde el ${new Date(v.m + (v.m.endsWith("Z") ? "" : "Z")).toLocaleString("es-EC", { timeZone: "America/Guayaquil", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`);
+  const fallidas = (await env.DB.prepare("SELECT COUNT(*) n FROM publicaciones WHERE estado IN ('fallido', 'privado') AND video_id NOT LIKE 'demo%' AND cuando >= ?").bind(new Date(Date.now() - 24 * 3600e3).toISOString()).first<{ n: number }>())?.n || 0;
+  if (fallidas) problemas.push(`${fallidas} publicación(es) fallaron o quedaron en privado en las últimas 24 h`);
+  // TikTok se programa desde la laptop (Studio): avisar si en 3 días hay algo sin programar.
+  const tt = (await env.DB.prepare("SELECT COUNT(*) n, MIN(cuando) m FROM publicaciones WHERE red = 'tiktok' AND estado = 'por-programar' AND cuando > ? AND cuando < ?").bind(new Date().toISOString(), new Date(Date.now() + 3 * 86400e3).toISOString()).first<{ n: number; m: string }>());
+  if (tt?.n) problemas.push(`TikTok: ${tt.n} video(s) de los próximos 3 días sin programar. Prende la laptop y pide "programa TikTok"`);
+  // Cifras de hoy (hora de Ecuador) para el resumen.
+  // Desde la medianoche de Ecuador (05:00 UTC): lo último de cada publicación menos lo que tenía a esa hora.
+  const ec = new Date(Date.now() - 5 * 3600e3).toISOString().slice(0, 10);
+  const inicio = new Date(`${ec}T05:00:00Z`).toISOString().slice(0, 16);
+  const filas = (await env.DB.prepare(`SELECT p.red, SUM(m.vistas - COALESCE((SELECT vistas FROM metricas WHERE pub_id = p.id AND momento <= ? ORDER BY momento DESC LIMIT 1), 0)) n
+      FROM publicaciones p JOIN metricas m ON m.pub_id = p.id AND m.momento = (SELECT MAX(momento) FROM metricas WHERE pub_id = p.id)
+      WHERE p.video_id NOT LIKE 'demo%' GROUP BY p.red`).bind(inicio).all<{ red: string; n: number }>()).results;
+  const nuevas: Record<string, number> = { youtube: 0, tiktok: 0, facebook: 0 };
+  for (const f of filas) nuevas[f.red] = Math.max(0, f.n || 0);
+  const seg = (await env.DB.prepare("SELECT c.red, c.seguidores FROM cuentas_hist c JOIN (SELECT red, MAX(momento) mx FROM cuentas_hist GROUP BY red) u ON u.red = c.red AND u.mx = c.momento").all<{ red: string; seguidores: number }>()).results;
+  const mejor = await env.DB.prepare(`SELECT v.titulo, p.red, m.vistas - COALESCE((SELECT vistas FROM metricas WHERE pub_id = p.id AND momento <= strftime('%Y-%m-%dT%H:00', 'now', '-24 hours') ORDER BY momento DESC LIMIT 1), 0) ritmo
+      FROM publicaciones p JOIN videos v ON v.id = p.video_id JOIN metricas m ON m.pub_id = p.id AND m.momento = (SELECT MAX(momento) FROM metricas WHERE pub_id = p.id)
+      WHERE p.estado = 'publicado' AND v.id NOT LIKE 'demo%' ORDER BY ritmo DESC LIMIT 1`).first<{ titulo: string; red: string; ritmo: number }>();
+  const resumen = { vistas_hoy: nuevas, seguidores: Object.fromEntries(seg.map((x) => [x.red, x.seguidores])), mejor };
+  return Response.json({ ok: !problemas.length, problemas, resumen }, { status: problemas.length ? 503 : 200, headers: { "Cache-Control": "no-store" } });
+}
+
 async function api(env: Env, req: Request, url: URL) {
   const ruta = url.pathname.slice(4);
   if (ruta === "/login" && req.method === "POST") return login(env, req);
   if (ruta === "/salir" && req.method === "POST") return salir();
+  if (ruta === "/salud" && req.method === "GET") return salud(env);
   // Portal de empresas: entrada con pase (sin contraseña) y cifras para su tablero.
   if (ruta === "/portal" && req.method === "POST") return entrarDesdePortal(env, req);
   if (ruta === "/portal/resumen" && req.method === "GET") {
