@@ -41,6 +41,8 @@ const tareas = [["largo", PUBLICACION.largo, YOUTUBE.largo], ...PUBLICACION.reel
 for (const [id, p, y] of tareas) {
   if (solo && solo !== id) continue;
   if (hecho[id]) { console.log(id, "ya subido:", hecho[id].id); continue; }
+  // Los episodios no rinden en YouTube (0 vistas al 3-nov) y gastan el cupo diario de subidas: solo con EPISODIOS_YT=1.
+  if (id.startsWith("episodio") && !process.env.EPISODIOS_YT) continue;
   if (!fs.existsSync(p.archivo)) { console.log(id, "sin archivo todavía"); continue; }
   if (new Date(p.cuando) < new Date(Date.now() + 15 * 60000)) { console.log(id, "su hora ya pasó, no se sube"); continue; }
   // YT_DIAS: solo lo que sale en los próximos N días (el límite diario de subidas se gasta primero en lo urgente).
