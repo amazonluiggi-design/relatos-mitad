@@ -1,9 +1,7 @@
-# Historia de Facebook diaria: a las 20:15 (Ecuador) publica como historia de la página el reel del día.
+# Historia de Facebook (solo a mano). La diaria la hace el Worker relatos-autopilot a las 20:15 (el cron de GitHub se atrasaba horas).
 name: Historia de Facebook
 
 on:
-  schedule:
-    - cron: "15 1 * * *" # 20:15 en Ecuador
   workflow_dispatch:
 
 concurrency:

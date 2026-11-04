@@ -186,3 +186,34 @@ export async function sincronizarFacebook(env: Env, pubs: Pub[]) {
       extra: { seg_medio: val("post_video_avg_time_watched") != null ? Math.round(val("post_video_avg_time_watched")! / 100) / 10 : null, repeticiones: val("fb_reels_replay_count") ?? null } });
   }
 }
+
+/** Historia diaria de la página de Facebook: entre 20:15 y 20:40 (Ecuador) sube como historia el último reel publicado
+ *  en las 12 horas anteriores. Las historias salen arriba para los seguidores, que casi no ven los reels. Una por día. */
+export async function historiaFacebook(env: Env, ahora = new Date()) {
+  const ec = new Date(ahora.getTime() - 5 * 3600e3), min = ec.getUTCHours() * 60 + ec.getUTCMinutes();
+  if (min < 20 * 60 + 15 || min > 20 * 60 + 40) return;
+  const clave = `fb-historia-${ec.toISOString().slice(0, 10)}`;
+  if (await env.KV.get(clave)) return;
+  const desde = new Date(ahora.getTime() - 12 * 3600e3).toISOString();
+  const p = await env.DB.prepare(`SELECT video_id FROM publicaciones WHERE red = 'facebook' AND estado = 'publicado' AND video_id LIKE '%-reel%'
+      AND cuando >= ? AND cuando <= ? ORDER BY cuando DESC LIMIT 1`).bind(desde, ahora.toISOString()).first<{ video_id: string }>();
+  if (!p) { await env.KV.put(clave, "sin reel", { expirationTtl: 3 * 86400 }); return; }
+  const m = /^(.*)-(reel\d+)$/.exec(p.video_id);
+  const obj = m ? await env.VIDEOS.get(`${m[1]}/${m[2]}.mp4`) : null;
+  if (!obj) { await evento(env, `Historia de Facebook: no encontré el video de ${p.video_id}`, "aviso", "facebook"); await env.KV.put(clave, "sin video", { expirationTtl: 3 * 86400 }); return; }
+  const G = "https://graph.facebook.com/v23.0";
+  try {
+    const ini = (await (await fetch(`${G}/${env.FB_PAGINA}/video_stories`, { method: "POST", body: new URLSearchParams({ upload_phase: "start", access_token: env.FB_TOKEN }) })).json()) as { video_id?: string; upload_url?: string; error?: { message: string } };
+    if (!ini.video_id || !ini.upload_url) throw new Error(ini.error?.message || "sin video_id");
+    const datos = await obj.arrayBuffer();
+    const up = (await (await fetch(ini.upload_url, { method: "POST", headers: { Authorization: `OAuth ${env.FB_TOKEN}`, offset: "0", file_size: String(datos.byteLength) }, body: datos })).json()) as { success?: boolean };
+    if (!up.success) throw new Error("subida rechazada");
+    const fin = (await (await fetch(`${G}/${env.FB_PAGINA}/video_stories`, { method: "POST", body: new URLSearchParams({ upload_phase: "finish", video_id: ini.video_id, access_token: env.FB_TOKEN }) })).json()) as { success?: boolean; post_id?: string; error?: { message: string } };
+    if (!fin.success) throw new Error(fin.error?.message || "no terminó");
+    await env.KV.put(clave, p.video_id, { expirationTtl: 3 * 86400 });
+    await evento(env, `Historia de Facebook publicada: ${p.video_id}`, "info", "facebook");
+  } catch (e) {
+    await evento(env, `Historia de Facebook falló (${p.video_id}): ${String(e).slice(0, 200)}`, "error", "facebook");
+    await env.KV.put(clave, "error", { expirationTtl: 3 * 86400 });
+  }
+}

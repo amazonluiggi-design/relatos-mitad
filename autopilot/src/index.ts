@@ -2,7 +2,7 @@
 // Cron cada 5 min: publica en TikTok lo que venció y revisa estados. Cada hora (minuto 0-4): estadísticas de las 3 redes.
 import { login, salir, sesionValida } from "./auth";
 import { entrarDesdePortal, leerPase } from "./portal";
-import { publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube } from "./redes";
+import { publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube, historiaFacebook } from "./redes";
 import { type Env, type Pub, evento } from "./tipos";
 import { aprobar, canjear, creador, urlConectar } from "./tiktok-ui";
 
@@ -235,6 +235,7 @@ export default {
     ctx.waitUntil((async () => {
       await publicarPendientes(env);
       if (new Date(c.scheduledTime).getUTCMinutes() < 5) await sincronizar(env);
+      await historiaFacebook(env, new Date(c.scheduledTime));
     })());
   },
   async fetch(req: Request, env: Env) {

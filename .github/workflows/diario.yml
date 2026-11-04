@@ -4,7 +4,8 @@ name: Programación diaria
 
 on:
   schedule:
-    - cron: "0 11 * * *" # 06:00 en Ecuador
+    # GitHub atrasa los cron varias horas: 3 intentos de madrugada (no repite lo ya hecho, y el límite de YouTube corta solo).
+    - cron: "0 6,9,12 * * *" # 01:00, 04:00 y 07:00 en Ecuador
   workflow_dispatch:
 
 concurrency:
