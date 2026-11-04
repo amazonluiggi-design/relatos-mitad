@@ -3,22 +3,23 @@
 import fs from "node:fs";
 import { sql as ejecutar } from "../../scripts/nube.mjs";
 const h = process.argv[2];
-const { HISTORIA, REELS } = await import(`../../historias/${h}.mjs`);
+const { HISTORIA, REELS: REELS_H, RECOPILAR } = await import(`../../historias/${h}.mjs`);
+const REELS = REELS_H || RECOPILAR; // un recopilatorio solo tiene reels (sin video largo)
 const { PUBLICACION, YOUTUBE } = await import(`../../publicaciones/${h}.mjs`);
 const plan = JSON.parse(fs.readFileSync(`src/datos/${h}-plan.json`, "utf8"));
 const fb = fs.existsSync(`publicaciones/${h}-fb.json`) ? JSON.parse(fs.readFileSync(`publicaciones/${h}-fb.json`, "utf8")) : {};
 const yt = fs.existsSync(`publicaciones/${h}-yt.json`) ? JSON.parse(fs.readFileSync(`publicaciones/${h}-yt.json`, "utf8")) : {};
 const q = (v) => (v === null || v === undefined ? "NULL" : `'${String(v).replace(/'/g, "''")}'`);
 const iso = (s) => new Date(s).toISOString();
-const sql = [`INSERT INTO historias (id, titulo, estado, semana) VALUES (${q(h)}, ${q(HISTORIA.titulo)}, 'listo', ${q(PUBLICACION.largo.cuando.slice(0, 10))}) ON CONFLICT(id) DO UPDATE SET titulo = excluded.titulo, estado = CASE WHEN historias.estado = 'publicado' THEN 'publicado' ELSE 'listo' END, semana = excluded.semana;`];
-sql.push(`INSERT OR REPLACE INTO videos (id, historia_id, tipo, titulo, gancho, duracion, archivo, miniatura) VALUES (${q(h + "-largo")}, ${q(h)}, 'largo', ${q(YOUTUBE.largo.titulo)}, ${q(HISTORIA.escenas[0].texto)}, ${plan.total / plan.fps}, NULL, ${q(h + "/miniatura.jpg")});`);
+const sql = [`INSERT INTO historias (id, titulo, estado, semana) VALUES (${q(h)}, ${q(HISTORIA.titulo)}, 'listo', ${q((PUBLICACION.largo || PUBLICACION.reels[0]).cuando.slice(0, 10))}) ON CONFLICT(id) DO UPDATE SET titulo = excluded.titulo, estado = CASE WHEN historias.estado = 'publicado' THEN 'publicado' ELSE 'listo' END, semana = excluded.semana;`];
+if (PUBLICACION.largo) sql.push(`INSERT OR REPLACE INTO videos (id, historia_id, tipo, titulo, gancho, duracion, archivo, miniatura) VALUES (${q(h + "-largo")}, ${q(h)}, 'largo', ${q(YOUTUBE.largo.titulo)}, ${q(HISTORIA.escenas[0].texto)}, ${plan.total / plan.fps}, NULL, ${q(h + "/miniatura.jpg")});`);
 REELS.forEach((r, i) => sql.push(`INSERT OR REPLACE INTO videos (id, historia_id, tipo, titulo, gancho, duracion, archivo, miniatura) VALUES (${q(`${h}-${r.id}`)}, ${q(h)}, ${q(r.tiktok ? "parte" : "reel")}, ${q(r.gancho)}, ${q(r.gancho)}, ${(plan.reels.find((x) => x.id === r.id)?.total ?? 0) / plan.fps}, ${q(`${h}/${r.id}.mp4`)}, ${q(`${h}/${r.id}.jpg`)});`));
 // Si ya existe, solo se completa cuando llega el ID de la red (lo programado después, p. ej. por la cuota de YouTube).
 const pub = (video, red, cuando, estado, externo, texto) =>
   sql.push(`INSERT INTO publicaciones (id, video_id, red, cuando, estado, externo_id, texto) VALUES (${q(`${video}:${red}`)}, ${q(video)}, ${q(red)}, ${q(iso(cuando))}, ${q(estado)}, ${q(externo)}, ${q(texto)})
     ON CONFLICT(id) DO UPDATE SET estado = excluded.estado, externo_id = excluded.externo_id WHERE publicaciones.estado = 'pendiente' AND excluded.externo_id IS NOT NULL;`);
-pub(h + "-largo", "facebook", PUBLICACION.largo.cuando, fb.largo ? "programado" : "pendiente", fb.largo?.id, PUBLICACION.largo.texto);
-pub(h + "-largo", "youtube", PUBLICACION.largo.cuando, yt.largo ? "programado" : "pendiente", yt.largo?.id, YOUTUBE.largo.titulo);
+if (PUBLICACION.largo) pub(h + "-largo", "facebook", PUBLICACION.largo.cuando, fb.largo ? "programado" : "pendiente", fb.largo?.id, PUBLICACION.largo.texto);
+if (PUBLICACION.largo) pub(h + "-largo", "youtube", PUBLICACION.largo.cuando, yt.largo ? "programado" : "pendiente", yt.largo?.id, YOUTUBE.largo.titulo);
 PUBLICACION.reels.forEach((r, i) => {
   const id = `${h}-reel${i + 1}`, k = `reel${i + 1}`;
   pub(id, "facebook", r.cuando, fb[k] ? "programado" : "pendiente", fb[k]?.id, r.texto);

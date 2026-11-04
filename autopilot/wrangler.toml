@@ -24,3 +24,9 @@ binding = "DB"
 database_name = "relatos-autopilot"
 database_id = "44f0fd9d-e6cd-42db-894f-a912346d6d8b"
 migrations_dir = "migrations"
+
+# Fuentes de la imagen del resumen diario (src/imagen.ts).
+[[rules]]
+type = "Data"
+globs = ["**/*.ttf"]
+fallthrough = true

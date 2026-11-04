@@ -9,13 +9,14 @@ import padreAlmeida from "./datos/padre-almeida-plan.json";
 import cajaRonca from "./datos/caja-ronca-plan.json";
 import islaPlata from "./datos/isla-plata-plan.json";
 import elDorado from "./datos/el-dorado-plan.json";
+import tesoros from "./datos/tesoros-plan.json";
 
 // Mientras falten imágenes, se usa la portada como relleno para revisar el montaje.
 const relleno = (p: Plan): Plan => {
   const f = (e: Plan["escenas"][number]) => ({ ...e, h: e.h ?? "marca/banner-fondo.jpg" });
   return { ...p, escenas: p.escenas.map(f), reels: p.reels.map((r) => ({ ...r, escenas: r.escenas.map(f) })) };
 };
-const HISTORIAS: Record<string, Plan> = { cantuna: relleno(cantuna as Plan), llanganates: relleno(llanganates as Plan), "dama-tapada": relleno(damaTapada as Plan), "padre-almeida": relleno(padreAlmeida as Plan), "caja-ronca": relleno(cajaRonca as Plan), "isla-plata": relleno(islaPlata as Plan), "el-dorado": relleno(elDorado as Plan) };
+const HISTORIAS: Record<string, Plan> = { cantuna: relleno(cantuna as Plan), llanganates: relleno(llanganates as Plan), "dama-tapada": relleno(damaTapada as Plan), "padre-almeida": relleno(padreAlmeida as Plan), "caja-ronca": relleno(cajaRonca as Plan), "isla-plata": relleno(islaPlata as Plan), "el-dorado": relleno(elDorado as Plan), tesoros: relleno(tesoros as Plan) };
 const MINIATURAS: Record<string, React.ComponentProps<typeof Miniatura>> = {
   "el-dorado": { cara: "el-dorado/h/c3.jpg", fondo: "el-dorado/h/g1.jpg", linea1: "LA LAGUNA", linea2: "DE ORO", dato: "EL DORADO · LOS ANDES" },
   "isla-plata": { cara: "isla-plata/h/d1.jpg", fondo: "isla-plata/h/g3.jpg", linea1: "EL TESORO", linea2: "PIRATA", dato: "MANABÍ · 1579" },
@@ -36,8 +37,9 @@ export const Root: React.FC = () => (
     </Folder>
     {Object.entries(HISTORIAS).map(([id, plan]) => (
       <Folder key={id} name={id}>
-        <Composition id={`${id}-miniatura`} component={Miniatura} width={1280} height={720} fps={30} durationInFrames={1} defaultProps={MINIATURAS[id]} />
-        <Composition id={`${id}-largo`} component={Relato} width={1920} height={1080} fps={30} durationInFrames={plan.total} defaultProps={{ plan, musica: MUSICA }} />
+        {plan.total > 0 && <Composition id={`${id}-miniatura`} component={Miniatura} width={1280} height={720} fps={30} durationInFrames={1} defaultProps={MINIATURAS[id]} />}
+        {/* Los recopilatorios no tienen video largo (total 0): solo sus reels. */}
+        {plan.total > 0 && <Composition id={`${id}-largo`} component={Relato} width={1920} height={1080} fps={30} durationInFrames={plan.total} defaultProps={{ plan, musica: MUSICA }} />}
         {(plan.episodios || []).map((e, i) => (
           <Composition key={e.id} id={`${id}-${e.id}`} component={Relato} width={1920} height={1080} fps={30} durationInFrames={e.total}
             defaultProps={{ plan: { ...plan, escenas: e.escenas, total: e.total, cartel: i === 0 ? plan.cartel : null, capInicial: e.capInicial, reels: [], episodios: [] }, musica: MUSICA }} />

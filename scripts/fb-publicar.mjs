@@ -65,7 +65,7 @@ async function reel(p) {
 
 const tareas = [["largo", PUBLICACION.largo, videoLargo], ...PUBLICACION.reels.map((r, i) => [`reel${i + 1}`, r, reel]),
   ...(PUBLICACION.episodios || []).map((e, i) => [`episodio${i + 1}`, e, videoLargo])];
-for (const [id, p, f] of tareas) {
+for (const [id, p, f] of tareas.filter(([, p]) => p)) {
   if (solo && solo !== id) continue;
   if (hecho[id]) { console.log(id, "ya programado:", hecho[id].id); continue; }
   if (!fs.existsSync(p.archivo)) { console.log(id, "sin archivo todavía"); continue; }

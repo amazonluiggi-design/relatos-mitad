@@ -1,6 +1,7 @@
 // Relatos Autopilot: panel privado + publicador y estadísticas en la nube (Cloudflare).
 // Cron cada 5 min: publica en TikTok lo que venció y revisa estados. Cada hora (minuto 0-4): estadísticas de las 3 redes.
 import { login, salir, sesionValida } from "./auth";
+import { pngResumen } from "./imagen";
 import { entrarDesdePortal, leerPase } from "./portal";
 import { publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube, historiaFacebook, comentariosPendientes } from "./redes";
 import { type Env, type Pub, evento } from "./tipos";
@@ -140,38 +141,74 @@ async function resumenPortal(env: Env) {
   };
 }
 
-/** Salud del autopiloto para el monitor de avisos por WhatsApp (público: solo problemas resumidos y cifras públicas).
- *  503 si algo necesita atención; "resumen" trae las cifras del día para el mensaje de la noche. */
-async function salud(env: Env) {
+const REDES_N: Record<string, string> = { youtube: "YouTube", tiktok: "TikTok", facebook: "Facebook" };
+const ORO = /oro|tesoro|plata|mapa|millonari|riquez/i;
+
+/** Datos de salud y del día (hora de Ecuador) para el monitor de WhatsApp y la imagen del resumen. */
+async function datosSalud(env: Env) {
   const problemas: string[] = [];
+  const fechaUtc = (s: string) => new Date(s.includes("T") ? (s.endsWith("Z") ? s : s + "Z") : s.replace(" ", "T") + "Z");
   const hace = (h: number) => new Date(Date.now() - h * 3600e3).toISOString().replace("T", " ").slice(0, 19);
-  const errores = (await env.DB.prepare("SELECT red, mensaje FROM eventos WHERE nivel = 'error' AND cuando >= ? ORDER BY cuando DESC").bind(hace(2)).all<{ red: string | null; mensaje: string }>()).results;
+  // Última actualización de estadísticas por red: un error de esa red ANTERIOR a eso ya está resuelto.
+  const ultimas = Object.fromEntries((await env.DB.prepare("SELECT red, MAX(momento) m FROM cuentas_hist GROUP BY red").all<{ red: string; m: string }>()).results.map((x) => [x.red, x.m]));
+  const errores = (await env.DB.prepare("SELECT red, mensaje, cuando FROM eventos WHERE nivel = 'error' AND cuando >= ? ORDER BY cuando DESC").bind(hace(2)).all<{ red: string | null; mensaje: string; cuando: string }>()).results
+    // Las estadísticas se guardan por hora en punto: un dato de la misma hora del error ya cuenta como arreglado.
+    .filter((e) => !(e.red && ultimas[e.red] && fechaUtc(ultimas[e.red]).getTime() >= Math.floor(fechaUtc(e.cuando).getTime() / 3600e3) * 3600e3));
   // Errores que se repiten (un 520 suelto de una red no es un problema).
+  const clave = (m: string) => m.replace(/\d+/g, "#").slice(0, 80);
   const veces: Record<string, number> = {};
-  for (const e of errores) { const k = e.mensaje.replace(/\d+/g, "#").slice(0, 80); veces[k] = (veces[k] || 0) + 1; }
-  for (const e of errores) { const k = e.mensaje.replace(/\d+/g, "#").slice(0, 80); if (veces[k] >= 2 && !problemas.some((p) => p.startsWith(e.mensaje.slice(0, 40)))) problemas.push(e.mensaje.slice(0, 160)); }
-  const viejos = (await env.DB.prepare("SELECT red, MAX(momento) m FROM cuentas_hist GROUP BY red").all<{ red: string; m: string }>()).results;
-  for (const v of viejos) if (new Date(v.m + (v.m.endsWith("Z") ? "" : "Z")).getTime() < Date.now() - 4 * 3600e3) problemas.push(`Las estadísticas de ${v.red} no se actualizan desde el ${new Date(v.m + (v.m.endsWith("Z") ? "" : "Z")).toLocaleString("es-EC", { timeZone: "America/Guayaquil", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`);
+  for (const e of errores) veces[clave(e.mensaje)] = (veces[clave(e.mensaje)] || 0) + 1;
+  for (const e of errores) if (veces[clave(e.mensaje)] >= 2 && !problemas.some((p) => p.startsWith(e.mensaje.slice(0, 40)))) problemas.push(e.mensaje.slice(0, 160));
+  for (const [red, m] of Object.entries(ultimas)) if (fechaUtc(m).getTime() < Date.now() - 4 * 3600e3)
+    problemas.push(`Las estadísticas de ${REDES_N[red] || red} no se actualizan desde el ${fechaUtc(m).toLocaleString("es-EC", { timeZone: "America/Guayaquil", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`);
   const fallidas = (await env.DB.prepare("SELECT COUNT(*) n FROM publicaciones WHERE estado IN ('fallido', 'privado') AND video_id NOT LIKE 'demo%' AND cuando >= ?").bind(new Date(Date.now() - 24 * 3600e3).toISOString()).first<{ n: number }>())?.n || 0;
   if (fallidas) problemas.push(`${fallidas} publicación(es) fallaron o quedaron en privado en las últimas 24 h`);
   // TikTok se programa desde la laptop (Studio): avisar si en 3 días hay algo sin programar.
-  const tt = (await env.DB.prepare("SELECT COUNT(*) n, MIN(cuando) m FROM publicaciones WHERE red = 'tiktok' AND estado = 'por-programar' AND cuando > ? AND cuando < ?").bind(new Date().toISOString(), new Date(Date.now() + 3 * 86400e3).toISOString()).first<{ n: number; m: string }>());
+  const tt = await env.DB.prepare("SELECT COUNT(*) n FROM publicaciones WHERE red = 'tiktok' AND estado = 'por-programar' AND cuando > ? AND cuando < ?").bind(new Date().toISOString(), new Date(Date.now() + 3 * 86400e3).toISOString()).first<{ n: number }>();
   if (tt?.n) problemas.push(`TikTok: ${tt.n} video(s) de los próximos 3 días sin programar. Prende la laptop y pide "programa TikTok"`);
-  // Cifras de hoy (hora de Ecuador) para el resumen.
-  // Desde la medianoche de Ecuador (05:00 UTC): lo último de cada publicación menos lo que tenía a esa hora.
-  const ec = new Date(Date.now() - 5 * 3600e3).toISOString().slice(0, 10);
-  const inicio = new Date(`${ec}T05:00:00Z`).toISOString().slice(0, 16);
-  const filas = (await env.DB.prepare(`SELECT p.red, SUM(m.vistas - COALESCE((SELECT vistas FROM metricas WHERE pub_id = p.id AND momento <= ? ORDER BY momento DESC LIMIT 1), 0)) n
-      FROM publicaciones p JOIN metricas m ON m.pub_id = p.id AND m.momento = (SELECT MAX(momento) FROM metricas WHERE pub_id = p.id)
-      WHERE p.video_id NOT LIKE 'demo%' GROUP BY p.red`).bind(inicio).all<{ red: string; n: number }>()).results;
-  const nuevas: Record<string, number> = { youtube: 0, tiktok: 0, facebook: 0 };
-  for (const f of filas) nuevas[f.red] = Math.max(0, f.n || 0);
-  const seg = (await env.DB.prepare("SELECT c.red, c.seguidores FROM cuentas_hist c JOIN (SELECT red, MAX(momento) mx FROM cuentas_hist GROUP BY red) u ON u.red = c.red AND u.mx = c.momento").all<{ red: string; seguidores: number }>()).results;
-  const mejor = await env.DB.prepare(`SELECT v.titulo, p.red, m.vistas - COALESCE((SELECT vistas FROM metricas WHERE pub_id = p.id AND momento <= strftime('%Y-%m-%dT%H:00', 'now', '-24 hours') ORDER BY momento DESC LIMIT 1), 0) ritmo
+
+  // Vistas por día de Ecuador: lo acumulado a cada medianoche (05:00 UTC), por red.
+  const hoyEc = new Date(Date.now() - 5 * 3600e3).toISOString().slice(0, 10);
+  const medianoche = (k: number) => new Date(new Date(`${hoyEc}T05:00:00Z`).getTime() - k * 86400e3).toISOString().slice(0, 16);
+  const acumulado = async (hasta: string | null) => Object.fromEntries((await env.DB.prepare(`SELECT p.red, SUM((SELECT vistas FROM metricas WHERE pub_id = p.id ${hasta ? "AND momento <= ?1" : ""} ORDER BY momento DESC LIMIT 1)) n
+      FROM publicaciones p WHERE p.video_id NOT LIKE 'demo%' GROUP BY p.red`).bind(...(hasta ? [hasta] : [])).all<{ red: string; n: number | null }>()).results.map((x) => [x.red, x.n || 0]));
+  const cortes = [await acumulado(null)];
+  for (let k = 0; k <= 7; k++) cortes.push(await acumulado(medianoche(k)));
+  const dia = (i: number) => Object.fromEntries(["youtube", "tiktok", "facebook"].map((r) => [r, Math.max(0, (cortes[i][r] || 0) - (cortes[i + 1][r] || 0))])) as Record<string, number>;
+  const vistas_hoy = dia(0);
+  const historial = Array.from({ length: 7 }, (_, i) => ({ dia: medianoche(i + 1).slice(0, 10), ...dia(i + 1) })).reverse();
+  const total = (x: Record<string, number>) => (x.youtube || 0) + (x.tiktok || 0) + (x.facebook || 0);
+  const dias = historial.map(total).filter((n) => n > 0);
+  const promedio = dias.length ? dias.reduce((a, b) => a + b, 0) / dias.length : 0;
+  const hoy = total(vistas_hoy), razon = promedio ? hoy / promedio : 1;
+  const calificacion = razon >= 1.3 ? { nivel: "excelente", texto: "🔥 Excelente día" } : razon >= 0.8 ? { nivel: "bueno", texto: "👍 Buen día" } : razon >= 0.5 ? { nivel: "normal", texto: "😐 Día normal" } : { nivel: "flojo", texto: "📉 Día flojo" };
+  const comparacion = promedio ? `${razon >= 1 ? "+" : ""}${Math.round((razon - 1) * 100)} % frente al promedio de 7 días (${Math.round(promedio).toLocaleString("es-EC")})` : "primeros días de medición";
+
+  const seg = Object.fromEntries((await env.DB.prepare("SELECT c.red, c.seguidores FROM cuentas_hist c JOIN (SELECT red, MAX(momento) mx FROM cuentas_hist GROUP BY red) u ON u.red = c.red AND u.mx = c.momento").all<{ red: string; seguidores: number }>()).results.map((x) => [x.red, x.seguidores]));
+  const seg_7 = Object.fromEntries((await env.DB.prepare("SELECT c.red, c.seguidores FROM cuentas_hist c JOIN (SELECT red, MAX(momento) mx FROM cuentas_hist WHERE momento <= ? GROUP BY red) u ON u.red = c.red AND u.mx = c.momento").bind(medianoche(7)).all<{ red: string; seguidores: number }>()).results.map((x) => [x.red, x.seguidores]));
+  const top = (await env.DB.prepare(`SELECT v.titulo, p.red, m.vistas - COALESCE((SELECT vistas FROM metricas WHERE pub_id = p.id AND momento <= strftime('%Y-%m-%dT%H:00', 'now', '-24 hours') ORDER BY momento DESC LIMIT 1), 0) ritmo
       FROM publicaciones p JOIN videos v ON v.id = p.video_id JOIN metricas m ON m.pub_id = p.id AND m.momento = (SELECT MAX(momento) FROM metricas WHERE pub_id = p.id)
-      WHERE p.estado = 'publicado' AND v.id NOT LIKE 'demo%' ORDER BY ritmo DESC LIMIT 1`).first<{ titulo: string; red: string; ritmo: number }>();
-  const resumen = { vistas_hoy: nuevas, seguidores: Object.fromEntries(seg.map((x) => [x.red, x.seguidores])), mejor };
-  return Response.json({ ok: !problemas.length, problemas, resumen }, { status: problemas.length ? 503 : 200, headers: { "Cache-Control": "no-store" } });
+      WHERE p.estado = 'publicado' AND v.id NOT LIKE 'demo%' ORDER BY ritmo DESC LIMIT 3`).all<{ titulo: string; red: string; ritmo: number }>()).results;
+  const manana = (await env.DB.prepare(`SELECT v.titulo, p.cuando, COUNT(*) redes FROM publicaciones p JOIN videos v ON v.id = p.video_id
+      WHERE p.cuando >= ? AND p.cuando < ? AND v.id NOT LIKE 'demo%' GROUP BY v.id ORDER BY p.cuando`).bind(new Date(Date.parse(`${hoyEc}T05:00:00Z`) + 86400e3).toISOString(), new Date(Date.parse(`${hoyEc}T05:00:00Z`) + 2 * 86400e3).toISOString()).all<{ titulo: string; cuando: string; redes: number }>()).results;
+
+  // Recomendación del día: una sola frase, a partir de los datos.
+  const lider = (["youtube", "tiktok", "facebook"] as const).reduce((a, r) => (vistas_hoy[r] > vistas_hoy[a] ? r : a), "youtube");
+  let recomendacion: string;
+  if (tt?.n) recomendacion = "Prende la laptop y pídeme \"programa TikTok\": hay videos de los próximos días sin programar.";
+  else if (top[0] && ORO.test(top[0].titulo)) recomendacion = `El oro sigue mandando: "${top[0].titulo}" fue lo más visto. Las próximas historias de tesoros van por ese camino.`;
+  else if (razon < 0.8) recomendacion = `Día por debajo del promedio; es normal entre picos virales. ${manana[0] ? `Mañana sale "${manana[0].titulo}".` : ""}`.trim();
+  else recomendacion = `${REDES_N[lider]} fue la red más fuerte hoy. Seguimos con el mismo ritmo de publicaciones.`;
+  if (vistas_hoy.facebook < 20) recomendacion += " En Facebook, compartir los reels en grupos sigue siendo lo que más ayuda.";
+
+  return { problemas, resumen: { dia: hoyEc, vistas_hoy, total_hoy: hoy, promedio_7: Math.round(promedio), comparacion, calificacion, historial, seguidores: seg, seguidores_7: seg_7, top, mejor: top[0] || null, manana: manana.length, recomendacion } };
+}
+
+/** Salud del autopiloto para el monitor de avisos por WhatsApp (público: solo problemas resumidos y cifras públicas).
+ *  503 si algo necesita atención; "resumen" trae las cifras del día para el mensaje de la noche. */
+async function salud(env: Env) {
+  const d = await datosSalud(env);
+  return Response.json({ ok: !d.problemas.length, ...d, imagen: "https://relatos-autopilot.probador-worker.workers.dev/api/salud/imagen.png" }, { status: d.problemas.length ? 503 : 200, headers: { "Cache-Control": "no-store" } });
 }
 
 async function api(env: Env, req: Request, url: URL) {
@@ -179,6 +216,10 @@ async function api(env: Env, req: Request, url: URL) {
   if (ruta === "/login" && req.method === "POST") return login(env, req);
   if (ruta === "/salir" && req.method === "POST") return salir();
   if (ruta === "/salud" && req.method === "GET") return salud(env);
+  if (ruta === "/salud/imagen.png" && req.method === "GET") {
+    const png = await pngResumen((await datosSalud(env)).resumen);
+    return new Response(png, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=600" } });
+  }
   // Portal de empresas: entrada con pase (sin contraseña) y cifras para su tablero.
   if (ruta === "/portal" && req.method === "POST") return entrarDesdePortal(env, req);
   if (ruta === "/portal/resumen" && req.method === "GET") {

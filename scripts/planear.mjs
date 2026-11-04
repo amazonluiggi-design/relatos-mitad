@@ -4,6 +4,9 @@ import fs from "node:fs";
 import { execFileSync } from "node:child_process";
 const nombre = process.argv[2];
 const FPS = 30;
+// Recopilatorio (escenas de otras historias): se arma aparte, sin voz propia.
+const modulo = await import(`../historias/${nombre}.mjs`);
+if (modulo.RECOPILAR) { (await import("./recopilar.mjs")).recopilar(nombre, modulo); process.exit(0); }
 const { HISTORIA, REELS, CAPITULOS = {}, TITULO_CARTEL, CLIPS_MAX = {} } = await import(`../historias/${nombre}.mjs`);
 const voz = JSON.parse(fs.readFileSync(`src/datos/${nombre}-voz.json`, "utf8"));
 const porId = Object.fromEntries(voz.map((v) => [v.id, v]));

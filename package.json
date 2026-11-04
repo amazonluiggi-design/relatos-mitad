@@ -7,6 +7,7 @@
     "@remotion/google-fonts": "4.0.534",
     "@remotion/media": "4.0.534",
     "@remotion/transitions": "4.0.534",
+    "@resvg/resvg-wasm": "^2.6.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "remotion": "4.0.534",
@@ -16,5 +17,7 @@
     "@types/react": "19.2.7",
     "typescript": "5.9.3"
   },
-  "scripts": { "dev": "remotion studio" }
+  "scripts": {
+    "dev": "remotion studio"
+  }
 }

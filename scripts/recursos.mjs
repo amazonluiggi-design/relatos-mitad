@@ -3,6 +3,7 @@
 // node scripts/recursos.mjs subir <historia>   (laptop)   ·   node scripts/recursos.mjs bajar <historia>   (nube)
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { subir, bajar } from "./nube.mjs";
 const [, , accion, h] = process.argv;
 const base = `public/${h}`;
@@ -17,14 +18,18 @@ if (accion === "subir") {
   await reintentar(() => subir("prueba/manifiesto.json", `recursos/${h}/manifiesto.json`, "application/json"));
   console.log("subidos", lista.length, "recursos de", h);
 } else if (accion === "bajar") {
-  const tmp = `/tmp/manifiesto-${h}.json`;
-  try { await bajar(`recursos/${h}/manifiesto.json`, tmp); } catch { console.log("sin recursos en R2 para", h, "(están en el repo)"); process.exit(0); }
-  const lista = JSON.parse(fs.readFileSync(tmp, "utf8"));
-  for (const f of lista) {
-    const destino = path.join(base, f);
-    if (fs.existsSync(destino)) continue;
-    fs.mkdirSync(path.dirname(destino), { recursive: true });
-    await reintentar(() => bajar(`recursos/${h}/${f}`, destino));
+  // Un recopilatorio usa las imágenes y la voz de sus historias de origen (FUENTES).
+  const { FUENTES = [] } = await import(`../historias/${h}.mjs`).catch(() => ({}));
+  for (const x of [h, ...FUENTES]) {
+    const tmp = path.join(os.tmpdir(), `manifiesto-${x}.json`);
+    try { await bajar(`recursos/${x}/manifiesto.json`, tmp); } catch { console.log("sin recursos en R2 para", x, "(están en el repo)"); continue; }
+    const lista = JSON.parse(fs.readFileSync(tmp, "utf8"));
+    for (const f of lista) {
+      const destino = path.join(`public/${x}`, f);
+      if (fs.existsSync(destino)) continue;
+      fs.mkdirSync(path.dirname(destino), { recursive: true });
+      await reintentar(() => bajar(`recursos/${x}/${f}`, destino));
+    }
+    console.log("bajados", lista.length, "recursos de", x);
   }
-  console.log("bajados", lista.length, "recursos de", h);
 }

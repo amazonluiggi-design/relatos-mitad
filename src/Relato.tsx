@@ -14,7 +14,7 @@ export type Escena = {
 export type Plan = {
   fps: number; total: number; titulo: string; escenas: Escena[];
   cartel: { en: string; titulo: string; sub: string } | null;
-  reels: (Omit<Plan, "reels" | "titulo" | "cartel" | "episodios"> & { id: string; gancho: string; cierre: string })[];
+  reels: (Omit<Plan, "reels" | "titulo" | "cartel" | "episodios"> & { id: string; gancho: string; cierre: string; rotulos?: { desde: number; texto: string }[] })[];
   episodios?: { id: string; capitulos: string[]; capInicial: number; escenas: Escena[]; total: number }[];
   capInicial?: number;
 };
@@ -268,6 +268,18 @@ export const Relato: React.FC<{ plan: Plan; musica?: string }> = ({ plan, musica
   );
 };
 
+// Rótulo de los recopilatorios ("1 · Los Llanganates"): entra con fundido y se va a los 3 s.
+const Rotulo: React.FC<{ texto: string }> = ({ texto }) => {
+  const f = useCurrentFrame();
+  const o = interpolate(f, [0, 10, 80, 95], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  return (
+    <AbsoluteFill style={{ alignItems: "center", paddingTop: 640, opacity: o }}>
+      <div style={{ fontFamily: TITULO, fontWeight: 900, fontSize: 64, color: "#F2A33A", textAlign: "center", maxWidth: 960,
+        textShadow: "0 0 26px #000, 0 4px 14px #000", transform: `scale(${interpolate(f, [0, 12], [0.92, 1], { extrapolateRight: "clamp" })})` }}>{texto}</div>
+    </AbsoluteFill>
+  );
+};
+
 // Reel vertical 9:16: gancho escrito arriba al inicio y cierre que manda al canal.
 export const Reel: React.FC<{ reel: Plan["reels"][number]; musica?: string }> = ({ reel, musica }) => {
   const f = useCurrentFrame();
@@ -293,6 +305,9 @@ export const Reel: React.FC<{ reel: Plan["reels"][number]; musica?: string }> = 
           maxWidth: 940, textShadow: "0 0 30px #000, 0 4px 16px #000",
         }}>{reel.gancho}</div>
       </AbsoluteFill>
+      {(reel.rotulos || []).map((r) => (
+        <Sequence key={r.desde} from={r.desde} durationInFrames={95}><Rotulo texto={r.texto} /></Sequence>
+      ))}
       <Sequence from={reel.total - 96}><Firma escala={1.1} texto={reel.cierre} /></Sequence>
       <Musica total={reel.total} src={musica} />
     </AbsoluteFill>

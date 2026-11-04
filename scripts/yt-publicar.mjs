@@ -38,7 +38,7 @@ const tareas = [["largo", PUBLICACION.largo, YOUTUBE.largo], ...PUBLICACION.reel
   ...(PUBLICACION.episodios || []).map((e, i) => [`episodio${i + 1}`, e, YOUTUBE.episodios[i]]),
   // Partes de TikTok que también van a YouTube Shorts (llevan su propia hora en "yt").
   ...(PUBLICACION.partes || []).map((p, i) => [`parte${i + 1}`, { ...p, cuando: p.yt, texto: p.texto.replace("Sígueme para la", "Suscríbete para la") }, { titulo: tituloParte(p.texto) }]).filter(([, p]) => p.cuando)];
-for (const [id, p, y] of tareas) {
+for (const [id, p, y] of tareas.filter(([, p]) => p)) {
   if (solo && solo !== id) continue;
   if (hecho[id]) { console.log(id, "ya subido:", hecho[id].id); continue; }
   // Los episodios no rinden en YouTube (0 vistas al 3-nov) y gastan el cupo diario de subidas: solo con EPISODIOS_YT=1.
@@ -51,7 +51,7 @@ for (const [id, p, y] of tareas) {
 
 Historia completa en el canal.` : id === "largo" ? y.descripcion(fs.readFileSync(`src/datos/${nombre}-capitulos.txt`, "utf8")) : p.texto.replace("en la página", "en el canal");
   let v;
-  try { v = await subir(p.archivo, meta(y.titulo, desc, YOUTUBE.largo.etiquetas, p.cuando)); }
+  try { v = await subir(p.archivo, meta(y.titulo, desc, YOUTUBE.largo?.etiquetas || YOUTUBE.etiquetas || [], p.cuando)); }
   catch (e) { if (/quota|uploadLimitExceeded|exceeded the number of videos/i.test(String(e))) { console.log("Cuota diaria de YouTube agotada: el resto se sube mañana."); break; } throw e; }
   console.log(id, "subido", v.id, "| estado:", v.status.privacyStatus, "| publica:", v.status.publishAt, "| sintético:", v.status.containsSyntheticMedia);
   if (id === "largo" && p.miniatura) {
