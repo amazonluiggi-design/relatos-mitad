@@ -182,7 +182,7 @@ async function datosSalud(env: Env) {
   const promedio = dias.length ? dias.reduce((a, b) => a + b, 0) / dias.length : 0;
   const hoy = total(vistas_hoy), razon = promedio ? hoy / promedio : 1;
   const calificacion = razon >= 1.3 ? { nivel: "excelente", texto: "🔥 Excelente día" } : razon >= 0.8 ? { nivel: "bueno", texto: "👍 Buen día" } : razon >= 0.5 ? { nivel: "normal", texto: "😐 Día normal" } : { nivel: "flojo", texto: "📉 Día flojo" };
-  const comparacion = promedio ? `${razon >= 1 ? "+" : ""}${Math.round((razon - 1) * 100)} % frente al promedio de 7 días (${Math.round(promedio).toLocaleString("es-EC")})` : "primeros días de medición";
+  const comparacion = promedio ? `${razon >= 1 ? "+" : ""}${Math.round((razon - 1) * 100)} % frente al promedio de 7 días, que es de ${Math.round(promedio).toLocaleString("es-EC")}` : "primeros días de medición";
 
   const seg = Object.fromEntries((await env.DB.prepare("SELECT c.red, c.seguidores FROM cuentas_hist c JOIN (SELECT red, MAX(momento) mx FROM cuentas_hist GROUP BY red) u ON u.red = c.red AND u.mx = c.momento").all<{ red: string; seguidores: number }>()).results.map((x) => [x.red, x.seguidores]));
   const seg_7 = Object.fromEntries((await env.DB.prepare("SELECT c.red, c.seguidores FROM cuentas_hist c JOIN (SELECT red, MAX(momento) mx FROM cuentas_hist WHERE momento <= ? GROUP BY red) u ON u.red = c.red AND u.mx = c.momento").bind(medianoche(7)).all<{ red: string; seguidores: number }>()).results.map((x) => [x.red, x.seguidores]));
