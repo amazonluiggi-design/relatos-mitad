@@ -173,10 +173,12 @@ async function datosSalud(env: Env) {
   const acumulado = async (hasta: string | null) => Object.fromEntries((await env.DB.prepare(`SELECT p.red, SUM((SELECT vistas FROM metricas WHERE pub_id = p.id ${hasta ? "AND momento <= ?1" : ""} ORDER BY momento DESC LIMIT 1)) n
       FROM publicaciones p WHERE p.video_id NOT LIKE 'demo%' GROUP BY p.red`).bind(...(hasta ? [hasta] : [])).all<{ red: string; n: number | null }>()).results.map((x) => [x.red, x.n || 0]));
   const cortes = [await acumulado(null)];
-  for (let k = 0; k <= 7; k++) cortes.push(await acumulado(medianoche(k)));
+  for (let k = 0; k <= 8; k++) cortes.push(await acumulado(medianoche(k)));
   const dia = (i: number) => Object.fromEntries(["youtube", "tiktok", "facebook"].map((r) => [r, Math.max(0, (cortes[i][r] || 0) - (cortes[i + 1][r] || 0))])) as Record<string, number>;
-  const vistas_hoy = dia(0);
-  const historial = Array.from({ length: 7 }, (_, i) => ({ dia: medianoche(i + 1).slice(0, 10), ...dia(i + 1) })).reverse();
+  // Hasta las 4 de la madrugada el resumen cuenta el día que acaba de terminar (no el que recién empieza).
+  const atras = new Date(Date.now() - 5 * 3600e3).getUTCHours() < 4 ? 1 : 0;
+  const vistas_hoy = dia(atras);
+  const historial = Array.from({ length: 7 }, (_, i) => ({ dia: medianoche(i + 1 + atras).slice(0, 10), ...dia(i + 1 + atras) })).reverse();
   const total = (x: Record<string, number>) => (x.youtube || 0) + (x.tiktok || 0) + (x.facebook || 0);
   const dias = historial.map(total).filter((n) => n > 0);
   const promedio = dias.length ? dias.reduce((a, b) => a + b, 0) / dias.length : 0;
@@ -201,7 +203,7 @@ async function datosSalud(env: Env) {
   else recomendacion = `${REDES_N[lider]} fue la red más fuerte hoy. Seguimos con el mismo ritmo de publicaciones.`;
   if (vistas_hoy.facebook < 20) recomendacion += " En Facebook, compartir los reels en grupos sigue siendo lo que más ayuda.";
 
-  return { problemas, resumen: { dia: hoyEc, vistas_hoy, total_hoy: hoy, promedio_7: Math.round(promedio), comparacion, calificacion, historial, seguidores: seg, seguidores_7: seg_7, top, mejor: top[0] || null, manana: manana.length, recomendacion } };
+  return { problemas, resumen: { dia: medianoche(atras).slice(0, 10), vistas_hoy, total_hoy: hoy, promedio_7: Math.round(promedio), comparacion, calificacion, historial, seguidores: seg, seguidores_7: seg_7, top, mejor: top[0] || null, manana: manana.length, recomendacion } };
 }
 
 /** Salud del autopiloto para el monitor de avisos por WhatsApp (público: solo problemas resumidos y cifras públicas).
