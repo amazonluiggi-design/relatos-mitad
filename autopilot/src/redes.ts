@@ -260,3 +260,37 @@ export async function historiaFacebook(env: Env, ahora = new Date()) {
     await env.KV.put(clave, "error", { expirationTtl: 3 * 86400 });
   }
 }
+
+/** Comentarios de YouTube y Facebook que el canal todavía no respondió (para el panel; caché de 10 minutos). */
+export async function comentariosPendientes(env: Env) {
+  const cache = await env.KV.get("comentarios-pendientes");
+  if (cache) return JSON.parse(cache);
+  const lista: { red: string; autor: string; texto: string; video: string; url: string; cuando: string }[] = [];
+  try {
+    const H = { Authorization: `Bearer ${await tokenYouTube(env)}` };
+    const canal = "UCrMRLR-yxvwDd4DM10WPkQg";
+    const r = (await (await fetch(`https://www.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&allThreadsRelatedToChannelId=${canal}&maxResults=50`, { headers: H })).json()) as
+      { items?: { id: string; snippet: { videoId: string; topLevelComment: { snippet: { authorDisplayName: string; authorChannelId?: { value: string }; textOriginal: string; publishedAt: string } } }; replies?: { comments: { snippet: { authorChannelId?: { value: string } } }[] } }[] };
+    for (const t of r.items || []) {
+      const c = t.snippet.topLevelComment.snippet;
+      if (c.authorChannelId?.value === canal) continue;
+      if ((t.replies?.comments || []).some((x) => x.snippet.authorChannelId?.value === canal)) continue;
+      const v = await env.DB.prepare("SELECT v.titulo FROM publicaciones p JOIN videos v ON v.id = p.video_id WHERE p.red = 'youtube' AND p.externo_id = ?").bind(t.snippet.videoId).first<{ titulo: string }>();
+      lista.push({ red: "youtube", autor: c.authorDisplayName, texto: c.textOriginal, video: v?.titulo || t.snippet.videoId, url: `https://www.youtube.com/watch?v=${t.snippet.videoId}&lc=${t.id}`, cuando: c.publishedAt });
+    }
+  } catch { /* sin conexión con YouTube: se muestra lo de Facebook */ }
+  const fb = (await env.DB.prepare(`SELECT p.externo_id, v.titulo, p.url FROM publicaciones p JOIN videos v ON v.id = p.video_id WHERE p.red = 'facebook' AND p.estado = 'publicado' AND p.externo_id IS NOT NULL
+      AND p.cuando > strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-30 days')`).all<{ externo_id: string; titulo: string; url: string | null }>()).results;
+  for (const p of fb) {
+    const r = (await (await fetch(`${G}/${p.externo_id}/comments?fields=id,from,message,created_time,comments{from}&limit=50&access_token=${env.FB_TOKEN}`)).json()) as
+      { data?: { id: string; from?: { id: string; name: string }; message?: string; created_time: string; comments?: { data: { from?: { id: string } }[] } }[] };
+    for (const c of r.data || []) {
+      if (c.from?.id === env.FB_PAGINA) continue;
+      if ((c.comments?.data || []).some((x) => x.from?.id === env.FB_PAGINA)) continue;
+      lista.push({ red: "facebook", autor: c.from?.name || "Alguien", texto: c.message || "", video: p.titulo, url: p.url || `https://www.facebook.com/${p.externo_id}`, cuando: c.created_time });
+    }
+  }
+  lista.sort((a, b) => b.cuando.localeCompare(a.cuando));
+  await env.KV.put("comentarios-pendientes", JSON.stringify(lista), { expirationTtl: 600 });
+  return lista;
+}

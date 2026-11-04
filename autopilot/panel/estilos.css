@@ -286,3 +286,9 @@ dialog video { display: block; max-width: 100%; max-height: 90dvh; }
 .rec-hechas { margin-top: 12px; } .rec-hechas summary { cursor: pointer; color: var(--tenue); font-size: 13px; padding: 8px 0; }
 .rec-hechas summary:hover { color: var(--texto); }
 @media (max-width: 600px) { .franja { grid-template-columns: 1fr 1fr 44px; } .franja > small { display: none; } }
+/* Comentarios por responder */
+.coments { display: grid; gap: 8px; margin-top: 8px; }
+.coment { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; background: var(--panel2); border: 1px solid var(--borde); border-radius: 12px; padding: 10px 12px; }
+.coment p { margin: 4px 0 0; color: var(--texto); font-size: 14px; }
+.coment a { white-space: nowrap; font-size: 13px; }
+@media (max-width: 600px) { .coment { grid-template-columns: 1fr; } }

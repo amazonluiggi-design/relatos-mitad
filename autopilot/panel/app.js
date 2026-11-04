@@ -265,6 +265,7 @@ function vistaCrecimiento() {
       <div class="tarjeta"><h3>Mejor hora para publicar <span class="nd">según tus propios videos</span></h3>${mejorHorario(a.pubs)}</div>
     </div>
     <div class="tarjeta seccion"><h3>Lo que sale en los próximos 7 días <span class="nd">cada punto es una red</span></h3>${proximosDias(datos.crec.proximas || [])}</div>
+    <div class="tarjeta seccion"><h3>Comentarios por responder <span class="nd">responder rápido hace que las redes muestren más el video</span></h3><div id="comentarios"><div class="vacio">Buscando comentarios…</div></div></div>
     <div class="tarjeta seccion"><h3>Mi plan para crecer más rápido <span class="nd">lo reviso y actualizo cada semana</span></h3><div class="recs">${recomendacionesHtml(datos.crec.recomendaciones)}</div></div>
     <div class="seccion">${metas(a)}</div>
     <div class="tarjeta seccion"><h3>Cómo va cada publicación <span class="nd">comparada con las demás de su misma red y formato</span></h3><div class="tabla-env"><table>
@@ -455,10 +456,24 @@ function pintar() {
   document.querySelectorAll(".menu nav a").forEach((a) => a.classList.toggle("activo", a.dataset.vista === nombre));
   $("#titulo").textContent = TITULOS[nombre];
   const html = REDES[nombre] ? VISTAS.red(nombre) : VISTAS[nombre]();
+  if (nombre === "crecimiento") cargarComentarios();
   if (nombre === "tiktok" && !creadorTT) cargarCreadorTT().then(() => { if ((location.hash || "").slice(1) === "tiktok") pintar(); });
   const cont = $("#vista");
   cont.innerHTML = html;
   cont.style.animation = "none"; void cont.offsetWidth; cont.style.animation = "";
+}
+
+let comentarios = null;
+async function cargarComentarios() {
+  if (!comentarios) comentarios = await api("/comentarios").catch(() => []);
+  const caja = $("#comentarios");
+  if (!caja) return;
+  caja.innerHTML = comentarios.length
+    ? `<p class="nd">${comentarios.length} sin respuesta. Pídeme "responde los comentarios" y los contesto todos con la voz del canal.</p><div class="coments">${comentarios.slice(0, 12).map((c) => `<div class="coment">
+        <span class="chip ${esc(c.red)}">${REDES[c.red]?.nombre || esc(c.red)}</span>
+        <div><b>${esc(c.autor)}</b> <span class="nd">· ${esc(fecha(c.cuando, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))} · ${esc(c.video)}</span><p>${esc(c.texto)}</p></div>
+        <a href="${esc(c.url)}" target="_blank" rel="noopener">Abrir ↗</a></div>`).join("")}</div>`
+    : `<div class="vacio">Todo respondido: no hay comentarios pendientes.</div>`;
 }
 
 /* ───── Eventos ───── */

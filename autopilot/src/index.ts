@@ -2,7 +2,7 @@
 // Cron cada 5 min: publica en TikTok lo que venció y revisa estados. Cada hora (minuto 0-4): estadísticas de las 3 redes.
 import { login, salir, sesionValida } from "./auth";
 import { entrarDesdePortal, leerPase } from "./portal";
-import { publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube, historiaFacebook } from "./redes";
+import { publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube, historiaFacebook, comentariosPendientes } from "./redes";
 import { type Env, type Pub, evento } from "./tipos";
 import { aprobar, canjear, creador, urlConectar } from "./tiktok-ui";
 
@@ -195,6 +195,7 @@ async function api(env: Env, req: Request, url: URL) {
   const apr = /^\/tiktok\/aprobar\/(.+)$/.exec(ruta);
   if (apr && req.method === "POST") return Response.json(await aprobar(env, decodeURIComponent(apr[1]), await req.json()));
   if (ruta === "/crecimiento") return Response.json(await crecimiento(env));
+  if (ruta === "/comentarios") return Response.json(await comentariosPendientes(env));
   const rec = /^\/recomendaciones\/(\d+)$/.exec(ruta);
   if (rec && req.method === "POST") {
     const { estado } = (await req.json()) as { estado: string };
