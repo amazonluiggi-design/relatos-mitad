@@ -61,9 +61,9 @@ Las imágenes son recreaciones generadas con IA. La leyenda tiene varias version
   reels: [
     { titulo: "Si escuchas este tambor a medianoche… no te asomes 🥁 #leyendas #shorts" },
     { titulo: "Le dieron una vela… y amaneció con un hueso 💀 #misterio #shorts" },
-    { titulo: "La procesión que no es de este mundo 🕯️ #quito #shorts" },
+    { titulo: "Nadie debía ver esta procesión de medianoche 🕯️ #quito #shorts" },
     { titulo: "Tuvo que devolver el hueso a medianoche 😨 #terror #shorts" },
-    { titulo: "¿Qué era realmente la Caja Ronca? 🤔 #leyendas #shorts" },
-    { titulo: "Esta procesión todavía existe en Quito 🟣 #ecuador #shorts" },
+    { titulo: "Nadie sabe qué era realmente la Caja Ronca 🤔 #leyendas #shorts" },
+    { titulo: "Esta procesión de encapuchados todavía recorre Quito 🟣 #ecuador #shorts" },
   ],
 };

@@ -62,10 +62,10 @@ Las imágenes son recreaciones generadas con IA. La leyenda tiene varias version
   },
   reels: [
     { titulo: "La estatua le habló… y él le respondió 😳 #leyendas #shorts" },
-    { titulo: "El fraile que se escapaba a las fiestas 🎸 #quito #shorts" },
+    { titulo: "El fraile que se escapaba cada noche por la torre 🎸 #quito #shorts" },
     { titulo: "Abrió el ataúd… y se vio a sí mismo ⚰️ #misterio #shorts" },
-    { titulo: "«¿Hasta cuándo, Padre Almeida?» 😂 #ecuador #shorts" },
-    { titulo: "Lo que pasó después del cortejo 🙏 #leyendas #shorts" },
-    { titulo: "La ventana del Padre Almeida todavía existe 📍 #quito #shorts" },
+    { titulo: "La estatua de Cristo le preguntó: «¿Hasta cuándo?» 😳 #ecuador #shorts" },
+    { titulo: "Vio su propio funeral… y cambió para siempre 🙏 #leyendas #shorts" },
+    { titulo: "La ventana por la que huía el fraile todavía existe 📍 #quito #shorts" },
   ],
 };

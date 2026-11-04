@@ -147,11 +147,54 @@ export async function sincronizarYouTube(env: Env, pubs: Pub[]) {
       if (v.status.privacyStatus === "public" && p.estado !== "publicado") {
         await actualizar(env, p, { estado: "publicado", publicado_en: ahoraIso(), url: `https://youtu.be/${v.id}` });
         await evento(env, `Publicado en YouTube: ${p.video_id}`, "info", "youtube");
+        await alPublicarYouTube(env, H, p).catch((e) => evento(env, `Comentario/lista de ${p.video_id} no se pudo: ${String(e).slice(0, 150)}`, "aviso", "youtube"));
       } else if (v.status.privacyStatus === "private" && !v.status.publishAt && new Date(p.cuando).getTime() < Date.now() - 600000 && p.estado !== "privado") {
         await actualizar(env, p, { estado: "privado", error: "YouTube lo dejó privado (app sin auditoría)", url: `https://youtu.be/${v.id}` });
         await evento(env, `YouTube dejó en privado ${p.video_id}: la app aún no tiene la auditoría de Google.`, "aviso", "youtube");
       }
     }
+  }
+}
+
+// Listas de reproducción por historia (los títulos deben coincidir con los creados por scripts/yt-listas.mjs).
+const LISTAS_YT: Record<string, string[]> = {
+  cantuna: ["Leyendas de Quito", "Tesoros perdidos de Ecuador"], llanganates: ["Tesoros perdidos de Ecuador"],
+  "dama-tapada": ["Leyendas de Guayaquil y la Costa"], "padre-almeida": ["Leyendas de Quito"], "caja-ronca": ["Leyendas de Quito"],
+  "isla-plata": ["Tesoros perdidos de Ecuador", "Leyendas de Guayaquil y la Costa"], "el-dorado": ["Tesoros perdidos de Ecuador"], tayos: ["Tesoros perdidos de Ecuador"],
+};
+
+/** Al salir un video en YouTube: si es Short, comentario del canal que lleva a la historia completa; y en todo caso, a sus listas. */
+async function alPublicarYouTube(env: Env, H: Record<string, string>, p: Pub) {
+  const API = "https://www.googleapis.com/youtube/v3/";
+  const m = /^(.*)-(reel\d+|parte\d+|largo|episodio\d+)$/.exec(p.video_id);
+  if (!m) return;
+  const [, h, tipo] = m;
+  if (/^(reel|parte)/.test(tipo)) {
+    const largo = await env.DB.prepare("SELECT externo_id, estado, cuando FROM publicaciones WHERE id = ?").bind(`${h}-largo:youtube`).first<{ externo_id: string | null; estado: string; cuando: string }>();
+    let texto = "";
+    if (largo?.externo_id && largo.estado === "publicado") texto = `🕯️ La historia completa de esta leyenda está aquí 👉 https://youtu.be/${largo.externo_id}
+¿La conocías? Cuéntame en los comentarios 👇`;
+    else if (largo && new Date(largo.cuando).getTime() > Date.now()) {
+      const dia = new Date(largo.cuando).toLocaleDateString("es-EC", { timeZone: "America/Guayaquil", weekday: "long", day: "numeric", month: "long" });
+      texto = `🕯️ La historia completa se estrena el ${dia} a las 19:00 en el canal. Suscríbete para no perdértela. ¿Tú qué crees que pasó? 👇`;
+    }
+    if (texto) {
+      const r = await fetch(API + "commentThreads?part=snippet", { method: "POST", headers: { ...H, "Content-Type": "application/json" }, body: JSON.stringify({ snippet: { videoId: p.externo_id, topLevelComment: { snippet: { textOriginal: texto } } } }) });
+      if (!r.ok) throw new Error("comentario " + r.status + " " + (await r.text()).slice(0, 120));
+    }
+  }
+  // Listas: la temática de la historia, y "Historias completas" para el largo.
+  const titulos = [...(LISTAS_YT[h] || []), ...(tipo === "largo" ? ["Historias completas"] : [])];
+  if (!titulos.length) return;
+  let listas = JSON.parse((await env.KV.get("yt-listas")) || "null") as Record<string, string> | null;
+  if (!listas) {
+    const r = (await (await fetch(API + "playlists?part=snippet&mine=true&maxResults=50", { headers: H })).json()) as { items?: { id: string; snippet: { title: string } }[] };
+    listas = Object.fromEntries((r.items || []).map((x) => [x.snippet.title, x.id]));
+    await env.KV.put("yt-listas", JSON.stringify(listas), { expirationTtl: 7 * 86400 });
+  }
+  for (const t of titulos) {
+    if (!listas[t]) continue;
+    await fetch(API + "playlistItems?part=snippet", { method: "POST", headers: { ...H, "Content-Type": "application/json" }, body: JSON.stringify({ snippet: { playlistId: listas[t], resourceId: { kind: "youtube#video", videoId: p.externo_id } } }) });
   }
 }
 

@@ -66,9 +66,9 @@ Las imágenes y animaciones son recreaciones generadas con IA. La leyenda tiene 
     { titulo: "Si hueles flores a medianoche… no la sigas 🕯️ #leyendas #shorts" },
     { titulo: "La mujer que nadie lograba alcanzar 😳 #guayaquil #shorts" },
     { titulo: "Levantó el velo… y no tenía rostro 💀 #misterio #shorts" },
-    { titulo: "Hasta los guardias le tenían miedo 🏮 #ecuador #shorts" },
-    { titulo: "¿Quién era la Dama Tapada? 🤔 #leyendas #shorts" },
-    { titulo: "La misma leyenda en toda Latinoamérica 👻 #misterio #shorts" },
+    { titulo: "Hasta los guardias de Guayaquil huían de ella 🏮 #ecuador #shorts" },
+    { titulo: "Nadie sabe quién era la mujer del velo 🤔 #leyendas #shorts" },
+    { titulo: "Esta mujer aparece en toda Latinoamérica… con otro nombre 👻 #misterio #shorts" },
   ],
 };
 
@@ -104,10 +104,10 @@ La leyenda completa en la página 👆 ¿Tú la seguirías?
 #damatapada #guayaquil #leyendas #misterio #terror` },
 );
 YOUTUBE.reels.push(
-  { titulo: "Las mujeres tapadas de Lima eran reales 👁️ #historia #shorts" },
-  { titulo: "La Sayona: la versión venezolana 👻 #leyendas #shorts" },
-  { titulo: "El incendio que borró el Guayaquil colonial 🔥 #guayaquil #shorts" },
-  { titulo: "Primero llegaba el perfume… 🌸 #misterio #shorts" },
+  { titulo: "En Lima, cientos de mujeres se tapaban la cara… y era real 👁️ #historia #shorts" },
+  { titulo: "La Sayona: la mujer que castiga a los infieles 👻 #leyendas #shorts" },
+  { titulo: "El fuego que borró Guayaquil… menos su leyenda 🔥 #guayaquil #shorts" },
+  { titulo: "Primero llegaba el perfume… después, ella 🌸 #misterio #shorts" },
 );
 
 // Relleno del mismo día (sáb 31-oct): más publicaciones desde hoy.
