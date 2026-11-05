@@ -18,5 +18,29 @@
  "reel4": {
   "id": "QhjwQKN0z6k",
   "cuando": "2026-11-22T19:30:00-05:00"
+ },
+ "reel5": {
+  "id": "0Tc28Y7nhl8",
+  "cuando": "2026-11-23T19:30:00-05:00"
+ },
+ "reel6": {
+  "id": "GE8D8c-w4Ww",
+  "cuando": "2026-11-24T19:30:00-05:00"
+ },
+ "parte1": {
+  "id": "Waz4BxELLFA",
+  "cuando": "2026-11-20T22:00:00-05:00"
+ },
+ "parte2": {
+  "id": "Yhn5Qj16Ju8",
+  "cuando": "2026-11-21T22:00:00-05:00"
+ },
+ "parte3": {
+  "id": "msZTTiyPIeE",
+  "cuando": "2026-11-22T22:00:00-05:00"
+ },
+ "parte4": {
+  "id": "bOWcbOVqyJg",
+  "cuando": "2026-11-23T22:00:00-05:00"
  }
 }
