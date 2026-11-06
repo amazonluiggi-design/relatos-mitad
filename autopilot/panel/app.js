@@ -602,20 +602,74 @@ const CASA_VISTAS = {
   },
 
   async gaming() {
-    const g = await api("/grupo/resumen");
-    const x = g.divisiones.find((d) => d.id === "gaming");
+    const [g, d] = await Promise.all([api("/grupo/resumen"), api("/gaming")]);
+    const x = g.divisiones.find((v) => v.id === "gaming");
+    const m = d.marca || {};
+    const redes = m.redes || {};
+    const EST_D = { pendiente: "Pendiente de verificación", autorizado: "Autorizado", "no-comercial": "Solo uso no comercial", comercial: "Uso comercial", restricciones: "Con restricciones", rechazado: "Rechazado", vencido: "Licencia vencida" };
+    const color = (e) => e === "comercial" ? "publicado" : ["rechazado", "vencido"].includes(e) ? "fallido" : "aviso";
     const paso = (hecho, txt, quien) => `<li class="${hecho ? "hecho" : ""}"><span>${hecho ? "✓" : "○"}</span><div>${txt}<small>${quien}</small></div></li>`;
-    return `<h2 class="casa-titulo">${esc(x.nombre)}</h2>
-      <p class="nd">${esc(x.descripcion)} Estado: <b>${esc(DIV_ESTADO[x.estado])}</b>. No se publica nada hasta verificar derechos e integraciones.</p>
-      <div class="rejilla r4">${cifra(num(x.agenda), "en agenda")}${cifra(num(x.publicados_7d), "publicados en 7 días")}${cifra("0", "redes conectadas")}${cifra("—", "agentes", "Fase 8")}</div>
-      <div class="tarjeta"><h3>Para arrancar Gaming</h3><ul class="pasos-lista">
-        ${paso(true, "Espacio de la división creado y aislado de Relatos", "hecho")}
-        ${paso(false, "Nombre de la marca gaming", "lo decides tú")}
-        ${paso(false, "Cuentas de Facebook, YouTube y TikTok de la marca", "las creas tú; yo las conecto")}
-        ${paso(false, "Política de Rockstar revisada y registro de derechos (Rights Manager)", "fase 8")}
-        ${paso(false, "Registro de creadores con autorización comercial", "fase 8")}
-        ${paso(false, "Plantillas de video propias de Gaming", "fase 8")}
-      </ul></div>`;
+    const base = d.derechos.find((r) => r.recurso === "base-gta");
+    const recursos = Object.entries(d.aptitud);
+    return `<h2 class="casa-titulo">${esc(m.nombre || x.nombre)}</h2>
+      <p class="nd">${esc(x.descripcion)} Estado: <b>${esc(DIV_ESTADO[x.estado])}</b>. Especialidad: ${esc(m.especialidad || "GTA")}. Nada se publica de forma monetizada hasta que el gestor de derechos lo permita.</p>
+      <div class="rejilla r4">${cifra(num(x.agenda), "en agenda")}${cifra(String(Object.values(redes).filter(Boolean).length), "redes conectadas")}${cifra(num(d.creadores.length), "creadores registrados")}${cifra(String(recursos.filter(([, a]) => a.apto).length), "recursos aptos para monetizar")}</div>
+      <div class="rejilla r2">
+        <div class="tarjeta"><h3>Para arrancar Gaming</h3><ul class="pasos-lista">
+          ${paso(true, "Espacio de la división creado y aislado de Relatos", "hecho")}
+          ${paso(true, "Fecha de GTA VI verificada en la web oficial (19-nov-2026, PS5 y Xbox Series X|S)", "verificado el 6-nov")}
+          ${paso(!!m.nombre, "Nombre de la marca gaming", "lo decides tú (abajo)")}
+          ${paso(Object.values(redes).some(Boolean), "Cuentas de Facebook, YouTube y TikTok de la marca", "las creas tú; yo las conecto")}
+          ${paso(base?.estado === "comercial", "Política de Rockstar leída y registrada", base?.estado === "pendiente" ? "pendiente: la página oficial no cargó; reintento" : "registrada")}
+          ${paso(d.creadores.length > 0, "Al menos un creador con autorización comercial", "tú consigues el permiso; aquí se documenta")}
+        </ul></div>
+        <form class="tarjeta formulario" id="form-marca"><h3>Marca</h3>
+          <label>Nombre de la marca<input name="nombre" maxlength="80" value="${esc(m.nombre || "")}" placeholder="Ej.: …"></label>
+          <label>Facebook (URL)<input name="facebook" maxlength="200" value="${esc(redes.facebook || "")}"></label>
+          <label>YouTube (URL)<input name="youtube" maxlength="200" value="${esc(redes.youtube || "")}"></label>
+          <label>TikTok (URL)<input name="tiktok" maxlength="200" value="${esc(redes.tiktok || "")}"></label>
+          <button class="boton-pri">Guardar marca</button><span class="nd" data-msg></span></form>
+      </div>
+      <div class="tarjeta"><h3>Gestor de derechos (RIGHTS MANAGER)</h3>
+        <p class="nd">Cada recurso necesita TODOS sus titulares con uso comercial vigente, incluido Rockstar, para entrar en una publicación monetizada. Marcar "uso comercial" exige la prueba o la base de la autorización.</p>
+        <div class="tabla-scroll"><table class="tabla"><thead><tr><th>Recurso</th><th>Tipo</th><th>Titular</th><th>Estado</th><th>Vence</th><th>Base / prueba</th></tr></thead><tbody>
+          ${d.derechos.map((r) => `<tr><td>${esc(r.recurso)}</td><td class="nd">${esc(r.tipo)}</td><td>${esc(r.titular)}</td><td><span class="chip ${color(r.estado)}">${esc(EST_D[r.estado] || r.estado)}</span></td><td class="nd">${esc(r.vence || "—")}</td><td class="nd">${esc((r.base || r.pruebas || "").slice(0, 140))}</td></tr>`).join("")}
+        </tbody></table></div>
+        ${recursos.length ? `<h4>¿Se puede monetizar?</h4><ul class="memoria">${recursos.map(([r, a]) => `<li><span class="chip ${a.apto ? "publicado" : "fallido"}">${a.apto ? "Apto" : "Bloqueado"}</span> <b>${esc(r)}</b> <span class="nd">· ${esc(a.motivo)}</span></li>`).join("")}</ul>` : ""}
+        <form class="formulario rejilla-form" id="form-derecho"><h4>Registrar un recurso o titular</h4>
+          <label>Recurso<input name="recurso" maxlength="300" placeholder="clip:https://… · gameplay:mi-partida-01 · musica:tema" required></label>
+          <label>Tipo<select name="tipo">${d.tipos.map((v) => `<option>${v}</option>`).join("")}</select></label>
+          <label>Titular<input name="titular" maxlength="200" placeholder="Nombre del creador, Rockstar Games, sello…" required></label>
+          <label>Creador<select name="creator_id"><option value="">—</option>${d.creadores.map((c) => `<option value="${c.id}">${esc(c.nombre)}</option>`).join("")}</select></label>
+          <label>Estado<select name="estado">${d.estados.map((v) => `<option value="${v}">${esc(EST_D[v])}</option>`).join("")}</select></label>
+          <label>Vence<input name="vence" type="date"></label>
+          <label class="ancho">Base de la autorización<input name="base" maxlength="1000" placeholder="Contrato, correo del creador, licencia, política citada con fecha"></label>
+          <label class="ancho">Prueba (dónde está)<input name="pruebas" maxlength="1000"></label>
+          <label class="ancho">Restricciones<input name="restricciones" maxlength="1000"></label>
+          <button class="boton-pri">Guardar</button><span class="nd" data-msg></span></form>
+      </div>
+      <div class="rejilla r2">
+        <div class="tarjeta"><h3>Creadores autorizados</h3>
+          ${d.creadores.length ? `<ul class="memoria">${d.creadores.map((c) => `<li><b>${esc(c.nombre)}</b> <span class="nd">· ${c.uso_comercial ? "uso comercial ✓" : "sin uso comercial"} · ${c.publicidad_patrocinios ? "publicidad ✓" : "sin publicidad"}${c.vence ? " · vence " + esc(c.vence) : ""}</span></li>`).join("")}</ul>` : `<div class="vacio">Ningún creador registrado. Un clip público de Twitch NO implica autorización comercial.</div>`}
+          <form class="formulario rejilla-form" id="form-creador"><h4>Registrar creador</h4>
+            <label>Nombre<input name="nombre" maxlength="120" required></label>
+            <label>Canal (URL)<input name="canal" maxlength="300"></label>
+            <label>Contacto<input name="contacto" maxlength="200"></label>
+            <label>Dueño de la grabación<input name="propietario_grabacion" maxlength="200"></label>
+            <label>Fecha de autorización<input name="fecha_autorizacion" type="date"></label>
+            <label>Vence<input name="vence" type="date"></label>
+            <label class="chk"><input type="checkbox" name="uso_comercial"> Permite uso comercial</label>
+            <label class="chk"><input type="checkbox" name="publicidad_patrocinios"> Permite publicidad y patrocinios</label>
+            <label class="ancho">Plataformas<span class="chk-grupo"><label class="chk"><input type="checkbox" name="pl" value="youtube"> YouTube</label><label class="chk"><input type="checkbox" name="pl" value="tiktok"> TikTok</label><label class="chk"><input type="checkbox" name="pl" value="facebook"> Facebook</label></span></label>
+            <label class="ancho">Modificaciones permitidas<input name="modificaciones" maxlength="500"></label>
+            <label class="ancho">Atribución requerida<input name="atribucion" maxlength="500"></label>
+            <label class="ancho">Territorios<input name="territorios" maxlength="200"></label>
+            <label class="ancho">Pruebas de la autorización<input name="pruebas" maxlength="1000"></label>
+            <label class="ancho">Restricciones<input name="restricciones" maxlength="1000"></label>
+            <button class="boton-pri">Registrar</button><span class="nd" data-msg></span></form>
+        </div>
+        <div class="tarjeta"><h3>Lo verificado (memoria de Gaming)</h3><ul class="memoria">${d.memoria.map((mm) => `<li data-memoria="${mm.id}" class="fila-clic"><span class="chip">${esc(mm.tipo)}</span> <b>${esc(mm.titulo)}</b> <span class="nd">· ${esc(mm.autor)}${mm.confianza ? " · confianza " + esc(mm.confianza) : ""}</span></li>`).join("")}</ul></div>
+      </div>`;
   },
 
   async oficina() { return oficinaHtml(await api("/agentes"), "relatos"); },
@@ -752,6 +806,22 @@ document.addEventListener("submit", async (e) => {
   const r = await post(`/agentes/${f.dataset.id}/instruccion`, { titulo: f.titulo.value, descripcion: f.descripcion.value });
   $("#instr-msg").textContent = r.ok ? `✓ Tarea #${r.id} creada` : (r.error || "Error");
   if (r.ok) { f.reset(); if (hashActual() === "agentes") navegar(); }
+});
+
+document.addEventListener("submit", async (e) => {
+  const f = e.target.closest("#form-marca, #form-creador, #form-derecho");
+  if (!f) return;
+  e.preventDefault();
+  const v = Object.fromEntries(new FormData(f));
+  let ruta, cuerpo;
+  if (f.id === "form-marca") { ruta = "/gaming/marca"; cuerpo = { nombre: v.nombre, redes: { facebook: v.facebook, youtube: v.youtube, tiktok: v.tiktok } }; }
+  else if (f.id === "form-creador") { ruta = "/gaming/creadores"; cuerpo = { ...v, uso_comercial: !!v.uso_comercial, publicidad_patrocinios: !!v.publicidad_patrocinios, plataformas: new FormData(f).getAll("pl") }; }
+  else { ruta = "/gaming/derechos"; cuerpo = v; }
+  const r = await post(ruta, cuerpo);
+  const msg = f.querySelector("[data-msg]");
+  if (r.error) { msg.textContent = r.error; return; }
+  msg.textContent = r.apto ? (r.apto.apto ? "✓ Guardado · apto para monetizar" : "✓ Guardado · bloqueado: " + r.apto.motivo) : "✓ Guardado";
+  setTimeout(navegar, 1200);
 });
 
 async function entrar() {

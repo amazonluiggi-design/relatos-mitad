@@ -502,3 +502,15 @@ dialog video { display: block; max-width: 100%; max-height: 90dvh; }
 .oficina-movil li:not(.est-disponible):not(.est-no-activado):not(.est-pausa) .punto { background: var(--ok); box-shadow: 0 0 0 4px rgba(52,211,153,.18); }
 .oficina-movil li.est-error .punto { background: var(--mal); }
 @media (max-width: 700px) { .oficina { display: none; } .oficina-movil { display: grid; } }
+
+/* Formularios (Gaming) */
+.formulario { display: grid; gap: 10px; }
+.formulario label { display: grid; gap: 4px; font-size: 13px; color: var(--tenue); }
+.formulario input:not([type=checkbox]), .formulario select { background: var(--panel2); border: 1px solid var(--borde); border-radius: 10px; color: var(--texto); padding: 9px 10px; font: inherit; font-size: 14px; }
+.formulario input:focus, .formulario select:focus { outline: 2px solid var(--ambar); border-color: transparent; }
+.rejilla-form { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 14px; border-top: 1px solid var(--borde); padding-top: 12px; }
+.rejilla-form h4, .rejilla-form .ancho, .rejilla-form button, .rejilla-form [data-msg] { grid-column: 1 / -1; }
+.rejilla-form h4 { margin: 0; }
+.formulario label.chk { display: flex; gap: 8px; align-items: center; color: var(--texto); }
+.chk-grupo { display: flex; gap: 14px; flex-wrap: wrap; }
+@media (max-width: 700px) { .rejilla-form { grid-template-columns: 1fr; } }

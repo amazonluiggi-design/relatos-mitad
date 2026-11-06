@@ -2,6 +2,7 @@
 // Cron cada 5 min: publica en TikTok lo que venció y revisa estados. Cada hora (minuto 0-4): estadísticas de las 3 redes.
 import { auditar, eventoSeguridad, leerSesion, login, mfa, misSesiones, salir, salirDeTodo } from "./auth";
 import { resumenGrupo } from "./grupo";
+import { datosGaming, guardarCreador, guardarDerecho, guardarMarca } from "./gaming";
 import { apiAgentes, fichaAgente, instruccion, listaAgentes, verMemoria, verTarea } from "./agentes";
 import { cambiarDetener, detenido, estadoPresupuesto, hacerRespaldo, informeSentinel, leerDetener, registrarGasto, revisionDiaria, suscripcionesDelMes, validarSql, verificarGasto } from "./sentinel";
 import { pngResumen } from "./imagen";
@@ -272,6 +273,15 @@ async function api(env: Env, req: Request, url: URL) {
     divisiones: (await env.DB.prepare("SELECT id, nombre, descripcion, estado FROM divisions ORDER BY id = 'relatos' DESC, creada, id").all()).results });
   if (ruta === "/grupo/resumen") return Response.json(await resumenGrupo(env, (await datosSalud(env)).problemas));
   /* ── Sentinel, presupuesto y botón de emergencia (solo el propietario con sesión; los scripts no pueden) ── */
+  /* ── Gaming: marca, creadores y derechos (solo el propietario) ── */
+  if (ruta === "/gaming" && ses && req.method === "GET") return Response.json(await datosGaming(env));
+  if (ses && req.method === "POST" && ["/gaming/marca", "/gaming/creadores", "/gaming/derechos"].includes(ruta)) {
+    if (ses.user.rol !== "propietario") return Response.json({ error: "Solo el propietario" }, { status: 403 });
+    const cuerpo = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+    const r = ruta === "/gaming/marca" ? await guardarMarca(env, ses, cuerpo) : ruta === "/gaming/creadores" ? await guardarCreador(env, ses, cuerpo) : await guardarDerecho(env, ses, cuerpo);
+    return Response.json(r, { status: (r as { error?: string }).error ? 400 : 200 });
+  }
+
   /* ── Agentes (vista del propietario) ── */
   if (ruta === "/agentes" && ses) return Response.json(await listaAgentes(env));
   const fa = /^\/agentes\/([a-z-]+)$/.exec(ruta);
