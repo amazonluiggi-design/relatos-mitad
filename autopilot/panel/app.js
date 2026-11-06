@@ -532,7 +532,7 @@ async function cargarComentarios() {
 }
 
 /* ───── RELATOS AI GROUP: selector, panel del grupo, Gaming y seguridad ───── */
-const CASA = new Set(["empresas", "grupo", "seguridad", "gaming", "presupuesto", "agentes", "oficina", "oficina-gaming"]);
+const CASA = new Set(["empresas", "grupo", "seguridad", "gaming", "presupuesto", "agentes", "oficina", "oficina-gaming", "bandeja"]);
 const hashActual = () => (location.hash || "#empresas").slice(1);
 let yo = null;
 
@@ -670,6 +670,29 @@ const CASA_VISTAS = {
         </div>
         <div class="tarjeta"><h3>Lo verificado (memoria de Gaming)</h3><ul class="memoria">${d.memoria.map((mm) => `<li data-memoria="${mm.id}" class="fila-clic"><span class="chip">${esc(mm.tipo)}</span> <b>${esc(mm.titulo)}</b> <span class="nd">· ${esc(mm.autor)}${mm.confianza ? " · confianza " + esc(mm.confianza) : ""}</span></li>`).join("")}</ul></div>
       </div>`;
+  },
+
+  async bandeja() {
+    const lista = await api("/bandeja");
+    const DEC = { visto: "Visto", cambios: "Cambios pedidos", bloqueado: "Bloqueado", desbloqueado: "Desbloqueado" };
+    const RED = { facebook: "Facebook", youtube: "YouTube", tiktok: "TikTok" };
+    const tarjeta = (v) => {
+      const [dec, por, cuando] = (v.ultima || "").split("|");
+      const bloq = v.calidad === "bloqueado";
+      return `<div class="tarjeta revision ${bloq ? "bloq" : ""}">
+        <div class="rev-cab">${v.miniatura ? `<img src="/api/medio/${encodeURIComponent(v.miniatura)}" alt="" loading="lazy">` : ""}
+          <div><span class="chip">${esc(v.tipo)}</span> <span class="chip">${esc(v.division_id)}</span> ${dec ? `<span class="chip ${dec === "bloqueado" ? "fallido" : dec === "cambios" ? "aviso" : "publicado"}">${esc(DEC[dec] || dec)}</span>` : ""}
+          <h4>${esc(v.titulo)}</h4><p class="nd">${esc(v.historia_id)} · ${v.duracion ? Math.round(v.duracion) + " s" : ""}${dec ? ` · ${esc(DEC[dec])} por ${esc(por)} el ${esc(fecha(cuando.replace(" ", "T") + "Z", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))}` : ""}</p></div></div>
+        <ul class="rev-redes">${v.redes.map((r) => `<li><b>${esc(RED[r.red] || r.red)}</b> · ${esc(fecha(r.cuando, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))} · <span class="nd">${esc(ESTADO[r.estado] || r.estado)}</span>${r.texto ? `<details><summary>Texto</summary><p>${esc(r.texto)}</p></details>` : ""}</li>`).join("")}</ul>
+        <div class="rev-acciones">${v.archivo ? `<button class="boton-sec" data-video="${esc(v.archivo)}">▶ Reproducir</button>` : ""}
+          <button class="boton-sec" data-decidir="visto" data-id="${esc(v.video_id)}">✓ Visto</button>
+          <button class="boton-sec" data-decidir="cambios" data-id="${esc(v.video_id)}">✎ Pedir cambios</button>
+          ${bloq ? `<button class="boton-sec" data-decidir="desbloqueado" data-id="${esc(v.video_id)}">Desbloquear</button>` : `<button class="boton-peligro" data-decidir="bloqueado" data-id="${esc(v.video_id)}">⛔ Bloquear</button>`}</div>
+      </div>`;
+    };
+    return `<h2 class="casa-titulo">Bandeja · próximos 7 días</h2>
+      <p class="nd">La publicación es automática (tu decisión del 6-nov): esto es para que veas y, si algo no te gusta, actúes. "Bloquear" frena TikTok y lo que aún no está programado; lo ya programado dentro de Facebook y YouTube se cancela allí o pídemelo. Todo queda registrado (quién, qué y cuándo).</p>
+      ${lista.length ? `<div class="bandeja">${lista.map(tarjeta).join("")}</div>` : `<div class="vacio">Nada programado en los próximos 7 días.</div>`}`;
   },
 
   async oficina() { return oficinaHtml(await api("/agentes"), "relatos"); },
@@ -822,6 +845,24 @@ document.addEventListener("submit", async (e) => {
   if (r.error) { msg.textContent = r.error; return; }
   msg.textContent = r.apto ? (r.apto.apto ? "✓ Guardado · apto para monetizar" : "✓ Guardado · bloqueado: " + r.apto.motivo) : "✓ Guardado";
   setTimeout(navegar, 1200);
+});
+
+$("#casa-vista").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-decidir]");
+  if (b) {
+    const d = b.dataset.decidir;
+    let nota = "";
+    if (d === "cambios" || d === "bloqueado") { nota = prompt(d === "cambios" ? "¿Qué quieres cambiar?" : "¿Por qué lo bloqueas? (opcional)") ?? null; if (nota === null) return; }
+    const r = await post(`/bandeja/${b.dataset.id}`, { decision: d, nota });
+    if (r.error) alert(r.error); else navegar();
+    return;
+  }
+  const v = e.target.closest("[data-video]");
+  if (v && !$("#casa").hidden) {
+    const dl = $("#reproductor");
+    dl.querySelector("video").src = "/api/medio/" + encodeURIComponent(v.dataset.video);
+    dl.showModal(); dl.querySelector("video").play().catch(() => {});
+  }
 });
 
 async function entrar() {
