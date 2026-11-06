@@ -246,10 +246,13 @@ async function api(env: Env, req: Request, url: URL) {
     return Response.json(await resumenPortal(env));
   }
   // Agentes (rutinas de Claude Code): su propia clave y solo sus rutas.
-  const claveAgente = req.headers.get("x-agente");
+  // Se limpian espacios, saltos de línea y comillas que suelen colarse al pegar la clave en un formulario.
+  const claveAgente = req.headers.get("x-agente")?.trim().replace(/^["'<`]+|["'>`]+$/g, "") ?? null;
   if (claveAgente !== null) {
-    if (!env.AGENTE_CLAVE || claveAgente !== env.AGENTE_CLAVE) {
-      await eventoSeguridad(env, "agente-clave-invalida", "alta", `${req.method} ${ruta}`, req.headers.get("cf-connecting-ip"));
+    if (!env.AGENTE_CLAVE || claveAgente !== env.AGENTE_CLAVE.trim()) {
+      // Diagnóstico sin revelar la clave: largo y huella (8 primeros hex del SHA-256).
+      const huella = async (s: string) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)))).slice(0, 4).map((b) => b.toString(16).padStart(2, "0")).join("");
+      await eventoSeguridad(env, "agente-clave-invalida", "alta", `${req.method} ${ruta} · largo ${claveAgente.length} · huella ${await huella(claveAgente)}`, req.headers.get("cf-connecting-ip"));
       return Response.json({ error: "clave de agente" }, { status: 401 });
     }
     if (!ruta.startsWith("/agentes/")) return Response.json({ error: "los agentes solo usan /api/agentes/*" }, { status: 403 });
