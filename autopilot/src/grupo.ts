@@ -38,7 +38,8 @@ export async function resumenGrupo(env: Env, alertasRelatos: string[]) {
   return {
     org: org?.nombre ?? "RELATOS AI GROUP",
     presupuesto: await (async () => { const p = await estadoPresupuesto(env); return { mensual: p.limites.total, usado: p.usado as number | null, proyeccion: p.proyeccion, estimado: p.estimado }; })(),
-    agentes: null as null | { activos: number; total: number },                          // null: los agentes llegan en la fase 6
+    agentes: await env.DB.prepare("SELECT SUM(estado NOT IN ('disponible','pausa','no-activado')) activos, COUNT(*) total FROM agents WHERE activo = 1").first<{ activos: number; total: number }>(),
+    tareas: await env.DB.prepare("SELECT SUM(estado = 'pendiente') pendientes, SUM(estado = 'en-curso') en_curso, SUM(estado = 'en-revision') en_revision FROM agent_tasks").first(),
     divisiones: datos,
     alertas: alertasRelatos.map((t) => ({ division: "relatos", texto: t })),
     seguridad_24h: { total: seguridad?.total ?? 0, altas: seguridad?.altas ?? 0, medias: seguridad?.medias ?? 0 },

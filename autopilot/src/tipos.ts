@@ -7,6 +7,7 @@ export interface Env {
   PANEL_HASH: string;     // "sal:hash" PBKDF2 de la contraseña del panel
   SESION_SECRETO: string; // (heredado) firma de la cookie antigua
   CIFRADO_CLAVE: string;
+  AGENTE_CLAVE: string;   // clave de los agentes (rutinas de Claude Code): permisos mínimos, ver src/agentes.ts
   RESPALDO_CLAVE: string; // AES-256 (base64) de los respaldos diarios; copia en ~/.relatos-secretos/respaldo-clave.txt  // cifra en reposo los secretos MFA (AES-GCM)
   FB_PAGINA: string;
   FB_TOKEN: string;

@@ -2,6 +2,7 @@
 // Cron cada 5 min: publica en TikTok lo que venció y revisa estados. Cada hora (minuto 0-4): estadísticas de las 3 redes.
 import { auditar, eventoSeguridad, leerSesion, login, mfa, misSesiones, salir, salirDeTodo } from "./auth";
 import { resumenGrupo } from "./grupo";
+import { apiAgentes, fichaAgente, instruccion, listaAgentes, verMemoria, verTarea } from "./agentes";
 import { cambiarDetener, detenido, estadoPresupuesto, hacerRespaldo, informeSentinel, leerDetener, registrarGasto, revisionDiaria, suscripcionesDelMes, validarSql, verificarGasto } from "./sentinel";
 import { pngResumen } from "./imagen";
 import { entrarDesdePortal, leerPase } from "./portal";
@@ -244,6 +245,16 @@ async function api(env: Env, req: Request, url: URL) {
     if (!pase || !(await leerPase(env, pase, "relatos-stats"))) return Response.json({ error: "pase" }, { status: 401 });
     return Response.json(await resumenPortal(env));
   }
+  // Agentes (rutinas de Claude Code): su propia clave y solo sus rutas.
+  const claveAgente = req.headers.get("x-agente");
+  if (claveAgente !== null) {
+    if (!env.AGENTE_CLAVE || claveAgente !== env.AGENTE_CLAVE) {
+      await eventoSeguridad(env, "agente-clave-invalida", "alta", `${req.method} ${ruta}`, req.headers.get("cf-connecting-ip"));
+      return Response.json({ error: "clave de agente" }, { status: 401 });
+    }
+    if (!ruta.startsWith("/agentes/")) return Response.json({ error: "los agentes solo usan /api/agentes/*" }, { status: 403 });
+    return apiAgentes(env, req, ruta, () => crecimiento(env));
+  }
   const deScript = req.headers.get("x-clave") === env.CLAVE;
   const ses = deScript ? null : await leerSesion(env, req);
   if (!deScript && !ses) return Response.json({ error: "sin sesión" }, { status: 401 });
@@ -258,6 +269,16 @@ async function api(env: Env, req: Request, url: URL) {
     divisiones: (await env.DB.prepare("SELECT id, nombre, descripcion, estado FROM divisions ORDER BY id = 'relatos' DESC, creada, id").all()).results });
   if (ruta === "/grupo/resumen") return Response.json(await resumenGrupo(env, (await datosSalud(env)).problemas));
   /* ── Sentinel, presupuesto y botón de emergencia (solo el propietario con sesión; los scripts no pueden) ── */
+  /* ── Agentes (vista del propietario) ── */
+  if (ruta === "/agentes" && ses) return Response.json(await listaAgentes(env));
+  const fa = /^\/agentes\/([a-z-]+)$/.exec(ruta);
+  if (fa && ses && req.method === "GET") { const f = await fichaAgente(env, fa[1]); return f ? Response.json(f) : Response.json({ error: "no existe" }, { status: 404 }); }
+  const ia = /^\/agentes\/([a-z-]+)\/instruccion$/.exec(ruta);
+  if (ia && ses && req.method === "POST") return instruccion(env, ses, ia[1], await req.json());
+  const vt = /^\/tareas\/(\d+)$/.exec(ruta);
+  if (vt && ses) return Response.json((await verTarea(env, +vt[1])) ?? { error: "no existe" });
+  const vm = /^\/memoria\/(\d+)$/.exec(ruta);
+  if (vm && ses) return Response.json((await verMemoria(env, +vm[1])) ?? { error: "no existe" });
   if (ruta === "/sentinel" && ses) return Response.json(await informeSentinel(env));
   if (ruta === "/presupuesto" && ses) return Response.json(await estadoPresupuesto(env));
   if (ruta === "/detener" && ses && req.method === "GET") return Response.json(await leerDetener(env));

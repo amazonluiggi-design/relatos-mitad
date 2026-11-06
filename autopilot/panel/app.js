@@ -531,7 +531,7 @@ async function cargarComentarios() {
 }
 
 /* ───── RELATOS AI GROUP: selector, panel del grupo, Gaming y seguridad ───── */
-const CASA = new Set(["empresas", "grupo", "seguridad", "gaming", "presupuesto"]);
+const CASA = new Set(["empresas", "grupo", "seguridad", "gaming", "presupuesto", "agentes"]);
 const hashActual = () => (location.hash || "#empresas").slice(1);
 let yo = null;
 
@@ -585,7 +585,7 @@ const CASA_VISTAS = {
       <td>${num(x.en_produccion)}</td><td>${num(x.listas)}</td><td>${num(x.agenda)}</td><td>${num(x.publicados_7d)}</td><td>${num(x.fallidos)}</td><td>${num(x.errores_24h)}</td></tr>`).join("");
     return `<h2 class="casa-titulo">${esc(g.org)} · Panel general</h2>
       <div class="rejilla r4">
-        ${cifra(g.agentes ? `${g.agentes.activos}/${g.agentes.total}` : "—", "agentes activos", g.agentes ? "" : "Aún no hay agentes instalados (fase 6).")}
+        ${cifra(g.agentes ? `${g.agentes.activos}/${g.agentes.total}` : "—", "agentes activos", g.tareas ? (g.tareas.pendientes || 0) + " tareas pendientes · " + (g.tareas.en_revision || 0) + " en revisión" : "")}
         ${cifra(num(tot("en_produccion")), "producciones en curso")}
         ${cifra(num(tot("agenda")), "publicaciones en agenda")}
         ${cifra(g.presupuesto.usado != null ? `$${g.presupuesto.usado.toFixed(2)}` : "—", `de $${num(g.presupuesto.mensual)} al mes`, g.presupuesto.usado != null ? "Proyección del mes: $" + g.presupuesto.proyeccion.toFixed(2) + (g.presupuesto.estimado ? " · incluye estimados" : "") : "")}
@@ -615,6 +615,32 @@ const CASA_VISTAS = {
         ${paso(false, "Registro de creadores con autorización comercial", "fase 8")}
         ${paso(false, "Plantillas de video propias de Gaming", "fase 8")}
       </ul></div>`;
+  },
+
+  async agentes() {
+    const d = await api("/agentes");
+    const EST = { disponible: "Disponible", investigando: "Investigando", analizando: "Analizando", escribiendo: "Escribiendo", produciendo: "Produciendo", renderizando: "Renderizando", revisando: "Revisando", coordinando: "Coordinando", pausa: "En pausa", error: "Error", "no-activado": "No activado" };
+    const T_EST = { pendiente: "Pendiente", "en-curso": "En curso", "en-revision": "En revisión", hecha: "Hecha", rechazada: "Rechazada", error: "Error", bloqueada: "Bloqueada" };
+    const hace = (s) => s ? fecha(s.replace(" ", "T") + "Z", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+    const tarjetas = d.agentes.map((a) => `<button class="agente ${a.activo ? "" : "apagado"} est-${esc(a.estado)}" data-agente="${esc(a.id)}">
+        <span class="avatar">${esc(a.nombre.slice(0, 1))}</span>
+        <span class="agente-txt"><b>${esc(a.nombre)}</b><small>${esc(a.cargo)}</small>
+        <em class="estado-ag">${esc(EST[a.estado] || a.estado)}${a.tarea_titulo ? " · " + esc(a.tarea_titulo) : ""}</em></span>
+        <span class="agente-num">${num(a.hechas)} hechas · ${num(a.abiertas)} abiertas</span></button>`).join("");
+    const tareas = d.tareas.map((t) => `<tr data-tarea="${t.id}" class="fila-clic"><td>#${t.id}</td><td>${esc(t.agente_id)}</td><td>${esc(t.titulo)}</td>
+        <td><span class="chip ${t.estado === "hecha" ? "publicado" : t.estado === "en-curso" ? "enviado" : t.estado === "error" ? "fallido" : ""}">${esc(T_EST[t.estado] || t.estado)}</span></td>
+        <td>${t.calidad != null ? t.calidad + "/100" : "—"}</td><td class="nd">${esc(t.creada_por)}</td><td class="nd">${esc(hace(t.terminada || t.creada))}</td></tr>`).join("");
+    const memoria = d.memoria.map((m) => `<li data-memoria="${m.id}" class="fila-clic"><span class="chip">${esc(m.tipo)}</span> <b>${esc(m.titulo)}</b> <span class="nd">· ${esc(m.autor)} · ${esc(hace(m.creado))}${m.confianza ? " · confianza " + esc(m.confianza) : ""}</span></li>`).join("");
+    const exps = d.experimentos.map((e) => `<div class="exp"><div><span class="chip">${esc(e.id)}</span> <b>${esc(e.titulo)}</b> <span class="chip ${e.estado === "terminado" ? "publicado" : "enviado"}">${esc(e.estado)}</span></div>
+        <p><b>Hipótesis:</b> ${esc(e.hipotesis)}</p><p class="nd"><b>Métrica:</b> ${esc(e.metrica)} · <b>Éxito si:</b> ${esc(e.criterio_exito)}</p>${e.conclusion ? `<p><b>Conclusión:</b> ${esc(e.conclusion)}</p>` : ""}</div>`).join("");
+    return `<h2 class="casa-titulo">Agentes</h2>
+      <p class="nd">Trabajan en jornadas programadas en la nube (con tu suscripción de Claude Code) y todo lo que ves aquí es su actividad real. No pueden publicar, gastar ni tocar la seguridad. Toca a un agente para ver su ficha y darle una instrucción.</p>
+      <div class="equipo">${tarjetas}</div>
+      <div class="tarjeta"><h3>Tareas</h3><div class="tabla-scroll"><table class="tabla"><thead><tr><th></th><th>Agente</th><th>Tarea</th><th>Estado</th><th>Calidad</th><th>Pidió</th><th>Fecha</th></tr></thead><tbody>${tareas || `<tr><td colspan="7" class="nd">Sin tareas.</td></tr>`}</tbody></table></div></div>
+      <div class="rejilla r2">
+        <div class="tarjeta"><h3>Memoria de la empresa</h3><ul class="memoria">${memoria || `<li class="nd">Vacía.</li>`}</ul></div>
+        <div class="tarjeta"><h3>Experimentos</h3>${exps || `<div class="vacio">Sin experimentos.</div>`}</div>
+      </div>`;
   },
 
   async presupuesto() {
@@ -680,6 +706,48 @@ $("#casa-vista").addEventListener("click", async (e) => {
   if (!e.target.closest("#cerrar-todas")) return;
   if (!confirm("¿Cerrar todas las sesiones, incluida esta?")) return;
   await post("/sesiones/cerrar-todas"); datos.resumen = null; mostrarLogin();
+});
+
+async function abrirDetalle(html) { const dl = $("#detalle"); dl.querySelector(".detalle-cuerpo").innerHTML = html; dl.showModal(); }
+const markdown = (s) => `<div class="md">${esc(s || "").replace(/^### (.*)$/gm, "<h4>$1</h4>").replace(/^## (.*)$/gm, "<h3>$1</h3>").replace(/^# (.*)$/gm, "<h3>$1</h3>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")}</div>`;
+$("#casa-vista").addEventListener("click", async (e) => {
+  const ag = e.target.closest("[data-agente]");
+  const ta = e.target.closest("[data-tarea]");
+  const me = e.target.closest("[data-memoria]");
+  if (ag) {
+    const f = await api("/agentes/" + ag.dataset.agente);
+    const a = f.agente;
+    await abrirDetalle(`<h3>${esc(a.nombre)} · ${esc(a.cargo)}</h3>
+      <p class="nd">${esc(a.departamento)} · ${esc(a.division_id || "grupo")} · estado: <b>${esc(a.estado)}</b>${a.desde ? " desde " + esc(fecha(a.desde.replace(" ", "T") + "Z", { dateStyle: "short", timeStyle: "short" })) : ""}</p>
+      <p class="nd">Herramientas: ${esc(JSON.parse(a.herramientas || "[]").join(", "))}</p>
+      ${a.activo ? `<form id="form-instruccion" data-id="${esc(a.id)}" class="instruccion"><label>Darle una instrucción</label>
+        <input name="titulo" maxlength="200" placeholder="Ej.: Analiza qué ganchos de TikTok traen más vistas" required>
+        <textarea name="descripcion" rows="3" maxlength="6000" placeholder="Detalles (opcional)"></textarea>
+        <button class="boton-pri">Enviar (la toma en la próxima jornada)</button><span class="nd" id="instr-msg"></span></form>` : `<p class="nd">Todavía no está activado.</p>`}
+      <h4>Tareas</h4><ul class="memoria">${f.tareas.map((t) => `<li data-tarea="${t.id}" class="fila-clic">#${t.id} ${esc(t.titulo)} <span class="nd">· ${esc(t.estado)}${t.calidad != null ? " · " + t.calidad + "/100" : ""}</span></li>`).join("") || `<li class="nd">Sin tareas.</li>`}</ul>
+      <h4>Historial</h4><ul class="actividad">${f.eventos.map((v) => `<li><span class="nd">${esc(fecha(v.cuando.replace(" ", "T") + "Z", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))} · ${esc(v.estado || "")}</span> ${esc(v.mensaje)}</li>`).join("") || `<li class="nd">Aún no ha trabajado.</li>`}</ul>`);
+    return;
+  }
+  if (ta) {
+    const t = await api("/tareas/" + ta.dataset.tarea);
+    await abrirDetalle(`<h3>#${t.id} · ${esc(t.titulo)}</h3><p class="nd">${esc(t.agente_id)} · ${esc(t.estado)} · pidió ${esc(t.creada_por)}${t.calidad != null ? ` · calidad <b>${t.calidad}/100</b>` : ""}</p>
+      ${t.descripcion ? `<p>${esc(t.descripcion)}</p>` : ""}${t.revision ? `<div class="tarjeta"><b>Revisión de calidad:</b> ${esc(t.revision)}</div>` : ""}
+      ${t.error ? `<p class="error">${esc(t.error)}</p>` : ""}${t.resultado ? `<h4>Entregable</h4>${markdown(t.resultado)}` : `<p class="nd">Sin entregable todavía.</p>`}`);
+    return;
+  }
+  if (me) {
+    const m = await api("/memoria/" + me.dataset.memoria);
+    await abrirDetalle(`<h3>${esc(m.titulo)}</h3><p class="nd">${esc(m.tipo)} · ${esc(m.autor)} · ${esc(m.creado)}${m.confianza ? " · confianza " + esc(m.confianza) : ""}</p>${markdown(m.contenido)}
+      ${m.fuentes ? `<h4>Fuentes</h4><ul>${JSON.parse(m.fuentes).map((x) => `<li>${esc(x.titulo || "")} <a href="${esc(/^https?:\/\//.test(x.url || "") ? x.url : "#")}" target="_blank" rel="noopener noreferrer">${esc(x.url || "")}</a> <span class="nd">${esc(x.fecha || "")}</span></li>`).join("")}</ul>` : ""}`);
+  }
+});
+document.addEventListener("submit", async (e) => {
+  const f = e.target.closest("#form-instruccion");
+  if (!f) return;
+  e.preventDefault();
+  const r = await post(`/agentes/${f.dataset.id}/instruccion`, { titulo: f.titulo.value, descripcion: f.descripcion.value });
+  $("#instr-msg").textContent = r.ok ? `✓ Tarea #${r.id} creada` : (r.error || "Error");
+  if (r.ok) { f.reset(); if (hashActual() === "agentes") navegar(); }
 });
 
 async function entrar() {
