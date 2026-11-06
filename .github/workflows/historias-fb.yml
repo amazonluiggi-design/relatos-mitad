@@ -18,6 +18,10 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - name: Interruptor de emergencia (DETENER EMPRESA)
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: node scripts/nube.mjs alto relatos publicaciones
       - name: Credenciales
         env:
           FB_PAGINA_JSON: ${{ secrets.FB_PAGINA_JSON }}

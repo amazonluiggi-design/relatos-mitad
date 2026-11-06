@@ -30,6 +30,10 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - name: Interruptor de emergencia (DETENER EMPRESA)
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: node scripts/nube.mjs alto relatos renderizados
       - name: Recursos de la historia (imágenes, voz y clips desde R2 si no están en el repo)
         env:
           RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
@@ -60,6 +64,10 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - name: Interruptor de emergencia (DETENER EMPRESA)
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: node scripts/nube.mjs alto relatos renderizados
       - name: Recursos de la historia (imágenes, voz y clips desde R2 si no están en el repo)
         env:
           RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
@@ -100,6 +108,10 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - name: Interruptor de emergencia (DETENER EMPRESA)
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: node scripts/nube.mjs alto relatos publicaciones
       - name: Recursos de la historia (imágenes, voz y clips desde R2 si no están en el repo)
         env:
           RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}

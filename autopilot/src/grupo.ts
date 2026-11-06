@@ -1,5 +1,6 @@
 // Panel general de RELATOS AI GROUP: cifras consolidadas por división, solo con datos reales.
 // Lo que aún no existe (agentes, costos) se devuelve como null para que el panel diga "no instalado", nunca un cero inventado.
+import { estadoPresupuesto } from "./sentinel";
 import type { Env } from "./tipos";
 
 async function division(env: Env, id: string) {
@@ -36,7 +37,7 @@ export async function resumenGrupo(env: Env, alertasRelatos: string[]) {
   const seguridad = await env.DB.prepare(`SELECT COUNT(*) total, SUM(severidad = 'alta') altas, SUM(severidad = 'media') medias FROM security_events WHERE cuando >= datetime('now', '-1 day')`).first<{ total: number; altas: number | null; medias: number | null }>();
   return {
     org: org?.nombre ?? "RELATOS AI GROUP",
-    presupuesto: { mensual: org?.presupuesto_mensual ?? 75, usado: null as number | null }, // null: el registro de costos llega en la fase 4
+    presupuesto: await (async () => { const p = await estadoPresupuesto(env); return { mensual: p.limites.total, usado: p.usado as number | null, proyeccion: p.proyeccion, estimado: p.estimado }; })(),
     agentes: null as null | { activos: number; total: number },                          // null: los agentes llegan en la fase 6
     divisiones: datos,
     alertas: alertasRelatos.map((t) => ({ division: "relatos", texto: t })),

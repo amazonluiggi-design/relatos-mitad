@@ -531,7 +531,7 @@ async function cargarComentarios() {
 }
 
 /* ───── RELATOS AI GROUP: selector, panel del grupo, Gaming y seguridad ───── */
-const CASA = new Set(["empresas", "grupo", "seguridad", "gaming"]);
+const CASA = new Set(["empresas", "grupo", "seguridad", "gaming", "presupuesto"]);
 const hashActual = () => (location.hash || "#empresas").slice(1);
 let yo = null;
 
@@ -588,7 +588,7 @@ const CASA_VISTAS = {
         ${cifra(g.agentes ? `${g.agentes.activos}/${g.agentes.total}` : "—", "agentes activos", g.agentes ? "" : "Aún no hay agentes instalados (fase 6).")}
         ${cifra(num(tot("en_produccion")), "producciones en curso")}
         ${cifra(num(tot("agenda")), "publicaciones en agenda")}
-        ${cifra(g.presupuesto.usado != null ? `$${g.presupuesto.usado.toFixed(2)}` : "—", `de $${num(g.presupuesto.mensual)} al mes`, g.presupuesto.usado != null ? "" : "El registro de costos llega en la fase 4.")}
+        ${cifra(g.presupuesto.usado != null ? `$${g.presupuesto.usado.toFixed(2)}` : "—", `de $${num(g.presupuesto.mensual)} al mes`, g.presupuesto.usado != null ? "Proyección del mes: $" + g.presupuesto.proyeccion.toFixed(2) + (g.presupuesto.estimado ? " · incluye estimados" : "") : "")}
       </div>
       <div class="tarjeta"><h3>Divisiones</h3><div class="tabla-scroll"><table class="tabla">
         <thead><tr><th>División</th><th>Estado</th><th>En producción</th><th>Listas</th><th>En agenda</th><th>Publicadas 7 d</th><th>Fallidas</th><th>Errores 24 h</th></tr></thead>
@@ -617,9 +617,41 @@ const CASA_VISTAS = {
       </ul></div>`;
   },
 
+  async presupuesto() {
+    const p = await api("/presupuesto");
+    const usd = (n) => "$" + Number(n || 0).toFixed(2);
+    const barra = (usado, tope) => { const x = tope ? Math.min(100, (usado / tope) * 100) : 0; return `<div class="barra-p ${x > 90 ? "mal" : x > 70 ? "aviso" : ""}"><span style="width:${x.toFixed(1)}%"></span></div>`; };
+    const grupos = Object.entries(p.limites.proveedores).map(([k, tope]) => `<tr><td>${esc(k)}</td><td>${usd(p.porGrupo[k])}</td><td>${usd(tope)}</td><td class="celda-barra">${barra(p.porGrupo[k] || 0, tope)}</td></tr>`).join("");
+    const provs = Object.entries(p.porProveedor).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${usd(v.usd)}</td><td>${v.unidades != null ? num(Math.round(v.unidades)) + " " + esc(v.unidad || "") : "—"}</td></tr>`).join("");
+    const divs = Object.entries(p.porDivision).map(([k, v]) => `<div><b>${usd(v)}</b>${esc(k)}</div>`).join("");
+    const movs = p.ultimos.map((x) => `<tr><td class="nd">${esc(fecha(x.cuando.replace(" ", "T") + "Z", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))}</td><td>${esc(x.proveedor)}</td><td>${esc(x.concepto)}${x.unidades ? ` <span class="nd">· ${num(x.unidades)} ${esc(x.unidad || "")}</span>` : ""}</td><td>${usd(x.monto_usd)}</td><td><span class="chip ${x.tipo === "real" ? "ok" : "aviso"}">${esc(x.tipo)}</span></td><td class="nd">${esc(x.agente || "")}</td></tr>`).join("");
+    return `<h2 class="casa-titulo">Presupuesto · ${esc(p.mes)}</h2>
+      <p class="nd">Tope del grupo: <b>${usd(p.limites.total)}</b> al mes, compartido entre Relatos y Gaming, y ${usd(p.limites.diario)} al día en gastos variables. Si un gasto no cabe, la tarea se detiene sola. Nada compra créditos ni activa suscripciones.</p>
+      <div class="rejilla r4">${cifra(usd(p.usado), "usado este mes", p.estimado ? usd(p.estimado) + " son estimados (precio de lista)" : "")}${cifra(usd(p.disponible), "disponible")}${cifra(usd(p.proyeccion), "proyección del mes")}${cifra(usd(p.hoy), "variables de hoy", "tope diario " + usd(p.limites.diario))}</div>
+      <div class="tarjeta">${barra(p.usado, p.limites.total)}<div class="empresa-datos">${divs || `<div class="nd">Sin gastos este mes.</div>`}</div></div>
+      <div class="rejilla r2">
+        <div class="tarjeta"><h3>Topes por partida</h3><div class="tabla-scroll"><table class="tabla"><thead><tr><th>Partida</th><th>Usado</th><th>Tope</th><th></th></tr></thead><tbody>${grupos}</tbody></table></div></div>
+        <div class="tarjeta"><h3>Por proveedor</h3><div class="tabla-scroll"><table class="tabla"><thead><tr><th>Proveedor</th><th>USD</th><th>Consumo</th></tr></thead><tbody>${provs || `<tr><td colspan="3" class="nd">Sin registros.</td></tr>`}</tbody></table></div>
+          <p class="nd">La API de Claude no se usa: los agentes trabajan con tu suscripción de Claude Code.</p></div>
+      </div>
+      <div class="tarjeta"><h3>Últimos movimientos</h3><div class="tabla-scroll"><table class="tabla"><thead><tr><th>Cuándo</th><th>Proveedor</th><th>Concepto</th><th>USD</th><th>Tipo</th><th>Quién</th></tr></thead><tbody>${movs || `<tr><td colspan="6" class="nd">Sin movimientos.</td></tr>`}</tbody></table></div></div>`;
+  },
+
   async seguridad() {
-    const s = await api("/sesiones");
-    return `<h2 class="casa-titulo">Seguridad de la cuenta</h2>
+    const [s, sen, det] = await Promise.all([api("/sesiones"), api("/sentinel"), api("/detener")]);
+    const ICONO = { ok: "✓", aviso: "!", grave: "✕" };
+    const AMB = { grupo: ["TODA LA EMPRESA", "Para todo: publicaciones, renderizados, agentes y APIs de ambas divisiones."], relatos: ["Relatos", "Solo la división Relatos."], gaming: ["Gaming", "Solo la división Gaming."], publicaciones: ["Publicaciones", "Nada nuevo se publica ni se programa."], renderizados: ["Renderizados", "La fábrica no renderiza."], agentes: ["Agentes", "Los agentes no toman tareas."], apis: ["APIs con consumo", "Voz, imágenes e IA de pago se paran."] };
+    const interruptores = Object.entries(AMB).map(([k, [n, d]]) => `<label class="interruptor-det ${k === "grupo" ? "principal" : ""}"><input type="checkbox" data-detener="${k}" ${det[k] ? "checked" : ""}><span><b>${n}</b><small>${d}</small></span><em>${det[k] ? "DETENIDO" : "en marcha"}</em></label>`).join("");
+    const controles = sen.controles.map((c) => `<li class="${c.estado}"><span>${ICONO[c.estado]}</span><div><b>${esc(c.nombre)}</b><small>${esc(c.detalle)}</small></div></li>`).join("");
+    const eventos = sen.eventos.map((e) => `<tr><td class="nd">${esc(fecha(e.cuando.replace(" ", "T") + "Z", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))}</td><td>${esc(e.tipo)}</td><td><span class="chip ${e.severidad === "alta" ? "fallido" : e.severidad === "media" ? "aviso" : ""}">${esc(e.severidad)}</span></td><td>${esc(e.detalle)}</td><td class="nd">${esc(e.ip || "")}</td></tr>`).join("");
+    const sentinel = `<div class="tarjeta detener ${det.grupo ? "activo" : ""}"><h3>🛑 DETENER EMPRESA</h3>
+        <p class="nd">Nada se borra y tú sigues entrando. Ojo: lo que ya está programado DENTRO de Facebook y YouTube sale igual; para frenarlo hay que cancelarlo en Meta Business Suite o YouTube Studio (o pedírmelo).</p>
+        <div class="interruptores">${interruptores}</div>
+        ${det.cambiado ? `<p class="nd">Último cambio: ${esc(fecha(det.cambiado, { dateStyle: "short", timeStyle: "short" }))} por ${esc(det.por)}</p>` : ""}</div>
+      <div class="tarjeta"><h3>Controles automáticos de SENTINEL</h3><ul class="controles">${controles}</ul>
+        <button class="boton-sec" id="respaldo-ahora">Hacer respaldo ahora</button> <span class="nd" id="respaldo-msg"></span></div>
+      <div class="tarjeta"><h3>Eventos de seguridad</h3><div class="tabla-scroll"><table class="tabla"><thead><tr><th>Cuándo</th><th>Tipo</th><th>Gravedad</th><th>Detalle</th><th>IP</th></tr></thead><tbody>${eventos || `<tr><td colspan="5" class="nd">Sin eventos.</td></tr>`}</tbody></table></div></div>`;
+    return `<h2 class="casa-titulo">Seguridad · SENTINEL</h2>${sentinel}
       <div class="tarjeta"><h3>Sesiones abiertas</h3><div class="tabla-scroll"><table class="tabla">
         <thead><tr><th>Entrada</th><th>Desde</th><th>Último uso</th><th>IP</th><th>Navegador</th></tr></thead>
         <tbody>${s.map((x) => `<tr><td>${x.actual ? "<b>Esta sesión</b>" : esc(x.ref)}</td><td>${x.origen === "portal" ? "Portal de empresas" : "Contraseña + código"}</td>
@@ -628,7 +660,23 @@ const CASA_VISTAS = {
   },
 };
 
+$("#casa-vista").addEventListener("change", async (e) => {
+  const c = e.target.closest("[data-detener]");
+  if (!c) return;
+  const amb = c.dataset.detener;
+  if (c.checked && !confirm(amb === "grupo" ? "¿DETENER TODA LA EMPRESA? Se paran publicaciones, renderizados, agentes y APIs." : "¿Detener " + amb + "?")) { c.checked = false; return; }
+  const r = await post("/detener", { ambito: amb, valor: c.checked });
+  if (r.error) alert(r.error);
+  navegar();
+});
 $("#casa-vista").addEventListener("click", async (e) => {
+  const b = e.target.closest("#respaldo-ahora");
+  if (b) {
+    b.disabled = true; $("#respaldo-msg").textContent = "Respaldando…";
+    const r = await post("/respaldo/ahora");
+    $("#respaldo-msg").textContent = r.ok ? "✓ " + num(r.filas) + " filas, " + Math.round(r.bytes / 1024) + " KB cifrados" : "Error: " + (r.error || "");
+    setTimeout(navegar, 1500); return;
+  }
   if (!e.target.closest("#cerrar-todas")) return;
   if (!confirm("¿Cerrar todas las sesiones, incluida esta?")) return;
   await post("/sesiones/cerrar-todas"); datos.resumen = null; mostrarLogin();

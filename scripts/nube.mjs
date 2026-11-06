@@ -2,7 +2,7 @@
 // La clave sale de RELATOS_CLAVE (GitHub Actions) o de ~/.relatos-secretos/clave-imagenes.txt (laptop).
 import fs from "node:fs";
 import os from "node:os";
-const U = "https://relatos-autopilot.probador-worker.workers.dev/api/fabrica";
+const U = (process.env.RELATOS_API || "https://relatos-autopilot.probador-worker.workers.dev") + "/api/fabrica";
 const CLAVE = process.env.RELATOS_CLAVE || fs.readFileSync(os.homedir() + "/.relatos-secretos/clave-imagenes.txt", "utf8").trim();
 const H = { "x-clave": CLAVE };
 const TROZO = 64 * 1024 * 1024;
@@ -56,4 +56,44 @@ if (process.argv[1]?.endsWith("nube.mjs") && process.argv[2] === "bajar") {
 if (process.argv[1]?.endsWith("nube.mjs") && process.argv[2] === "subir") {
   await subir(process.argv[3], process.argv[4], process.argv[5] || "application/octet-stream");
   console.log("subido", process.argv[4]);
+}
+
+/* ───── Sentinel: botón DETENER y presupuesto ───── */
+/** Estado del botón DETENER. Si el panel no responde se devuelve null (la fábrica sigue: falla abierta, decidido 2026-11-06). */
+export async function estadoDetener() {
+  try {
+    const r = await fetch(`${U}/estado`, { headers: H, signal: AbortSignal.timeout(15000) });
+    if (!r.ok) return null;
+    return (await r.json()).detener;
+  } catch { return null; }
+}
+export async function detenido(division, ambito) {
+  const d = await estadoDetener();
+  return !!d && (d.grupo || d[division] || d[ambito]);
+}
+
+/** Pide permiso antes de gastar. Devuelve true si cabe en el presupuesto (o si el panel no responde). */
+export async function puedoGastar(proveedor, monto, concepto, division = "relatos") {
+  try {
+    const r = await fetch(`${U}/gasto`, { method: "POST", headers: { ...H, "content-type": "application/json" }, body: JSON.stringify({ proveedor, monto, concepto, division, previo: true }), signal: AbortSignal.timeout(15000) });
+    const j = await r.json();
+    if (!j.ok) console.error(`⛔ Presupuesto: ${j.motivo}`);
+    return !!j.ok;
+  } catch (e) { console.error("⚠ No se pudo consultar el presupuesto, se continúa:", e.message); return true; }
+}
+
+/** Anota un gasto en el libro de costos (no corta el trabajo si falla). */
+export async function anotarGasto(g) {
+  try {
+    await fetch(`${U}/gasto`, { method: "POST", headers: { ...H, "content-type": "application/json" }, body: JSON.stringify({ division: "relatos", tipo: "estimado", ...g }), signal: AbortSignal.timeout(15000) });
+  } catch (e) { console.error("⚠ No se pudo anotar el gasto:", e.message); }
+}
+
+// node scripts/nube.mjs alto <division> <ambito>  → sale con código 3 si el botón DETENER lo tiene parado.
+if (process.argv[1]?.endsWith("nube.mjs") && process.argv[2] === "alto") {
+  if (await detenido(process.argv[3] || "relatos", process.argv[4] || "publicaciones")) {
+    console.error(`🛑 DETENER EMPRESA activo (${process.argv[3]}/${process.argv[4]}): no se hace nada.`);
+    process.exit(3);
+  }
+  console.log("Interruptor de emergencia: en marcha.");
 }

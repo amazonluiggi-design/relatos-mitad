@@ -6,7 +6,8 @@ export interface Env {
   CLAVE: string;          // acceso de scripts (cabecera x-clave)
   PANEL_HASH: string;     // "sal:hash" PBKDF2 de la contraseña del panel
   SESION_SECRETO: string; // (heredado) firma de la cookie antigua
-  CIFRADO_CLAVE: string;  // cifra en reposo los secretos MFA (AES-GCM)
+  CIFRADO_CLAVE: string;
+  RESPALDO_CLAVE: string; // AES-256 (base64) de los respaldos diarios; copia en ~/.relatos-secretos/respaldo-clave.txt  // cifra en reposo los secretos MFA (AES-GCM)
   FB_PAGINA: string;
   FB_TOKEN: string;
   YT_CLIENTE: string;

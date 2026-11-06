@@ -366,3 +366,27 @@ dialog video { display: block; max-width: 100%; max-height: 90dvh; }
   .casa-barra [data-salir] { margin-left: auto; }
   .casa-vista { padding: 20px 16px 48px; }
 }
+
+/* Sentinel y presupuesto */
+.barra-p { height: 10px; border-radius: 99px; background: var(--panel2); overflow: hidden; margin: 4px 0 12px; }
+.barra-p span { display: block; height: 100%; background: linear-gradient(90deg, var(--ok), #2bb98a); border-radius: 99px; }
+.barra-p.aviso span { background: var(--aviso); }
+.barra-p.mal span { background: var(--mal); }
+.celda-barra { width: 40%; }
+.celda-barra .barra-p { margin: 0; }
+.controles { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 10px; }
+.controles li { display: flex; gap: 12px; align-items: flex-start; }
+.controles li > span { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; flex: none; }
+.controles li.ok > span { background: rgba(52,211,153,.15); color: var(--ok); }
+.controles li.aviso > span { background: rgba(251,191,36,.15); color: var(--aviso); }
+.controles li.grave > span { background: rgba(248,113,113,.18); color: var(--mal); }
+.controles small { display: block; color: var(--tenue); font-size: 13px; }
+.detener { border-color: color-mix(in srgb, var(--mal) 35%, var(--borde)); }
+.detener.activo { background: linear-gradient(180deg, rgba(248,113,113,.14), #0d1317); }
+.interruptores { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin: 6px 0 10px; }
+.interruptor-det { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 12px; border: 1px solid var(--borde); border-radius: 12px; background: var(--panel2); cursor: pointer; }
+.interruptor-det.principal { grid-column: 1 / -1; border-color: color-mix(in srgb, var(--mal) 50%, transparent); }
+.interruptor-det input { width: 20px; height: 20px; accent-color: var(--mal); }
+.interruptor-det small { display: block; color: var(--tenue); font-size: 12px; }
+.interruptor-det em { font-style: normal; font-size: 11px; color: var(--tenue); white-space: nowrap; }
+.interruptor-det input:checked ~ em { color: var(--mal); font-weight: 700; }

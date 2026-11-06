@@ -2,6 +2,7 @@
 // Cron cada 5 min: publica en TikTok lo que venció y revisa estados. Cada hora (minuto 0-4): estadísticas de las 3 redes.
 import { auditar, eventoSeguridad, leerSesion, login, mfa, misSesiones, salir, salirDeTodo } from "./auth";
 import { resumenGrupo } from "./grupo";
+import { cambiarDetener, detenido, estadoPresupuesto, hacerRespaldo, informeSentinel, leerDetener, registrarGasto, revisionDiaria, suscripcionesDelMes, validarSql, verificarGasto } from "./sentinel";
 import { pngResumen } from "./imagen";
 import { entrarDesdePortal, leerPase } from "./portal";
 import { publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube, historiaFacebook, comentariosPendientes } from "./redes";
@@ -14,6 +15,7 @@ async function pubs(env: Env, where = "1=1", ...args: unknown[]) {
 
 async function publicarPendientes(env: Env) {
   if ((await env.DB.prepare("SELECT valor FROM config WHERE clave = 'pausa'").first<string>("valor")) === "1") return;
+  if (await detenido(env, "relatos", "publicaciones")) return;
   for (const p of await pubs(env, "red = 'tiktok' AND estado IN ('pendiente', 'enviado') AND cuando <= ?", new Date().toISOString())) {
     try {
       if (p.estado === "pendiente") {
@@ -162,6 +164,12 @@ async function datosSalud(env: Env) {
   for (const e of errores) if (veces[clave(e.mensaje)] >= 2 && !problemas.some((p) => p.startsWith(e.mensaje.slice(0, 40)))) problemas.push(e.mensaje.slice(0, 160));
   for (const [red, m] of Object.entries(ultimas)) if (fechaUtc(m).getTime() < Date.now() - 4 * 3600e3)
     problemas.push(`Las estadísticas de ${REDES_N[red] || red} no se actualizan desde el ${fechaUtc(m).toLocaleString("es-EC", { timeZone: "America/Guayaquil", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`);
+  // Sentinel: respaldo atrasado y botón de emergencia activo.
+  const resp = await env.DB.prepare("SELECT cuando FROM backups WHERE estado = 'ok' ORDER BY id DESC LIMIT 1").first<string>("cuando");
+  if (resp && Date.now() - fechaUtc(resp).getTime() > 30 * 3600e3) problemas.push("El respaldo diario de la base lleva más de 30 horas sin hacerse");
+  const det = await leerDetener(env);
+  const parados = Object.entries(det).filter(([k, v]) => v === true && k !== "cambiado").map(([k]) => k);
+  if (parados.length) problemas.push(`Botón DETENER activo: ${parados.join(", ")}`);
   const fallidas = (await env.DB.prepare("SELECT COUNT(*) n FROM publicaciones WHERE estado IN ('fallido', 'privado') AND video_id NOT LIKE 'demo%' AND cuando >= ?").bind(new Date(Date.now() - 24 * 3600e3).toISOString()).first<{ n: number }>())?.n || 0;
   if (fallidas) problemas.push(`${fallidas} publicación(es) fallaron o quedaron en privado en las últimas 24 h`);
   // TikTok se programa desde la laptop (Studio): avisar si en 3 días hay algo sin programar.
@@ -249,6 +257,17 @@ async function api(env: Env, req: Request, url: URL) {
   if (ruta === "/yo" && ses) return Response.json({ correo: ses.user.correo, nombre: ses.user.nombre, rol: ses.user.rol, origen: ses.origen,
     divisiones: (await env.DB.prepare("SELECT id, nombre, descripcion, estado FROM divisions ORDER BY id = 'relatos' DESC, creada, id").all()).results });
   if (ruta === "/grupo/resumen") return Response.json(await resumenGrupo(env, (await datosSalud(env)).problemas));
+  /* ── Sentinel, presupuesto y botón de emergencia (solo el propietario con sesión; los scripts no pueden) ── */
+  if (ruta === "/sentinel" && ses) return Response.json(await informeSentinel(env));
+  if (ruta === "/presupuesto" && ses) return Response.json(await estadoPresupuesto(env));
+  if (ruta === "/detener" && ses && req.method === "GET") return Response.json(await leerDetener(env));
+  if (ruta === "/detener" && req.method === "POST") {
+    if (!ses || ses.user.rol !== "propietario") return Response.json({ error: "Solo el propietario" }, { status: 403 });
+    const { ambito, valor } = (await req.json()) as { ambito: string; valor: boolean };
+    try { return Response.json(await cambiarDetener(env, ambito, !!valor, ses.user, req.headers.get("cf-connecting-ip"))); }
+    catch (e) { return Response.json({ error: String(e) }, { status: 400 }); }
+  }
+  if (ruta === "/respaldo/ahora" && req.method === "POST") return Response.json(await hacerRespaldo(env));
   if (ruta === "/sesiones" && ses) return Response.json(await misSesiones(env, ses));
   if (ruta === "/sesiones/cerrar-todas" && req.method === "POST" && ses) return salirDeTodo(env, req, ses);
 
@@ -278,8 +297,34 @@ async function api(env: Env, req: Request, url: URL) {
       await m.complete(((await req.json()) as { partes: R2UploadedPart[] }).partes);
       return Response.json({ ok: true });
     }
+    if (ruta === "/fabrica/respaldos" && req.method === "GET") return Response.json((await env.DB.prepare("SELECT id, cuando, clave_r2, filas, bytes, restaurado_prueba FROM backups WHERE estado = 'ok' ORDER BY id DESC LIMIT 14").all()).results);
+    if (ruta === "/fabrica/estado" && req.method === "GET") return Response.json({ detener: await leerDetener(env) });
+    if (ruta === "/fabrica/gasto" && req.method === "POST") {
+      const g = (await req.json()) as { proveedor: string; concepto: string; monto: number; tipo?: string; unidades?: number; unidad?: string; division?: string; agente?: string; ref?: string; previo?: boolean };
+      if (typeof g.proveedor !== "string" || typeof g.concepto !== "string" || typeof g.monto !== "number") return Response.json({ ok: false, motivo: "datos" }, { status: 400 });
+      const v = await verificarGasto(env, g.proveedor, g.previo ? g.monto : 0, g.division ?? null);
+      if (!v.ok) { await evento(env, `Gasto bloqueado (${g.proveedor}, ${g.monto}): ${v.motivo}`, "aviso"); return Response.json(v, { status: 402 }); }
+      if (g.previo) return Response.json(v);
+      await registrarGasto(env, { ...g, agente: g.agente ?? "fábrica" });
+      return Response.json({ ok: true });
+    }
+    if (ruta === "/fabrica/respaldo-probado" && req.method === "POST") {
+      const { clave: k, filas } = (await req.json()) as { clave: string; filas: number };
+      const r = await env.DB.prepare("UPDATE backups SET restaurado_prueba = ? WHERE clave_r2 = ? AND filas = ?").bind(new Date().toISOString(), k, filas).run();
+      if (r.meta.changes) await auditar(env, "restauracion-probada", { actor: "script", detalle: `${k} · ${filas} filas` });
+      return Response.json({ ok: !!r.meta.changes });
+    }
     if (ruta === "/fabrica/sql" && req.method === "POST") {
       const { sql } = (await req.json()) as { sql: string[] };
+      if (!Array.isArray(sql) || sql.length > 500) return Response.json({ error: "lote no válido" }, { status: 400 });
+      // SENTINEL: solo INSERT/UPDATE sobre tablas de contenido; nada de borrar ni tocar usuarios, sesiones, auditoría, costos o config.
+      for (const s of sql) {
+        const motivo = validarSql(s);
+        if (motivo) {
+          await eventoSeguridad(env, "sql-rechazado", "alta", `${motivo}: ${String(s).slice(0, 200)}`, req.headers.get("cf-connecting-ip"));
+          return Response.json({ error: `Sentinel rechazó la sentencia: ${motivo}` }, { status: 403 });
+        }
+      }
       const r = await env.DB.batch(sql.map((s) => env.DB.prepare(s)));
       return Response.json({ ok: true, filas: r.reduce((a, x) => a + (x.meta.changes || 0), 0) });
     }
@@ -289,6 +334,7 @@ async function api(env: Env, req: Request, url: URL) {
   if (ruta === "/tiktok/canjear" && req.method === "POST") return Response.json(await canjear(env));
   if (ruta === "/tiktok/creador") return Response.json((await creador(env)) ?? { error: "sin datos" });
   const apr = /^\/tiktok\/aprobar\/(.+)$/.exec(ruta);
+  if (apr && req.method === "POST" && (await detenido(env, "relatos", "publicaciones"))) return Response.json({ error: "El botón DETENER tiene paradas las publicaciones." }, { status: 423 });
   if (apr && req.method === "POST") return Response.json(await aprobar(env, decodeURIComponent(apr[1]), await req.json()));
   if (ruta === "/crecimiento") return Response.json(await crecimiento(env));
   if (ruta === "/comentarios") return Response.json(await comentariosPendientes(env));
@@ -332,8 +378,15 @@ export default {
   async scheduled(c: ScheduledController, env: Env, ctx: ExecutionContext) {
     ctx.waitUntil((async () => {
       await publicarPendientes(env);
-      if (new Date(c.scheduledTime).getUTCMinutes() < 5) await sincronizar(env);
-      await historiaFacebook(env, new Date(c.scheduledTime));
+      const t = new Date(c.scheduledTime);
+      if (t.getUTCMinutes() < 5) await sincronizar(env);
+      if (!(await detenido(env, "relatos", "publicaciones"))) await historiaFacebook(env, t);
+      // 03:00 de Ecuador: suscripciones del mes, respaldo cifrado y revisión de Sentinel.
+      if (t.getUTCHours() === 8 && t.getUTCMinutes() < 5) {
+        await suscripcionesDelMes(env);
+        await hacerRespaldo(env);
+        await revisionDiaria(env);
+      }
     })());
   },
   async fetch(req: Request, env: Env) {

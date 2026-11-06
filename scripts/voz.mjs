@@ -26,6 +26,9 @@ for (const e of HISTORIA.escenas) {
   else ult.push(e);
 }
 
+// Sentinel: botón DETENER y presupuesto (ElevenLabs Starter: las letras van dentro del plan → costo marginal 0, se anotan las letras).
+const { detenido, anotarGasto } = await import("./nube.mjs");
+if (await detenido("relatos", "apis")) { console.error("🛑 DETENER EMPRESA: APIs con consumo paradas."); process.exit(3); }
 const salida = [];
 for (const [n, bloque] of bloques.entries()) {
   const archivo = `${dir}/b${n}.json`;
@@ -45,6 +48,7 @@ for (const [n, bloque] of bloques.entries()) {
       }),
     });
     if (!res.ok) throw new Error(`bloque ${n}: ${res.status} ${(await res.text()).slice(0, 300)}`);
+    await anotarGasto({ proveedor: "elevenlabs", concepto: `Voz ${nombre} bloque ${n}`, monto: 0, unidades: texto.length, unidad: "letras", agente: "voz.mjs" });
     r = await res.json();
     fs.writeFileSync(`${dir}/b${n}.mp3`, Buffer.from(r.audio_base64, "base64"));
     delete r.audio_base64;
