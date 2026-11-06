@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/estilos.css">
+  <link rel="stylesheet" href="/rediseno.css">
 </head>
 <body>
   <section id="login" class="login" hidden>
@@ -64,26 +65,41 @@
   </section>
 
   <section id="casa" class="casa" hidden>
-    <header class="casa-barra">
-      <a href="#empresas" class="casa-marca"><img src="/icono.png" alt=""><div><b>RELATOS</b><span>AI GROUP</span></div></a>
-      <nav class="casa-nav">
-        <a href="#empresas" data-casa="empresas">Empresas</a>
-        <a href="#grupo" data-casa="grupo">Panel del grupo</a>
-        <a href="#bandeja" data-casa="bandeja">Bandeja</a>
-        <a href="#oficina" data-casa="oficina">Oficina</a>
-        <a href="#agentes" data-casa="agentes">Agentes</a>
-        <a href="#presupuesto" data-casa="presupuesto">Presupuesto</a>
-        <a href="#seguridad" data-casa="seguridad">Seguridad</a>
+    <aside class="lateral">
+      <a href="#inicio" class="lateral-marca"><img src="/icono.png" alt=""><div><b>RELATOS</b><span>AI MEDIA AGENCY</span></div></a>
+      <nav class="lateral-nav">
+        <a href="#inicio" data-casa="inicio"><i>⌂</i><span>Resumen Ejecutivo</span></a>
+        <a href="#oficina" data-casa="oficina"><i>◧</i><span>Oficina Virtual</span></a>
+        <a href="#agentes" data-casa="agentes"><i>☰</i><span>Equipo de Agentes</span></a>
+        <a href="#bandeja" data-casa="bandeja"><i>✓</i><span>Bandeja de Aprobación</span><em id="badge-bandeja" hidden></em></a>
+        <a href="#resumen" data-casa="resumen"><i>✦</i><span>Relatos · Contenido</span></a>
+        <a href="#crecimiento" data-casa="crecimiento"><i>↗</i><span>Estadísticas</span></a>
+        <a href="#agenda" data-casa="agenda"><i>▦</i><span>Agenda</span></a>
+        <a href="#gaming" data-casa="gaming"><i>◆</i><span>Gaming</span></a>
+        <a href="#presupuesto" data-casa="presupuesto"><i>$</i><span>Presupuesto</span></a>
+        <a href="#grupo" data-casa="grupo"><i>◎</i><span>Panel del Grupo</span></a>
+        <a href="#seguridad" data-casa="seguridad"><i>⛨</i><span>Seguridad</span></a>
+        <a href="#empresas" data-casa="empresas"><i>⇄</i><span>Cambiar de empresa</span></a>
       </nav>
-      <button class="boton-sec" data-salir>Salir</button>
-    </header>
-    <main id="casa-vista" class="casa-vista" aria-live="polite"></main>
+      <a href="#presupuesto" class="plan"><b>♛ Presupuesto del mes</b><span id="plan-txt">—</span><div class="barra-p"><span id="plan-barra"></span></div><small id="plan-pie"></small></a>
+      <button class="salir" data-salir>Salir</button>
+    </aside>
+    <div class="principal">
+      <header class="superior">
+        <p class="lema">Innovación, creatividad y resultados con IA</p>
+        <span class="estado-emp" id="estado-emp"><i></i><b>Empresa activa</b></span>
+        <span class="reloj" id="reloj"><b>--:--</b><small></small></span>
+        <a href="#grupo" class="campana" id="campana" aria-label="Alertas">🔔<em hidden></em></a>
+        <span class="usuario"><span class="avatar-u">L</span><span><b id="usuario-nombre">Luiggi Delgado</b><small>Propietario · CEO</small></span></span>
+      </header>
+      <main id="casa-vista" class="casa-vista" aria-live="polite"></main>
+    </div>
   </section>
 
   <div id="app" class="app" hidden>
     <aside class="menu">
       <div class="menu-marca"><img src="/icono.png" alt=""><div><b>RELATOS</b><span>AI Media Agency</span></div></div>
-      <a href="#empresas" class="volver">← Empresas</a>
+      <a href="#inicio" class="volver">← Resumen ejecutivo</a>
       <a href="#oficina" class="volver">◧ Oficina virtual</a>
       <nav>
         <a href="#resumen" data-vista="resumen"><i>◉</i><span>Resumen</span></a>

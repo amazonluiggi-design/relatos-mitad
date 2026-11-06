@@ -32,8 +32,13 @@ export async function resumenGrupo(env: Env, alertasRelatos: string[]) {
   // Actividad: eventos del sistema + acciones de personas, mezclados por fecha.
   const actividad = (await env.DB.prepare(`SELECT * FROM (
       SELECT cuando, 'sistema' tipo, nivel, division_id division, mensaje texto FROM eventos
-      UNION ALL SELECT cuando, 'persona' tipo, 'info' nivel, division_id division, actor || ' · ' || accion || CASE WHEN detalle != '' THEN ' · ' || detalle ELSE '' END texto FROM audit_logs
-    ) ORDER BY cuando DESC LIMIT 20`).all()).results;
+      UNION ALL SELECT cuando, 'persona' tipo, 'info' nivel, division_id division,
+        CASE accion WHEN 'mfa-activado' THEN 'Activaste la verificación en dos pasos' WHEN 'DETENER' THEN 'Activaste DETENER: ' || detalle WHEN 'reanudar' THEN 'Reanudaste: ' || detalle
+          WHEN 'instruccion-agente' THEN 'Diste una instrucción a ' || detalle WHEN 'restauracion-probada' THEN 'Respaldo restaurado con éxito en la prueba'
+          ELSE replace(accion, '-', ' ') || CASE WHEN detalle != '' THEN ' · ' || detalle ELSE '' END END texto
+        FROM audit_logs WHERE accion NOT IN ('login', 'logout', 'contraseña-correcta', 'sentinel-revision', 'propietario-creado', 'cierre-global')
+      UNION ALL SELECT e.cuando, 'agente' tipo, CASE e.estado WHEN 'error' THEN 'error' ELSE 'info' END nivel, COALESCE(a.division_id, 'grupo') division, a.nombre || ' · ' || e.mensaje texto FROM agent_events e JOIN agents a ON a.id = e.agente_id
+    ) ORDER BY cuando DESC LIMIT 30`).all()).results;
   const seguridad = await env.DB.prepare(`SELECT COUNT(*) total, SUM(severidad = 'alta') altas, SUM(severidad = 'media') medias FROM security_events WHERE cuando >= datetime('now', '-1 day')`).first<{ total: number; altas: number | null; medias: number | null }>();
   return {
     org: org?.nombre ?? "RELATOS AI GROUP",

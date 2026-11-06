@@ -2,6 +2,7 @@ import { Composition, Folder } from "remotion";
 import { Perfil, PortadaFacebook, PortadaYouTube } from "./marca";
 import { Plan, Reel, Relato } from "./Relato";
 import { Miniatura } from "./Miniatura";
+import { OficinaLoop } from "./OficinaLoop";
 import cantuna from "./datos/cantuna-plan.json";
 import llanganates from "./datos/llanganates-plan.json";
 import damaTapada from "./datos/dama-tapada-plan.json";
@@ -31,6 +32,7 @@ const MUSICA = "musica/fondo.mp3";
 export const Root: React.FC = () => (
   <>
     <Folder name="Marca">
+      <Composition id="OficinaLoop" component={OficinaLoop} width={1344} height={768} fps={30} durationInFrames={360} />
       <Composition id="Perfil" component={Perfil} width={1080} height={1080} fps={30} durationInFrames={1} />
       <Composition id="PortadaYouTube" component={PortadaYouTube} width={2560} height={1440} fps={30} durationInFrames={1} />
       <Composition id="PortadaFacebook" component={PortadaFacebook} width={1640} height={624} fps={30} durationInFrames={1} />

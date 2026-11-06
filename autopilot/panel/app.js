@@ -1,4 +1,5 @@
 import { oficinaHtml } from "/oficina.js";
+import { actividadHtml, contar, etiquetasHtml, inicioHtml, reloj } from "/inicio.js";
 // Panel de Relatos Autopilot. Todo el texto que viene de la base se escapa antes de pintarse.
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -532,8 +533,8 @@ async function cargarComentarios() {
 }
 
 /* ───── RELATOS AI GROUP: selector, panel del grupo, Gaming y seguridad ───── */
-const CASA = new Set(["empresas", "grupo", "seguridad", "gaming", "presupuesto", "agentes", "oficina", "oficina-gaming", "bandeja"]);
-const hashActual = () => (location.hash || "#empresas").slice(1);
+const CASA = new Set(["inicio", "empresas", "grupo", "seguridad", "gaming", "presupuesto", "agentes", "oficina", "oficina-gaming", "bandeja"]);
+const hashActual = () => (location.hash || "#inicio").slice(1);
 let yo = null;
 
 async function navegar() {
@@ -542,7 +543,7 @@ async function navegar() {
     $("#app").hidden = true; $("#login").hidden = true; $("#casa").hidden = false;
     document.querySelectorAll("[data-casa]").forEach((a) => a.classList.toggle("activo", a.dataset.casa === r || (r.startsWith("oficina") && a.dataset.casa === "oficina")));
     $("#casa-vista").innerHTML = `<div class="rejilla r3"><div class="cargando"></div><div class="cargando"></div><div class="cargando"></div></div>`;
-    try { $("#casa-vista").innerHTML = await CASA_VISTAS[r](); } catch (e) { if (String(e).includes("sin sesión")) return; $("#casa-vista").innerHTML = `<div class="vacio">No se pudo cargar: ${esc(e.message)}</div>`; }
+    try { $("#casa-vista").innerHTML = await CASA_VISTAS[r](); trasPintar(r); } catch (e) { if (String(e).includes("sin sesión")) return; $("#casa-vista").innerHTML = `<div class="vacio">No se pudo cargar: ${esc(e.message)}</div>`; }
     return;
   }
   $("#casa").hidden = true; $("#login").hidden = true; $("#app").hidden = false;
@@ -557,7 +558,49 @@ const cifra = (n, etiqueta, nota = "") => `<div class="tarjeta kpi"><div class="
 const pendienteFase = (txt) => `<span class="nd">${txt}</span>`;
 const DIV_ESTADO = { activa: "Activa", preparacion: "En preparación", detenida: "Detenida" };
 
+/* ───── Resumen ejecutivo y barra superior ───── */
+let feedVistos = new Set();
+function trasPintar(r) {
+  const v = $("#casa-vista");
+  v.classList.remove("entrando"); void v.offsetWidth; v.classList.add("entrando");
+  contar(v);
+  if (r === "inicio") feedVistos = new Set([...document.querySelectorAll("#feed li")].map((li) => li.dataset.clave));
+}
+async function refrescarInicio() {
+  if (hashActual() !== "inicio" || $("#casa").hidden || document.hidden) return;
+  try {
+    const [ag, g] = await Promise.all([api("/agentes"), api("/grupo/resumen")]);
+    const et = $("#etiquetas"); if (et) et.innerHTML = etiquetasHtml(ag.agentes);
+    const fd = $("#feed"); if (fd) { fd.innerHTML = actividadHtml(g.actividad, feedVistos); fd.querySelectorAll("li").forEach((li) => feedVistos.add(li.dataset.clave)); }
+  } catch {}
+}
+async function actualizarSuperior() {
+  if ($("#casa").hidden) return;
+  try {
+    const [p, det, g, b] = await Promise.all([api("/presupuesto"), api("/detener"), api("/grupo/resumen"), api("/bandeja")]);
+    const pct = p.limites.total ? Math.min(100, (p.usado / p.limites.total) * 100) : 0;
+    $("#plan-txt").textContent = "$" + p.usado.toFixed(2) + " / $" + p.limites.total.toFixed(2);
+    $("#plan-barra").style.width = pct.toFixed(1) + "%";
+    $("#plan-pie").textContent = "Proyección del mes: $" + p.proyeccion.toFixed(2);
+    const parado = Object.entries(det).some(([k, v]) => v === true && k !== "cambiado");
+    const e = $("#estado-emp"); e.classList.toggle("parada", parado); e.querySelector("b").textContent = parado ? "Empresa detenida" : "Empresa activa";
+    const alertas = g.alertas.length + (g.seguridad_24h.altas || 0);
+    const c = $("#campana em"); c.hidden = !alertas; c.textContent = alertas;
+    const pend = b.filter((x) => !x.ultima).length;
+    const bb = $("#badge-bandeja"); bb.hidden = !pend; bb.textContent = pend > 99 ? "99+" : pend;
+  } catch {}
+}
+setInterval(refrescarInicio, 15000);
+setInterval(actualizarSuperior, 60000);
+setInterval(reloj, 10000);
+document.addEventListener("error", (e) => { if (e.target.tagName === "IMG") e.target.classList.add("rota"); }, true);
+
 const CASA_VISTAS = {
+  async inicio() {
+    const [resumen, crec, serie, pres, agentes, grupo, historias] = await Promise.all([api("/resumen"), api("/crecimiento"), api("/serie"), api("/presupuesto"), api("/agentes"), api("/grupo/resumen"), api("/historias")]);
+    return inicioHtml({ resumen, crec, serie, pres, agentes, grupo, historias });
+  },
+
   async empresas() {
     const g = await api("/grupo/resumen");
     const d = Object.fromEntries(g.divisiones.map((x) => [x.id, x]));
@@ -869,7 +912,9 @@ async function entrar() {
   const r = await fetch("/api/yo");
   if (r.status === 401) return mostrarLogin();
   yo = await r.json();
-  if (!location.hash || location.hash === "#") history.replaceState(null, "", location.pathname + "#empresas");
+  if (yo.nombre) $("#usuario-nombre").textContent = yo.nombre.split(" ").slice(0, 1).concat(yo.nombre.split(" ").slice(2, 3)).join(" ");
+  reloj(); setTimeout(actualizarSuperior, 300);
+  if (!location.hash || location.hash === "#") history.replaceState(null, "", location.pathname + "#inicio");
   navegar();
 }
 
