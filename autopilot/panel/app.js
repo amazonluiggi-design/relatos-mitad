@@ -894,7 +894,7 @@ document.addEventListener("submit", async (e) => {
   if (!f) return;
   e.preventDefault();
   const r = await post(`/agentes/${f.dataset.id}/instruccion`, { titulo: f.titulo.value, descripcion: f.descripcion.value });
-  $("#instr-msg").textContent = r.ok ? `✓ Tarea #${r.id} creada` : (r.error || "Error");
+  $("#instr-msg").textContent = r.ok ? `✓ Recibida (tarea #${r.id}). La empieza ${r.proxima}.` : (r.error || "Error");
   if (r.ok) { f.reset(); if (hashActual() === "agentes") navegar(); }
 });
 

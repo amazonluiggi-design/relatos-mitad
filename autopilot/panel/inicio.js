@@ -38,7 +38,7 @@ export function etiquetasHtml(agentes) {
   return agentes.filter((a) => PUESTOS[a.id] && a.activo).map((a) => {
     const [x, y, lado] = PUESTOS[a.id], vivo = trabajando(a);
     return `<button class="etiqueta ${lado || ""} ${vivo ? "viva" : ""} ${a.estado === "error" ? "falla" : ""}" data-agente="${esc(a.id)}" title="${esc(a.nombre + " · " + a.cargo)}" style="left:${x}%;top:${y}%">
-      <span class="eti-icono">${ICONO[a.id] || "•"}</span><span class="eti-txt"><b>${esc(a.nombre)}</b>${vivo ? `<small>${esc(EST[a.estado] || a.estado)}${a.tarea_titulo ? " · " + esc(a.tarea_titulo) : ""}</small>` : ""}</span>
+      <span class="eti-icono">${ICONO[a.id] || "•"}</span><span class="eti-txt"><b>${esc(a.nombre)}</b>${vivo ? `<small>${esc(EST[a.estado] || a.estado)}${a.tarea_titulo ? " · " + esc(a.tarea_titulo) : ""}</small>` : a.abiertas ? `<small class="pend">📥 ${a.abiertas} pendiente${a.abiertas > 1 ? "s" : ""}</small>` : ""}</span>
       <i class="eti-punto"></i></button>`;
   }).join("");
 }

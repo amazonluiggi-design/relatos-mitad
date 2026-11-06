@@ -177,6 +177,14 @@ export async function verMemoria(env: Env, id: number) {
   return env.DB.prepare("SELECT * FROM company_memory WHERE id = ?").bind(id).first();
 }
 
+/** Próxima jornada de agentes (cron "0 12-23,0-3 * * *" UTC = cada hora de 07:00 a 22:00 en Ecuador), como texto. */
+export function proximaJornada(ahora = Date.now()) {
+  const ec = new Date(ahora - 5 * 3600e3);
+  let h = ec.getUTCHours() + 1, dia = "hoy";
+  if (h > 22) { h = 7; dia = "mañana"; } else if (h < 7) h = 7;
+  return `${dia} a las ${String(h).padStart(2, "0")}:00`;
+}
+
 /** El propietario da una instrucción directa a un agente desde su ficha. */
 export async function instruccion(env: Env, ses: Sesion, id: string, cuerpo: { titulo?: string; descripcion?: string; prioridad?: string }) {
   const a = await env.DB.prepare("SELECT division_id, activo, nombre FROM agents WHERE id = ?").bind(id).first<{ division_id: string | null; activo: number; nombre: string }>();
@@ -187,5 +195,9 @@ export async function instruccion(env: Env, ses: Sesion, id: string, cuerpo: { t
   const r = await env.DB.prepare("INSERT INTO agent_tasks (division_id, agente_id, titulo, descripcion, prioridad, creada_por) VALUES (?, ?, ?, ?, ?, 'propietario')")
     .bind(a.division_id ?? "relatos", id, titulo, texto(cuerpo.descripcion, 6000), ["alta", "media", "baja"].includes(String(cuerpo.prioridad)) ? cuerpo.prioridad : "alta").run();
   await auditar(env, "instruccion-agente", { user_id: ses.user.id, actor: ses.user.correo, division: a.division_id, detalle: `${id}: ${titulo}` });
-  return json({ ok: true, id: r.meta.last_row_id });
+  // Acuse inmediato (automático, sin IA): cuándo la empieza. Jornadas cada hora en punto, de 07:00 a 22:00 de Ecuador.
+  const prox = proximaJornada();
+  await env.DB.prepare("INSERT INTO agent_events (agente_id, tarea_id, estado, mensaje) VALUES (?, ?, ?, ?)")
+    .bind(id, r.meta.last_row_id, "pendiente", `📥 Recibí tu instrucción: «${titulo.slice(0, 120)}». La empiezo en la próxima jornada (${prox}).`).run();
+  return json({ ok: true, id: r.meta.last_row_id, proxima: prox });
 }

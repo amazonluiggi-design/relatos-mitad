@@ -212,3 +212,6 @@ body.menu-abierto .hamburguesa span:nth-child(3) { transform: translateY(-7px) r
 .gaming-espera { margin: 4px 0 16px; }
 .oficina-cab { margin-bottom: 12px; }
 @media (max-width: 900px) { .superior .lema { display: none; } }
+
+.etiqueta .eti-txt small.pend { color: var(--oro2); }
+.etiqueta:has(small.pend) { border-color: rgba(246,211,139,.6); }

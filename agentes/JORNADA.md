@@ -31,6 +31,20 @@ Estados visibles en la oficina: `investigando, analizando, escribiendo, producie
 
 Usa `curl -sS` con `--data-binary @archivo.json` para los cuerpos largos (escribe el JSON en un archivo temporal fuera del repositorio).
 
+## Horario y jornada rápida
+
+La rutina corre **cada hora de 07:00 a 22:00** (hora de Ecuador).
+- **07:00 y 15:00:** jornada completa (Michael revisa el plan y puede crear tareas nuevas).
+- **Otras horas:** jornada rápida. Mira `/agentes/contexto`; si no hay tareas `pendiente` ni `en-revision`, termina **de inmediato** con una línea ("Sin trabajo pendiente") sin hacer nada más. Si las hay, atiéndelas siguiendo el orden de abajo.
+
+## Las instrucciones del propietario van primero y se contestan
+
+Cada tarea con `creada_por = "propietario"` es una orden de Luiggi:
+1. El agente destinatario la toma (`tomar` con `{"id": N}`) y **de inmediato** publica un evento con estado `coordinando`, que empieza con `💬 `: una respuesta breve y natural para Luiggi (saludo si corresponde, qué entendió y qué va a hacer, y a quién lo va a pedir).
+2. Si necesita a otros, los delega con `depende_de`. Cada delegación queda visible para Luiggi.
+3. Al terminar, el `resultado` empieza con un párrafo dirigido a Luiggi (`💬 Luiggi: …`) y después el detalle.
+4. Si la orden no se puede cumplir (por ejemplo, publicar o gastar), lo dice con claridad y propone la alternativa permitida.
+
 ## Orden de la jornada
 
 1. **Michael** lee `/agentes/contexto`:
