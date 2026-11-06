@@ -560,7 +560,31 @@ const DIV_ESTADO = { activa: "Activa", preparacion: "En preparación", detenida:
 
 /* ───── Resumen ejecutivo y barra superior ───── */
 let feedVistos = new Set();
+/* Video de la oficina: solo corre a la vista y con la pestaña visible (ahorra batería y datos). */
+let obsVideo = null;
+function controlarVideo() {
+  obsVideo?.disconnect();
+  const vid = document.querySelector("video[data-oficina]");
+  if (!vid) return;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  obsVideo = new IntersectionObserver(([e]) => { if (e.isIntersecting && !document.hidden) vid.play().catch(() => {}); else vid.pause(); }, { threshold: 0.15 });
+  obsVideo.observe(vid);
+}
+document.addEventListener("visibilitychange", () => { const v = document.querySelector("video[data-oficina]"); if (!v) return; if (document.hidden) v.pause(); else if (v.getBoundingClientRect().top < innerHeight) v.play().catch(() => {}); });
+
+/* Menú lateral plegable (botón ☰): cerrado por defecto, se abre encima del contenido. */
+function menu(abrir) {
+  document.body.classList.toggle("menu-abierto", abrir);
+  document.querySelectorAll("[data-menu]").forEach((b) => b.setAttribute("aria-expanded", String(abrir)));
+}
+document.addEventListener("click", (e) => {
+  if (e.target.closest("[data-menu]")) { menu(!document.body.classList.contains("menu-abierto")); return; }
+  if (e.target.closest(".velo") || (document.body.classList.contains("menu-abierto") && e.target.closest(".lateral-nav a, .menu nav a, .plan, .volver"))) menu(false);
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") menu(false); });
+
 function trasPintar(r) {
+  controlarVideo();
   const v = $("#casa-vista");
   v.classList.remove("entrando"); void v.offsetWidth; v.classList.add("entrando");
   contar(v);
@@ -970,10 +994,14 @@ $("#btn-sync").addEventListener("click", async (e) => {
   try { await api("/sincronizar", { method: "POST" }); await cargar(); pintar(); } finally { b.disabled = false; b.textContent = "↻ Actualizar"; }
 });
 
+// Oficina completa: solo se actualizan etiquetas y lista (el video no se reinicia).
 setInterval(async () => {
   const r = hashActual();
   if (!r.startsWith("oficina") || $("#casa").hidden || document.hidden) return;
-  try { $("#casa-vista").innerHTML = await CASA_VISTAS[r](); } catch {}
+  try {
+    const tmp = document.createElement("div"); tmp.innerHTML = await CASA_VISTAS[r]();
+    for (const sel of ["#etiquetas", ".equipo-lista", ".oficina-cab"]) { const nuevo = tmp.querySelector(sel), viejo = $("#casa-vista " + sel); if (nuevo && viejo) viejo.replaceWith(nuevo); }
+  } catch {}
 }, 15000);
 setInterval(() => { if (!$("#app").hidden && !document.hidden) cargar().then(pintar).catch(() => {}); }, 120000);
 // Entrada desde el portal de empresas: el pase llega en #sso= y se canjea por una sesión (un solo uso).

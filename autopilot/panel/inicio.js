@@ -7,7 +7,7 @@ const n0 = (n) => Number(n || 0).toLocaleString("es-EC");
 const usd = (n) => "$" + Number(n || 0).toFixed(2);
 
 // Dónde está cada agente en la imagen de la oficina (% del ancho y alto).
-const PUESTOS = { kelly: [8, 70, "abajo"], ryan: [19, 45], angela: [33, 25], andy: [35, 43], sentinel: [50.6, 27], michael: [50.6, 43], dwight: [66, 25], oscar: [67, 44], jim: [80, 70, "abajo"], pam: [92, 44] };
+const PUESTOS = { ryan: [11, 55], kelly: [24.5, 46], andy: [29.5, 63, "abajo"], sentinel: [49.6, 37], michael: [50.3, 48], angela: [66.5, 49], oscar: [72.5, 64, "abajo"], pam: [74.5, 44], dwight: [81, 37], jim: [91, 55] };
 const ICONO = { michael: "♛", sentinel: "⛨", andy: "⌕", oscar: "▥", ryan: "✎", kelly: "✺", jim: "▶", dwight: "✓", pam: "➚", angela: "$" };
 const EST = { disponible: "Disponible", investigando: "Investigando", analizando: "Analizando", escribiendo: "Escribiendo", produciendo: "Produciendo", renderizando: "Renderizando", revisando: "Revisando", coordinando: "Coordinando", pausa: "En pausa", error: "Error" };
 const trabajando = (a) => a.activo && !["disponible", "pausa", "no-activado"].includes(a.estado);
@@ -41,6 +41,15 @@ export function etiquetasHtml(agentes) {
       <span class="eti-icono">${ICONO[a.id] || "•"}</span><span class="eti-txt"><b>${esc(a.nombre)}</b>${vivo ? `<small>${esc(EST[a.estado] || a.estado)}${a.tarea_titulo ? " · " + esc(a.tarea_titulo) : ""}</small>` : ""}</span>
       <i class="eti-punto"></i></button>`;
   }).join("");
+}
+
+export function escenaHtml(agentes, grande = false) {
+  return `<div class="hero ${grande ? "grande" : ""}">
+      <video data-oficina src="/oficina.mp4" poster="/oficina.jpg" muted loop playsinline preload="metadata" aria-hidden="true"></video>
+      <div class="hero-marca" aria-hidden="true"><img src="/icono.png" alt=""><div><b>RELATOS</b><span>AI MEDIA AGENCY</span></div></div>
+      <div class="etiquetas" id="etiquetas">${etiquetasHtml(agentes)}</div>
+      ${grande ? "" : `<a href="#oficina" class="hero-link">Ver oficina completa →</a>`}
+    </div>`;
 }
 
 export function actividadHtml(lista, vistos) {
@@ -84,12 +93,7 @@ export function inicioHtml(d) {
   </div>
 
   <section class="escenario rev">
-    <div class="hero">
-      <video src="/oficina.mp4" poster="/oficina.jpg" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
-      <div class="hero-marca" aria-hidden="true"><img src="/icono.png" alt=""><div><b>RELATOS</b><span>AI MEDIA AGENCY</span></div></div>
-      <div class="etiquetas" id="etiquetas">${etiquetasHtml(agentes.agentes)}</div>
-      <a href="#oficina" class="hero-link">Ver oficina completa →</a>
-    </div>
+    ${escenaHtml(agentes.agentes)}
     <aside class="feed">
       <h3><span class="vivo"></span>Actividad en tiempo real <a href="#grupo">Ver todo →</a></h3>
       <ul id="feed">${actividadHtml(grupo.actividad, null)}</ul>
