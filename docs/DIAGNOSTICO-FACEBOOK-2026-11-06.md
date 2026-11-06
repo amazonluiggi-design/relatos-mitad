@@ -20,7 +20,7 @@
 
 ## 2. Respuestas a las 9 preguntas del V3
 
-1. **¿Restricción comprobable?** **No hay evidencia ni a favor ni en contra.** La API no expone el estado de recomendación ni las infracciones. Hay que mirarlo en *Panel profesional → Calidad de la cuenta / Estado de recomendación* (lo puede ver solo el propietario). **No afirmo shadowban.**
+1. **¿Restricción comprobable?** **No se ve ninguna.** Captura del propietario (6-nov 16:11): *Estado de monetización: “Tu página está ganando dinero”* (en verde). Programas activos: solo **Estrellas** ($0,00). **Monetización de contenido: no admitida (“solo con invitación”)**. Suscripciones: 2 de 3 criterios. Conclusión: la página no está sancionada; lo que pasa es que hoy **no cobra por vistas** (solo Estrellas). Para eso hace falta crecer la audiencia activa y que Meta la invite.
 2. **¿La audiencia histórica coincide con el contenido actual?** Muy probablemente **no**, y además estaba **dormida**. Con 3.386 seguidores la página generó 8 vistas al día durante los 76 días anteriores a Relatos, y solo ganó 1 seguidor en 90 días. Es una audiencia que dejó de interactuar hace tiempo (página de entretenimiento renombrada). *Confianza: alta en que está dormida; media en el desajuste de tema (no se pudo leer el historial de publicaciones, ver §5).*
 3. **¿Funcionan los primeros segundos?** En FB, el tiempo medio visto es de 6,1 s sobre reels de 37-74 s. Pero con solo 6 reproducciones por reel la muestra es demasiado pequeña para culpar al gancho: **el mismo gancho funciona en YouTube y TikTok** (cientos de vistas).
 4. **¿La retención es baja?** Sí en FB (≈ 10 %), pero sobre muestras de 1-17 vistas. No es concluyente.
@@ -38,14 +38,14 @@
 - La subida **no** es el problema: se publican por el endpoint oficial de Reels (`video_reels`). *Hipótesis descartada hoy.*
 - Señales que **sí** apuntan a la audiencia y la distribución: cero crecimiento de seguidores en 90 días, 8 vistas al día antes de empezar, y categoría "Artes visuales", que no coincide con misterio e historia.
 
-**Confianza: media.** Falta revisar el estado de recomendación en el panel profesional para descartar una restricción.
+**Confianza: media-alta.** La captura del estado de monetización descarta una sanción.
 
 ## 4. Recomendaciones (no cambio nada de la página sin tu visto bueno)
 
 | # | Acción | Quién | Por qué |
 |---|---|---|---|
-| 1 | Revisar *Panel profesional → Calidad de la cuenta* y *Monetización → Estado*. Mandarme captura | **Tú** (solo el admin lo ve) | Es lo único que confirma o descarta una restricción. |
-| 2 | Cambiar la categoría de "Artes visuales" a **"Creador de contenido digital"** o "Sitio web de entretenimiento" | Tú (o yo con tu OK) | Coincidir con el tema ayuda a que Facebook sepa a quién mostrarlo. Es un cambio de configuración de una página monetizada: por eso no lo hago solo. |
+| 1 | ✅ Hecho (6-nov): monetización en verde, sin sanciones. Solo Estrellas activo; la monetización de contenido es por invitación | Tú | Descarta la restricción. |
+| 2 | Cambiar la categoría de "Artes visuales" a **"Creador de contenido digital"** (autorizado 6-nov; el token no tiene `pages_manage_metadata`, así que se hace a mano en la configuración de la página) | Tú | Coincidir con el tema ayuda a que Facebook sepa a quién mostrarlo. Es un cambio de configuración de una página monetizada: por eso no lo hago solo. |
 | 3 | Experimento E-FB1: reels nativos de FB de **15-25 s** con el texto del gancho en pantalla desde el primer cuadro | Yo (fase 6) | En FB el abandono ocurre antes de los 6 s. |
 | 4 | Seguir compartiendo en grupos de leyendas y misterio (a mano, guía ya entregada) | Tú | Es la única forma de llegar a gente nueva mientras la distribución esté fría. |
 | 5 | No subir el volumen en FB hasta tener el dato de §1: más reels a una audiencia dormida no cambian el resultado | Michael | Ahorra producción para YT y TT, que sí crecen. |
