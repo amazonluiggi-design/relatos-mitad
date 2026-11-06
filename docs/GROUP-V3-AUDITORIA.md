@@ -116,3 +116,8 @@ Lo bueno: cookies HttpOnly/Secure/SameSite=Strict, CSRF por Origin, CSP estricta
 **Decisiones del propietario (2026-11-06):** publicación sigue 100 % automática (la bandeja de aprobación será informativa); agentes como rutinas de Claude Code en la nube (suscripción), no con API de pago, salvo que más adelante se quiera tiempo real.
 
 **Siguiente:** Fase 4 — Sentinel (S1 SQL libre de la fábrica, S2 claves separadas), botón DETENER EMPRESA por división, registro de costos con topes, respaldo diario de D1 a R2.
+
+**Fase 4 desplegada (2026-11-06, versión b7698402):** SENTINEL en código: lista blanca del SQL de la fábrica (solo INSERT/UPDATE en tablas de contenido; todo rechazo = evento de seguridad grave), botón DETENER EMPRESA por ámbito (grupo, relatos, gaming, publicaciones, renderizados, agentes, APIs; solo el propietario lo cambia; los workflows lo consultan con `node scripts/nube.mjs alto`), presupuesto con libro de costos y topes (75/mes, 6/día y por partida; la voz y las imágenes piden permiso y anotan su gasto), respaldo diario cifrado AES-256-GCM en R2 a las 03:00 EC (14 días) y prueba de restauración real (`node scripts/restaurar-respaldo.mjs`: 12.714 filas en 19 tablas coinciden). Pruebas: 39/39.
+Decisiones tomadas por mí (el propietario delegó): la fábrica falla abierta si el panel no responde; la clave compartida S2 no se rota (el V3 prohíbe cambiar credenciales); lo ya programado dentro de FB/YT no se cancela con el botón (se avisa en pantalla).
+
+**Fase 5 (Facebook) entregada:** ver `docs/DIAGNOSTICO-FACEBOOK-2026-11-06.md`. Las recomendaciones están en "Mi plan" del panel.
