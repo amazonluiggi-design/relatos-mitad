@@ -45,7 +45,7 @@
 | # | Acción | Quién | Por qué |
 |---|---|---|---|
 | 1 | ✅ Hecho (6-nov): monetización en verde, sin sanciones. Solo Estrellas activo; la monetización de contenido es por invitación | Tú | Descarta la restricción. |
-| 2 | Cambiar la categoría de "Artes visuales" a **"Creador de contenido digital"** (autorizado 6-nov; el token no tiene `pages_manage_metadata`, así que se hace a mano en la configuración de la página) | Tú | Coincidir con el tema ayuda a que Facebook sepa a quién mostrarlo. Es un cambio de configuración de una página monetizada: por eso no lo hago solo. |
+| 2 | ✅ Hecho (6-nov 16:14): categoría cambiada de "Artes visuales" a **"Creador(a) digital"** (verificado por la API). Medir el efecto en vistas a 7 y 28 días | Tú | Coincidir con el tema ayuda a que Facebook sepa a quién mostrarlo. Es un cambio de configuración de una página monetizada: por eso no lo hago solo. |
 | 3 | Experimento E-FB1: reels nativos de FB de **15-25 s** con el texto del gancho en pantalla desde el primer cuadro | Yo (fase 6) | En FB el abandono ocurre antes de los 6 s. |
 | 4 | Seguir compartiendo en grupos de leyendas y misterio (a mano, guía ya entregada) | Tú | Es la única forma de llegar a gente nueva mientras la distribución esté fría. |
 | 5 | No subir el volumen en FB hasta tener el dato de §1: más reels a una audiencia dormida no cambian el resultado | Michael | Ahorra producción para YT y TT, que sí crecen. |
