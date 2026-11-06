@@ -1,6 +1,7 @@
 // Relatos Autopilot: panel privado + publicador y estadísticas en la nube (Cloudflare).
 // Cron cada 5 min: publica en TikTok lo que venció y revisa estados. Cada hora (minuto 0-4): estadísticas de las 3 redes.
-import { login, salir, sesionValida } from "./auth";
+import { auditar, eventoSeguridad, leerSesion, login, mfa, misSesiones, salir, salirDeTodo } from "./auth";
+import { resumenGrupo } from "./grupo";
 import { pngResumen } from "./imagen";
 import { entrarDesdePortal, leerPase } from "./portal";
 import { publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube, historiaFacebook, comentariosPendientes } from "./redes";
@@ -215,8 +216,14 @@ async function salud(env: Env) {
 
 async function api(env: Env, req: Request, url: URL) {
   const ruta = url.pathname.slice(4);
+  // CSRF: todo POST del navegador debe venir del mismo origen (los scripts usan x-clave y no tienen Origin).
+  const mismoOrigen = req.headers.get("origin") === url.origin;
+  if ((ruta === "/login" || ruta.startsWith("/mfa/") || ruta === "/salir") && req.method === "POST" && !mismoOrigen) return Response.json({ error: "origen" }, { status: 403 });
   if (ruta === "/login" && req.method === "POST") return login(env, req);
-  if (ruta === "/salir" && req.method === "POST") return salir();
+  if (ruta.startsWith("/mfa/")) return mfa(env, req, ruta);
+  if (ruta === "/salir" && req.method === "POST") return salir(env, req);
+  // Se anota la última visita (para saber si el monitor de avisos está consultando).
+  if (ruta.startsWith("/salud") && req.method === "GET") await env.KV.put(ruta === "/salud" ? "visita-salud" : "visita-imagen", JSON.stringify({ cuando: new Date().toISOString(), agente: (req.headers.get("user-agent") || "").slice(0, 60) }), { expirationTtl: 7 * 86400 });
   if (ruta === "/salud" && req.method === "GET") return salud(env);
   if (ruta === "/salud/imagen.png" && req.method === "GET") {
     const png = await pngResumen((await datosSalud(env)).resumen);
@@ -230,9 +237,20 @@ async function api(env: Env, req: Request, url: URL) {
     return Response.json(await resumenPortal(env));
   }
   const deScript = req.headers.get("x-clave") === env.CLAVE;
-  if (!deScript && !(await sesionValida(env, req))) return Response.json({ error: "sin sesión" }, { status: 401 });
+  const ses = deScript ? null : await leerSesion(env, req);
+  if (!deScript && !ses) return Response.json({ error: "sin sesión" }, { status: 401 });
   // Protección CSRF: las escrituras desde el navegador deben venir del mismo origen.
-  if (req.method !== "GET" && !deScript && req.headers.get("origin") !== url.origin) return Response.json({ error: "origen" }, { status: 403 });
+  if (req.method !== "GET" && !deScript && !mismoOrigen) {
+    await eventoSeguridad(env, "origen-invalido", "media", `${req.method} ${ruta} desde ${req.headers.get("origin") || "sin origen"}`, req.headers.get("cf-connecting-ip"));
+    return Response.json({ error: "origen" }, { status: 403 });
+  }
+
+  /* ── Grupo ── */
+  if (ruta === "/yo" && ses) return Response.json({ correo: ses.user.correo, nombre: ses.user.nombre, rol: ses.user.rol, origen: ses.origen,
+    divisiones: (await env.DB.prepare("SELECT id, nombre, descripcion, estado FROM divisions ORDER BY id = 'relatos' DESC, creada, id").all()).results });
+  if (ruta === "/grupo/resumen") return Response.json(await resumenGrupo(env, (await datosSalud(env)).problemas));
+  if (ruta === "/sesiones" && ses) return Response.json(await misSesiones(env, ses));
+  if (ruta === "/sesiones/cerrar-todas" && req.method === "POST" && ses) return salirDeTodo(env, req, ses);
 
   if (ruta === "/resumen") return Response.json(await resumen(env));
   if (ruta === "/publicaciones") return Response.json(await listaPublicaciones(env));
@@ -303,6 +321,7 @@ async function api(env: Env, req: Request, url: URL) {
     const { valor } = (await req.json()) as { valor: boolean };
     await env.DB.prepare("UPDATE config SET valor = ? WHERE clave = 'pausa'").bind(valor ? "1" : "0").run();
     await evento(env, valor ? "Publicación automática PAUSADA desde el panel" : "Publicación automática REANUDADA desde el panel", "aviso");
+    await auditar(env, valor ? "pausa" : "reanudar", { user_id: ses?.user.id, actor: ses?.user.correo ?? "script", division: "relatos", ip: req.headers.get("cf-connecting-ip") });
     return Response.json({ ok: true });
   }
   if (ruta === "/sincronizar" && req.method === "POST") { await publicarPendientes(env); await sincronizar(env); return Response.json({ ok: true }); }
@@ -325,7 +344,7 @@ export default {
     h.set("Referrer-Policy", "no-referrer");
     h.set("X-Frame-Options", "DENY");
     if ((h.get("content-type") || "").includes("text/html"))
-      h.set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; frame-ancestors 'none'");
+      h.set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; frame-ancestors 'none'");
     return new Response(r.body, { status: r.status, headers: h });
   },
 };

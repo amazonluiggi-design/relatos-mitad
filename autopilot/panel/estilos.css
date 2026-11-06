@@ -292,3 +292,77 @@ dialog video { display: block; max-width: 100%; max-height: 90dvh; }
 .coment p { margin: 4px 0 0; color: var(--texto); font-size: 14px; }
 .coment a { white-space: nowrap; font-size: 13px; }
 @media (max-width: 600px) { .coment { grid-template-columns: 1fr; } }
+
+/* ───── RELATOS AI GROUP (V3): login en pasos, selector, panel del grupo ───── */
+:root { --marino: #1e3a5f; --marino2: #5b8bd6; }
+.paso { display: grid; gap: 10px; }
+.con-boton { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+.login .boton-ojo { margin: 0; background: var(--panel2); color: var(--tenue); border: 1px solid var(--borde); padding: 0 14px; font-weight: 600; }
+.ayuda { text-align: left; font-size: 13px; color: var(--tenue); margin-top: 4px; }
+.ayuda summary { cursor: pointer; color: var(--ambar); }
+.qr { background: #fff; border-radius: 14px; padding: 10px; width: 200px; height: 200px; margin: 0 auto; }
+.qr svg { width: 100%; height: 100%; display: block; }
+.secreto { font: 600 15px ui-monospace, Consolas, monospace; letter-spacing: 1px; background: var(--panel2); border: 1px solid var(--borde); border-radius: 10px; padding: 8px; word-break: break-all; user-select: all; }
+.codigos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; text-align: left; margin: 0; padding-left: 22px; font: 600 15px ui-monospace, Consolas, monospace; }
+.login .boton-sec { background: var(--panel2); color: var(--texto); border: 1px solid var(--borde); }
+.conexion { display: flex; gap: 6px; align-items: center; justify-content: center; font-size: 12px; color: var(--tenue); margin: 0; }
+.conexion span { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.conexion.fuera span { background: var(--mal); }
+.conexion b { font-weight: 500; }
+
+.casa { min-height: 100dvh; }
+.casa-barra { position: sticky; top: 0; z-index: 5; display: flex; gap: 18px; align-items: center; padding: 14px 24px; border-bottom: 1px solid var(--borde); background: rgba(10,14,17,.82); backdrop-filter: blur(10px); }
+.casa-marca { display: flex; gap: 10px; align-items: center; text-decoration: none; }
+.casa-marca img { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--ambar); }
+.casa-marca b { font: 900 16px Cinzel, serif; letter-spacing: 2px; display: block; line-height: 1.1; }
+.casa-marca span { font-size: 11px; color: var(--ambar); letter-spacing: 3px; }
+.casa-nav { display: flex; gap: 4px; margin-right: auto; }
+.casa-nav a { padding: 8px 12px; border-radius: 10px; text-decoration: none; color: var(--tenue); }
+.casa-nav a:hover { background: var(--panel2); color: var(--texto); }
+.casa-nav a.activo { color: var(--texto); background: var(--panel2); box-shadow: inset 0 -2px 0 var(--ambar); }
+.casa-vista { padding: 28px 24px 60px; max-width: 1200px; margin: 0 auto; display: grid; gap: 18px; animation: entrar .4s ease; }
+.casa-titulo { font: 700 24px Cinzel, serif; letter-spacing: 1px; margin: 0; }
+.centro { text-align: center; }
+
+.selector { display: grid; gap: 26px; padding-top: 3vh; }
+.bienvenida { font: 700 clamp(22px, 3.2vw, 32px) Cinzel, serif; text-align: center; margin: 0; }
+.empresas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+.empresa { position: relative; display: grid; gap: 10px; align-content: start; padding: 28px; min-height: 300px; border-radius: 22px; text-decoration: none; border: 1px solid var(--borde); box-shadow: var(--sombra); overflow: hidden; transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
+.empresa:hover, .empresa:focus-visible { transform: translateY(-4px); border-color: var(--ambar); box-shadow: 0 18px 40px rgba(0,0,0,.45); outline: none; }
+.empresa.relatos { background: radial-gradient(500px 260px at 100% 0%, rgba(242,163,58,.22), transparent 70%), linear-gradient(160deg, #1a1611, #0e1114); }
+.empresa.gaming { background: radial-gradient(500px 260px at 100% 0%, rgba(91,139,214,.25), transparent 70%), linear-gradient(160deg, #101a2a, #0b0f15); }
+.empresa.gaming:hover, .empresa.gaming:focus-visible { border-color: var(--marino2); }
+.empresa h3 { font: 900 22px Cinzel, serif; letter-spacing: 1.5px; margin: 6px 0 0; }
+.empresa p { color: var(--tenue); margin: 0; }
+.empresa .chip { justify-self: start; }
+.empresa-datos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; font-size: 12px; color: var(--tenue); }
+.empresa-datos b { display: block; font-size: 20px; color: var(--texto); }
+.empresa-boton { margin-top: auto; justify-self: start; font-weight: 700; letter-spacing: 1px; color: var(--ambar); padding-top: 14px; }
+.empresa.gaming .empresa-boton { color: var(--marino2); }
+.volver { color: var(--tenue); text-decoration: none; font-size: 13px; padding: 0 8px; }
+.volver:hover { color: var(--ambar); }
+
+.kpi small { color: var(--tenue); }
+.kpi .nd { margin: 6px 0 0; }
+.tabla-scroll { overflow-x: auto; }
+.tabla { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tabla th { text-align: left; color: var(--tenue); font-weight: 500; font-size: 12px; padding: 8px; border-bottom: 1px solid var(--borde); white-space: nowrap; }
+.tabla td { padding: 10px 8px; border-bottom: 1px solid rgba(34,48,58,.5); }
+.alertas, .actividad, .pasos-lista { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.actividad li { font-size: 14px; }
+.actividad li.error { color: var(--mal); }
+.actividad li.aviso { color: var(--aviso); }
+.pasos-lista li { display: flex; gap: 12px; align-items: flex-start; }
+.pasos-lista li > span { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--borde); display: grid; place-items: center; font-size: 12px; flex: none; color: var(--tenue); }
+.pasos-lista li.hecho > span { background: rgba(52,211,153,.15); color: var(--ok); border-color: transparent; }
+.pasos-lista small { display: block; color: var(--tenue); font-size: 12px; }
+.boton-peligro { margin-top: 14px; background: rgba(248,113,113,.12); color: var(--mal); border: 1px solid color-mix(in srgb, var(--mal) 45%, transparent); border-radius: 12px; padding: 10px 14px; font-weight: 600; }
+
+@media (max-width: 800px) {
+  .empresas { grid-template-columns: 1fr; }
+  .empresa { min-height: 0; padding: 22px; }
+  .casa-barra { padding: 12px 16px; gap: 10px; flex-wrap: wrap; }
+  .casa-nav { order: 3; width: 100%; overflow-x: auto; }
+  .casa-barra [data-salir] { margin-left: auto; }
+  .casa-vista { padding: 20px 16px 48px; }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "RELATOS AI GROUP",
+  "short_name": "Relatos Group",
+  "lang": "es",
+  "start_url": "/#empresas",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080b0d",
+  "theme_color": "#0b0f12",
+  "icons": [{ "src": "/icono.png", "sizes": "192x192", "type": "image/png", "purpose": "any" }]
+}

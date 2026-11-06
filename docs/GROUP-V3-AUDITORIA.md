@@ -102,3 +102,17 @@ Lo bueno: cookies HttpOnly/Secure/SameSite=Strict, CSRF por Origin, CSP estricta
 3. Para Gaming: nombre de la marca y crear las cuentas FB/YT/TikTok.
 4. Verificar el canal de YouTube por teléfono (sube el cupo diario).
 5. Revisar en developers.tiktok.com si la app ya salió de revisión.
+
+## 9. Avance (2026-11-06)
+
+**Fases 2-3 desplegadas** (versión `bf30f211`):
+- Migración `0005_grupo.sql`: organizations, divisions (relatos activa, gaming en preparación), users, user_divisions, sessions, audit_logs, security_events; `division_id` en las tablas de Relatos. Probada primero sobre una copia local del respaldo real.
+- Acceso: correo + contraseña (la misma de antes) → MFA TOTP obligatorio (QR + 10 códigos de recuperación de un solo uso), sesiones en D1 revocables (12 h sin uso / 7 días máximo), rotación del token al completar el MFA, bloqueo de cuenta tras 5 fallos y de IP tras 8, CSRF por Origin, auditoría de logins/pausas, cierre global de sesiones.
+- Pantallas: login, selector RELATOS/GAMING, panel general del grupo (solo datos reales; agentes y costos marcados como "no instalado"), Gaming en preparación, Seguridad (sesiones). PWA (manifest).
+- Hallazgo y arreglo: la CSP y X-Frame-Options **nunca se aplicaban** al HTML (los estáticos no pasan por el Worker). Ahora van en `panel/_headers`.
+- Pruebas: 30/30 de punta a punta (`prueba-login.mjs`) + recorrido visual (`prueba/captura-grupo.mjs`).
+- Sigue igual: scripts y fábrica con `x-clave`, `/api/salud` (monitor de WhatsApp), entrada desde el portal de empresas (sin MFA propio: confía en el login del portal).
+
+**Decisiones del propietario (2026-11-06):** publicación sigue 100 % automática (la bandeja de aprobación será informativa); agentes como rutinas de Claude Code en la nube (suscripción), no con API de pago, salvo que más adelante se quiera tiempo real.
+
+**Siguiente:** Fase 4 — Sentinel (S1 SQL libre de la fábrica, S2 claves separadas), botón DETENER EMPRESA por división, registro de costos con topes, respaldo diario de D1 a R2.

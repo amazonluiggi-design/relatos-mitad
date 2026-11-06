@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f12">
   <meta name="robots" content="noindex, nofollow">
-  <title>Relatos Autopilot</title>
+  <title>Relatos AI Group</title>
+  <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icono.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700&display=swap">
@@ -13,20 +14,72 @@
 </head>
 <body>
   <section id="login" class="login" hidden>
-    <form id="form-login" class="login-caja">
+    <div class="login-caja">
       <img src="/icono.png" alt="" class="login-logo">
-      <h1 class="marca">RELATOS <span>DE LA MITAD</span></h1>
-      <p class="sub">Panel de control · Autopilot</p>
-      <label for="clave">Contraseña</label>
-      <input id="clave" type="password" autocomplete="current-password" required>
-      <button type="submit">Entrar</button>
+      <h1 class="marca">RELATOS <span>AI GROUP</span></h1>
+      <p class="sub">Acceso privado del propietario</p>
+
+      <form id="form-login" class="paso">
+        <label for="correo">Correo electrónico</label>
+        <input id="correo" type="email" autocomplete="username" required>
+        <label for="clave">Contraseña</label>
+        <div class="con-boton">
+          <input id="clave" type="password" autocomplete="current-password" required>
+          <button type="button" id="ver-clave" class="boton-ojo" aria-label="Mostrar contraseña" aria-pressed="false">Ver</button>
+        </div>
+        <button type="submit">Iniciar sesión</button>
+        <details class="ayuda"><summary>¿Perdiste el acceso?</summary>
+          <p>Si perdiste el teléfono con el autenticador, entra con tu contraseña y escribe uno de tus <b>códigos de recuperación</b> en lugar del código de 6 dígitos. Si también olvidaste la contraseña, se restablece desde Claude Code (no existe recuperación por correo, para que nadie pueda usarla para robar la cuenta).</p>
+        </details>
+      </form>
+
+      <form id="form-codigo" class="paso" hidden>
+        <p class="sub">Escribe el código de 6 dígitos de tu app autenticadora.</p>
+        <label for="codigo">Código</label>
+        <input id="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="12" required>
+        <button type="submit">Verificar</button>
+        <p class="nd">¿Sin teléfono? Escribe un código de recuperación.</p>
+      </form>
+
+      <form id="form-enrolar" class="paso" hidden>
+        <p class="sub"><b>Activa la verificación en dos pasos.</b> Escanea el código con Google Authenticator, Microsoft Authenticator o Authy.</p>
+        <div id="qr" class="qr"></div>
+        <p class="nd">¿No puedes escanear? Escribe esta clave en la app:</p>
+        <code id="secreto" class="secreto"></code>
+        <label for="codigo-nuevo">Código que muestra la app</label>
+        <input id="codigo-nuevo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+        <button type="submit">Activar y entrar</button>
+      </form>
+
+      <div id="paso-codigos" class="paso" hidden>
+        <p class="sub"><b>Guarda estos códigos de recuperación.</b> Cada uno sirve una sola vez si pierdes el teléfono. No se vuelven a mostrar.</p>
+        <ol id="codigos" class="codigos"></ol>
+        <button type="button" id="copiar-codigos" class="boton-sec">Copiar los 10</button>
+        <button type="button" id="codigos-listo">Ya los guardé, continuar</button>
+      </div>
+
       <p id="login-error" class="error" role="alert"></p>
-    </form>
+      <p id="conexion" class="conexion"><span></span><b>Conectado</b></p>
+    </div>
+  </section>
+
+  <section id="casa" class="casa" hidden>
+    <header class="casa-barra">
+      <a href="#empresas" class="casa-marca"><img src="/icono.png" alt=""><div><b>RELATOS</b><span>AI GROUP</span></div></a>
+      <nav class="casa-nav">
+        <a href="#empresas" data-casa="empresas">Empresas</a>
+        <a href="#grupo" data-casa="grupo">Panel del grupo</a>
+        <a href="#seguridad" data-casa="seguridad">Seguridad</a>
+      </nav>
+      <button class="boton-sec" data-salir>Salir</button>
+    </header>
+    <main id="casa-vista" class="casa-vista" aria-live="polite"></main>
   </section>
 
   <div id="app" class="app" hidden>
     <aside class="menu">
-      <div class="menu-marca"><img src="/icono.png" alt=""><div><b>RELATOS</b><span>Autopilot</span></div></div>
+      <div class="menu-marca"><img src="/icono.png" alt=""><div><b>RELATOS</b><span>AI Media Agency</span></div></div>
+      <a href="#empresas" class="volver">← Empresas</a>
       <nav>
         <a href="#resumen" data-vista="resumen"><i>◉</i><span>Resumen</span></a>
         <a href="#crecimiento" data-vista="crecimiento"><i>↗</i><span>Crecimiento</span></a>
@@ -39,7 +92,7 @@
         <a href="#tiktok" data-vista="tiktok"><i class="tt">♪</i><span>TikTok</span></a>
         <a href="#actividad" data-vista="actividad"><i>≡</i><span>Actividad</span></a>
       </nav>
-      <button id="salir" class="salir">Salir</button>
+      <button id="salir" class="salir" data-salir>Salir</button>
     </aside>
 
     <main>
