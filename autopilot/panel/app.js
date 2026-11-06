@@ -1,3 +1,4 @@
+import { oficinaHtml } from "/oficina.js";
 // Panel de Relatos Autopilot. Todo el texto que viene de la base se escapa antes de pintarse.
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -531,7 +532,7 @@ async function cargarComentarios() {
 }
 
 /* ───── RELATOS AI GROUP: selector, panel del grupo, Gaming y seguridad ───── */
-const CASA = new Set(["empresas", "grupo", "seguridad", "gaming", "presupuesto", "agentes"]);
+const CASA = new Set(["empresas", "grupo", "seguridad", "gaming", "presupuesto", "agentes", "oficina", "oficina-gaming"]);
 const hashActual = () => (location.hash || "#empresas").slice(1);
 let yo = null;
 
@@ -539,7 +540,7 @@ async function navegar() {
   const r = hashActual();
   if (CASA.has(r)) {
     $("#app").hidden = true; $("#login").hidden = true; $("#casa").hidden = false;
-    document.querySelectorAll("[data-casa]").forEach((a) => a.classList.toggle("activo", a.dataset.casa === r));
+    document.querySelectorAll("[data-casa]").forEach((a) => a.classList.toggle("activo", a.dataset.casa === r || (r.startsWith("oficina") && a.dataset.casa === "oficina")));
     $("#casa-vista").innerHTML = `<div class="rejilla r3"><div class="cargando"></div><div class="cargando"></div><div class="cargando"></div></div>`;
     try { $("#casa-vista").innerHTML = await CASA_VISTAS[r](); } catch (e) { if (String(e).includes("sin sesión")) return; $("#casa-vista").innerHTML = `<div class="vacio">No se pudo cargar: ${esc(e.message)}</div>`; }
     return;
@@ -616,6 +617,9 @@ const CASA_VISTAS = {
         ${paso(false, "Plantillas de video propias de Gaming", "fase 8")}
       </ul></div>`;
   },
+
+  async oficina() { return oficinaHtml(await api("/agentes"), "relatos"); },
+  async "oficina-gaming"() { return oficinaHtml(await api("/agentes"), "gaming"); },
 
   async agentes() {
     const d = await api("/agentes");
@@ -810,6 +814,11 @@ $("#btn-sync").addEventListener("click", async (e) => {
   try { await api("/sincronizar", { method: "POST" }); await cargar(); pintar(); } finally { b.disabled = false; b.textContent = "↻ Actualizar"; }
 });
 
+setInterval(async () => {
+  const r = hashActual();
+  if (!r.startsWith("oficina") || $("#casa").hidden || document.hidden) return;
+  try { $("#casa-vista").innerHTML = await CASA_VISTAS[r](); } catch {}
+}, 15000);
 setInterval(() => { if (!$("#app").hidden && !document.hidden) cargar().then(pintar).catch(() => {}); }, 120000);
 // Entrada desde el portal de empresas: el pase llega en #sso= y se canjea por una sesión (un solo uso).
 (async () => {
