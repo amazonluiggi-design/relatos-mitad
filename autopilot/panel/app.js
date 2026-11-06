@@ -14,18 +14,72 @@ async function api(ruta, op = {}) {
   return r.json();
 }
 
-/* ───── Sesión ───── */
-function mostrarLogin() { $("#app").hidden = true; $("#login").hidden = false; $("#clave").focus(); }
+/* ───── Sesión: contraseña → código MFA (o alta del autenticador) ───── */
+const PASOS = { login: "#form-login", codigo: "#form-codigo", enrolar: "#form-enrolar", codigos: "#paso-codigos" };
+function mostrarLogin(paso = "login", error = "") {
+  $("#app").hidden = true; $("#casa").hidden = true; $("#login").hidden = false;
+  for (const [k, sel] of Object.entries(PASOS)) $(sel).hidden = k !== paso;
+  $("#login-error").textContent = error;
+  const foco = { login: "#correo", codigo: "#codigo", enrolar: "#codigo-nuevo" }[paso];
+  if (foco) setTimeout(() => $(foco).focus(), 0);
+}
+async function post(ruta, cuerpo) {
+  const r = await fetch("/api" + ruta, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cuerpo || {}) });
+  return { ok: r.ok, status: r.status, ...(await r.json().catch(() => ({}))) };
+}
+function ocupado(form, si) { const b = form.querySelector("button[type=submit]"); if (b) b.disabled = si; }
+const sesionVencida = (r) => r.status === 401 && /venció/.test(r.error || "");
+
 $("#form-login").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  $("#login-error").textContent = "";
-  const r = await fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clave: $("#clave").value }) });
-  const j = await r.json();
-  if (!r.ok) { $("#login-error").textContent = j.error; return; }
-  $("#clave").value = "";
-  iniciar();
+  e.preventDefault(); ocupado(e.target, true); $("#login-error").textContent = "";
+  try {
+    const r = await post("/login", { correo: $("#correo").value, clave: $("#clave").value });
+    if (!r.ok) { $("#login-error").textContent = r.error || "No se pudo entrar."; return; }
+    $("#clave").value = "";
+    if (r.paso === "codigo") return mostrarLogin("codigo");
+    const m = await fetch("/api/mfa/enrolar").then((x) => x.json());
+    if (m.error) return mostrarLogin("login", m.error);
+    $("#qr").innerHTML = m.qr; // SVG generado por nuestro servidor
+    $("#secreto").textContent = m.secreto;
+    mostrarLogin("enrolar");
+  } catch { $("#login-error").textContent = "Sin conexión con el servidor."; } finally { ocupado(e.target, false); }
 });
-$("#salir").addEventListener("click", async () => { await fetch("/api/salir", { method: "POST" }); mostrarLogin(); });
+$("#ver-clave").addEventListener("click", (e) => {
+  const ver = $("#clave").type === "password";
+  $("#clave").type = ver ? "text" : "password";
+  e.currentTarget.textContent = ver ? "Ocultar" : "Ver";
+  e.currentTarget.setAttribute("aria-pressed", String(ver));
+  e.currentTarget.setAttribute("aria-label", ver ? "Ocultar contraseña" : "Mostrar contraseña");
+});
+$("#form-codigo").addEventListener("submit", async (e) => {
+  e.preventDefault(); ocupado(e.target, true);
+  try {
+    const r = await post("/mfa/verificar", { codigo: $("#codigo").value });
+    $("#codigo").value = "";
+    if (sesionVencida(r)) return mostrarLogin("login", r.error);
+    if (!r.ok) { $("#login-error").textContent = r.error; return; }
+    entrar();
+  } finally { ocupado(e.target, false); }
+});
+$("#form-enrolar").addEventListener("submit", async (e) => {
+  e.preventDefault(); ocupado(e.target, true);
+  try {
+    const r = await post("/mfa/activar", { codigo: $("#codigo-nuevo").value });
+    $("#codigo-nuevo").value = "";
+    if (sesionVencida(r)) return mostrarLogin("login", r.error);
+    if (!r.ok) { $("#login-error").textContent = r.error; return; }
+    $("#codigos").innerHTML = r.codigos.map((c) => `<li><code>${esc(c.replace(/(.{5})/, "$1-"))}</code></li>`).join("");
+    $("#copiar-codigos").onclick = async () => { await navigator.clipboard.writeText(r.codigos.join("\n")); $("#copiar-codigos").textContent = "✓ Copiados"; };
+    mostrarLogin("codigos");
+  } finally { ocupado(e.target, false); }
+});
+$("#codigos-listo").addEventListener("click", () => { $("#codigos").innerHTML = ""; entrar(); });
+document.addEventListener("click", async (e) => {
+  if (!e.target.closest("[data-salir]")) return;
+  await fetch("/api/salir", { method: "POST" }); datos.resumen = null; mostrarLogin();
+});
+function conexion() { const c = $("#conexion"); c.classList.toggle("fuera", !navigator.onLine); c.querySelector("b").textContent = navigator.onLine ? "Conectado" : "Sin conexión"; }
+addEventListener("online", conexion); addEventListener("offline", conexion); conexion();
 
 /* ───── Datos ───── */
 let datos = { resumen: null, pubs: [], serie: [], historias: [], animaciones: [], crec: { cuentas: [], pubs: [], recomendaciones: [] } };
@@ -476,8 +530,120 @@ async function cargarComentarios() {
     : `<div class="vacio">Todo respondido: no hay comentarios pendientes.</div>`;
 }
 
+/* ───── RELATOS AI GROUP: selector, panel del grupo, Gaming y seguridad ───── */
+const CASA = new Set(["empresas", "grupo", "seguridad", "gaming"]);
+const hashActual = () => (location.hash || "#empresas").slice(1);
+let yo = null;
+
+async function navegar() {
+  const r = hashActual();
+  if (CASA.has(r)) {
+    $("#app").hidden = true; $("#login").hidden = true; $("#casa").hidden = false;
+    document.querySelectorAll("[data-casa]").forEach((a) => a.classList.toggle("activo", a.dataset.casa === r));
+    $("#casa-vista").innerHTML = `<div class="rejilla r3"><div class="cargando"></div><div class="cargando"></div><div class="cargando"></div></div>`;
+    try { $("#casa-vista").innerHTML = await CASA_VISTAS[r](); } catch (e) { if (String(e).includes("sin sesión")) return; $("#casa-vista").innerHTML = `<div class="vacio">No se pudo cargar: ${esc(e.message)}</div>`; }
+    return;
+  }
+  $("#casa").hidden = true; $("#login").hidden = true; $("#app").hidden = false;
+  if (!datos.resumen) {
+    $("#vista").innerHTML = `<div class="rejilla r3"><div class="cargando"></div><div class="cargando"></div><div class="cargando"></div></div>`;
+    try { await cargar(); } catch { return; }
+  }
+  pintar();
+}
+
+const cifra = (n, etiqueta, nota = "") => `<div class="tarjeta kpi"><div class="cifra">${n}</div><small>${etiqueta}</small>${nota ? `<p class="nd">${nota}</p>` : ""}</div>`;
+const pendienteFase = (txt) => `<span class="nd">${txt}</span>`;
+const DIV_ESTADO = { activa: "Activa", preparacion: "En preparación", detenida: "Detenida" };
+
+const CASA_VISTAS = {
+  async empresas() {
+    const g = await api("/grupo/resumen");
+    const d = Object.fromEntries(g.divisiones.map((x) => [x.id, x]));
+    const tarjeta = (id, destino, boton, detalle) => {
+      const x = d[id];
+      return `<a class="empresa ${id}" href="#${destino}">
+        <span class="chip ${x.estado === "activa" ? "publicado" : ""}">${esc(DIV_ESTADO[x.estado] || x.estado)}</span>
+        <h3>${esc(x.nombre)}</h3><p>${esc(x.descripcion)}</p>
+        <div class="empresa-datos">${detalle(x)}</div>
+        <span class="empresa-boton">${boton} →</span></a>`;
+    };
+    return `<section class="selector">
+      <h1 class="bienvenida">Hola${yo?.nombre ? ", " + esc(yo.nombre.split(" ")[0]) : ""}. ¿A qué empresa entras?</h1>
+      <div class="empresas">
+        ${tarjeta("relatos", "resumen", "ENTRAR A RELATOS", (x) => `<div><b>${num(x.publicados_7d)}</b>publicados en 7 días</div><div><b>${num(x.agenda)}</b>en agenda</div><div><b>${num(x.errores_24h)}</b>errores 24 h</div>`)}
+        ${tarjeta("gaming", "gaming", "ENTRAR A GAMING", () => `<div><b>0</b>redes conectadas</div><div><b>—</b>derechos verificados</div><div><b>GTA</b>especialidad</div>`)}
+      </div>
+      <p class="nd centro"><a href="#grupo">Ver el panel general del grupo →</a></p></section>`;
+  },
+
+  async grupo() {
+    const g = await api("/grupo/resumen");
+    const tot = (k) => g.divisiones.reduce((a, x) => a + (x[k] || 0), 0);
+    const filas = g.divisiones.map((x) => `<tr><td><a href="#${x.id === "relatos" ? "resumen" : "gaming"}">${esc(x.nombre)}</a></td>
+      <td><span class="chip ${x.estado === "activa" ? "publicado" : ""}">${esc(DIV_ESTADO[x.estado] || x.estado)}</span>${x.pausa ? ` <span class="chip fallido">En pausa</span>` : ""}</td>
+      <td>${num(x.en_produccion)}</td><td>${num(x.listas)}</td><td>${num(x.agenda)}</td><td>${num(x.publicados_7d)}</td><td>${num(x.fallidos)}</td><td>${num(x.errores_24h)}</td></tr>`).join("");
+    return `<h2 class="casa-titulo">${esc(g.org)} · Panel general</h2>
+      <div class="rejilla r4">
+        ${cifra(g.agentes ? `${g.agentes.activos}/${g.agentes.total}` : "—", "agentes activos", g.agentes ? "" : "Aún no hay agentes instalados (fase 6).")}
+        ${cifra(num(tot("en_produccion")), "producciones en curso")}
+        ${cifra(num(tot("agenda")), "publicaciones en agenda")}
+        ${cifra(g.presupuesto.usado != null ? `$${g.presupuesto.usado.toFixed(2)}` : "—", `de $${num(g.presupuesto.mensual)} al mes`, g.presupuesto.usado != null ? "" : "El registro de costos llega en la fase 4.")}
+      </div>
+      <div class="tarjeta"><h3>Divisiones</h3><div class="tabla-scroll"><table class="tabla">
+        <thead><tr><th>División</th><th>Estado</th><th>En producción</th><th>Listas</th><th>En agenda</th><th>Publicadas 7 d</th><th>Fallidas</th><th>Errores 24 h</th></tr></thead>
+        <tbody>${filas}</tbody></table></div></div>
+      <div class="rejilla r2">
+        <div class="tarjeta"><h3>Alertas</h3>${g.alertas.length ? `<ul class="alertas">${g.alertas.map((a) => `<li><span class="chip">${esc(a.division)}</span> ${esc(a.texto)}</li>`).join("")}</ul>` : `<div class="vacio">Sin alertas.</div>`}
+          <h3>Seguridad (24 h)</h3><p>${num(g.seguridad_24h.total)} eventos · <b>${num(g.seguridad_24h.altas)}</b> graves · ${num(g.seguridad_24h.medias)} medios. <a href="#seguridad">Ver sesiones →</a></p></div>
+        <div class="tarjeta"><h3>Últimas actividades</h3><ul class="actividad">${g.actividad.map((a) => `<li class="${esc(a.nivel)}"><span class="nd">${esc(fecha(a.cuando.replace(" ", "T") + "Z", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))} · ${a.tipo === "persona" ? "persona" : esc(a.division || "sistema")}</span> ${esc(a.texto)}</li>`).join("")}</ul></div>
+      </div>`;
+  },
+
+  async gaming() {
+    const g = await api("/grupo/resumen");
+    const x = g.divisiones.find((d) => d.id === "gaming");
+    const paso = (hecho, txt, quien) => `<li class="${hecho ? "hecho" : ""}"><span>${hecho ? "✓" : "○"}</span><div>${txt}<small>${quien}</small></div></li>`;
+    return `<h2 class="casa-titulo">${esc(x.nombre)}</h2>
+      <p class="nd">${esc(x.descripcion)} Estado: <b>${esc(DIV_ESTADO[x.estado])}</b>. No se publica nada hasta verificar derechos e integraciones.</p>
+      <div class="rejilla r4">${cifra(num(x.agenda), "en agenda")}${cifra(num(x.publicados_7d), "publicados en 7 días")}${cifra("0", "redes conectadas")}${cifra("—", "agentes", "Fase 8")}</div>
+      <div class="tarjeta"><h3>Para arrancar Gaming</h3><ul class="pasos-lista">
+        ${paso(true, "Espacio de la división creado y aislado de Relatos", "hecho")}
+        ${paso(false, "Nombre de la marca gaming", "lo decides tú")}
+        ${paso(false, "Cuentas de Facebook, YouTube y TikTok de la marca", "las creas tú; yo las conecto")}
+        ${paso(false, "Política de Rockstar revisada y registro de derechos (Rights Manager)", "fase 8")}
+        ${paso(false, "Registro de creadores con autorización comercial", "fase 8")}
+        ${paso(false, "Plantillas de video propias de Gaming", "fase 8")}
+      </ul></div>`;
+  },
+
+  async seguridad() {
+    const s = await api("/sesiones");
+    return `<h2 class="casa-titulo">Seguridad de la cuenta</h2>
+      <div class="tarjeta"><h3>Sesiones abiertas</h3><div class="tabla-scroll"><table class="tabla">
+        <thead><tr><th>Entrada</th><th>Desde</th><th>Último uso</th><th>IP</th><th>Navegador</th></tr></thead>
+        <tbody>${s.map((x) => `<tr><td>${x.actual ? "<b>Esta sesión</b>" : esc(x.ref)}</td><td>${x.origen === "portal" ? "Portal de empresas" : "Contraseña + código"}</td>
+          <td>${esc(fecha(x.ultima.replace(" ", "T") + "Z", { dateStyle: "short", timeStyle: "short" }))}</td><td>${esc(x.ip)}</td><td class="nd">${esc((x.agente || "").slice(0, 60))}</td></tr>`).join("")}</tbody></table></div>
+        <button class="boton-peligro" id="cerrar-todas">Cerrar sesión en todos los dispositivos</button></div>`;
+  },
+};
+
+$("#casa-vista").addEventListener("click", async (e) => {
+  if (!e.target.closest("#cerrar-todas")) return;
+  if (!confirm("¿Cerrar todas las sesiones, incluida esta?")) return;
+  await post("/sesiones/cerrar-todas"); datos.resumen = null; mostrarLogin();
+});
+
+async function entrar() {
+  const r = await fetch("/api/yo");
+  if (r.status === 401) return mostrarLogin();
+  yo = await r.json();
+  if (!location.hash || location.hash === "#") history.replaceState(null, "", location.pathname + "#empresas");
+  navegar();
+}
+
 /* ───── Eventos ───── */
-window.addEventListener("hashchange", pintar);
+window.addEventListener("hashchange", navegar);
 $("#vista").addEventListener("change", async (e) => {
   const c = e.target.closest("[data-rec]");
   if (!c) return;
@@ -528,11 +694,6 @@ $("#btn-sync").addEventListener("click", async (e) => {
   try { await api("/sincronizar", { method: "POST" }); await cargar(); pintar(); } finally { b.disabled = false; b.textContent = "↻ Actualizar"; }
 });
 
-async function iniciar() {
-  $("#login").hidden = true; $("#app").hidden = false;
-  $("#vista").innerHTML = `<div class="rejilla r3"><div class="cargando"></div><div class="cargando"></div><div class="cargando"></div></div>`;
-  try { await cargar(); pintar(); } catch {}
-}
 setInterval(() => { if (!$("#app").hidden && !document.hidden) cargar().then(pintar).catch(() => {}); }, 120000);
 // Entrada desde el portal de empresas: el pase llega en #sso= y se canjea por una sesión (un solo uso).
 (async () => {
@@ -546,5 +707,5 @@ setInterval(() => { if (!$("#app").hidden && !document.hidden) cargar().then(pin
     history.replaceState(null, "", location.pathname);
     await fetch("/api/portal", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pase: decodeURIComponent(pase) }) }).catch(() => {});
   }
-  iniciar();
+  entrar();
 })();

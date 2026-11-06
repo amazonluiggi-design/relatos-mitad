@@ -5,7 +5,8 @@ export interface Env {
   ASSETS: Fetcher;
   CLAVE: string;          // acceso de scripts (cabecera x-clave)
   PANEL_HASH: string;     // "sal:hash" PBKDF2 de la contraseña del panel
-  SESION_SECRETO: string; // firma de la cookie
+  SESION_SECRETO: string; // (heredado) firma de la cookie antigua
+  CIFRADO_CLAVE: string;  // cifra en reposo los secretos MFA (AES-GCM)
   FB_PAGINA: string;
   FB_TOKEN: string;
   YT_CLIENTE: string;

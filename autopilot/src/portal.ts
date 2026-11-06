@@ -1,7 +1,7 @@
 // Entrada desde el portal de empresas (luiggi-empresas.web.app) sin contraseña.
 // El portal firma un PASE (JWT EdDSA/Ed25519, 60 s, un solo uso). Aquí solo existe la llave PÚBLICA:
 // aunque alguien leyera este Worker, no podría fabricar pases.
-import { crearSesion } from "./auth";
+import { sesionPortal } from "./auth";
 import type { Env } from "./tipos";
 
 const LLAVE_PUBLICA = "MCowBQYDK2VwAyEAuQZsBJH7RyBfL+fMP+90pkteJfrHULBwf2gQ6z3oAA8=";
@@ -40,5 +40,5 @@ export async function entrarDesdePortal(env: Env, req: Request) {
   const { pase } = (await req.json().catch(() => ({}))) as { pase?: string };
   const correo = typeof pase === "string" ? await leerPase(env, pase, "relatos") : null;
   if (!correo) return Response.json({ error: "El pase venció o ya se usó. Vuelve a abrir Relatos desde el portal." }, { status: 401 });
-  return crearSesion(env);
+  return sesionPortal(env, req, correo);
 }
