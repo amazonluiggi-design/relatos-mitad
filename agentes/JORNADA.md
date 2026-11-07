@@ -37,6 +37,14 @@ La rutina corre **cada hora de 07:00 a 22:00** (hora de Ecuador).
 - **07:00 y 15:00:** jornada completa: ronda de operación de redes (ver abajo) + Michael revisa el plan y puede crear tareas nuevas.
 - **Otras horas:** jornada rápida. Mira `/agentes/contexto`; si no hay tareas `pendiente` ni `en-revision`, termina **de inmediato** con una línea ("Sin trabajo pendiente") sin hacer nada más. Si las hay, atiéndelas siguiendo el orden de abajo.
 
+## Informe del día para el CEO (jornada de las 22:00)
+
+En la última jornada del día (22:00), Michael guarda en la memoria un `informe` titulado "Informe del día AAAA-MM-DD", escrito para Luiggi como lo contaría un director humano: qué logró el equipo, qué cambiaron en las redes y por qué, qué funcionó y qué no según los datos, qué aprendieron y qué harán mañana. Debe ser corto (5 a 10 líneas), sin jerga técnica y con cifras reales. Luiggi lo lee en "Informe del día".
+
+## Cómo hablan los agentes
+
+En eventos, resultados y respuestas hablan como personas del equipo: frases naturales, de tú, en español de Ecuador ("Revisé los 6 reels de mañana; dos tenían el título flojo y los mejoré"). Nada de jerga técnica ni ids sueltos sin explicar.
+
 ## Las instrucciones del propietario van primero y se contestan
 
 Cada tarea con `creada_por = "propietario"` es una orden de Luiggi:

@@ -1,5 +1,7 @@
 import { oficinaHtml } from "/oficina.js";
 import { actividadHtml, contar, etiquetasHtml, inicioHtml, reloj } from "/inicio.js";
+import { agenteAbierto, cerrarChat, iniciarChat } from "/chat.js";
+import { diaHtml } from "/dia.js";
 // Panel de Relatos Autopilot. Todo el texto que viene de la base se escapa antes de pintarse.
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -533,17 +535,18 @@ async function cargarComentarios() {
 }
 
 /* ───── RELATOS AI GROUP: selector, panel del grupo, Gaming y seguridad ───── */
-const CASA = new Set(["inicio", "empresas", "grupo", "seguridad", "gaming", "presupuesto", "agentes", "oficina", "oficina-gaming", "bandeja"]);
+const CASA = new Set(["inicio", "empresas", "grupo", "seguridad", "gaming", "presupuesto", "agentes", "oficina", "oficina-gaming", "bandeja", "dia"]);
 const hashActual = () => (location.hash || "#inicio").slice(1);
 let yo = null;
 
 async function navegar() {
-  const r = hashActual();
+  cerrarChat();
+  const [r, param] = hashActual().split("=");
   if (CASA.has(r)) {
     $("#app").hidden = true; $("#login").hidden = true; $("#casa").hidden = false;
     document.querySelectorAll("[data-casa]").forEach((a) => a.classList.toggle("activo", a.dataset.casa === r || (r.startsWith("oficina") && a.dataset.casa === "oficina")));
     $("#casa-vista").innerHTML = `<div class="rejilla r3"><div class="cargando"></div><div class="cargando"></div><div class="cargando"></div></div>`;
-    try { $("#casa-vista").innerHTML = await CASA_VISTAS[r](); trasPintar(r); } catch (e) { if (String(e).includes("sin sesión")) return; $("#casa-vista").innerHTML = `<div class="vacio">No se pudo cargar: ${esc(e.message)}</div>`; }
+    try { $("#casa-vista").innerHTML = await CASA_VISTAS[r](param); trasPintar(r); } catch (e) { if (String(e).includes("sin sesión")) return; $("#casa-vista").innerHTML = `<div class="vacio">No se pudo cargar: ${esc(e.message)}</div>`; }
     return;
   }
   $("#casa").hidden = true; $("#login").hidden = true; $("#app").hidden = false;
@@ -587,43 +590,56 @@ function trasPintar(r) {
   controlarVideo();
   const v = $("#casa-vista");
   v.classList.remove("entrando"); void v.offsetWidth; v.classList.add("entrando");
+  clearTimeout(trasPintar.t); trasPintar.t = setTimeout(() => v.classList.remove("entrando"), 1200); // que lo que se refresca no vuelva a "entrar"
   contar(v);
   if (r === "inicio") feedVistos = new Set([...document.querySelectorAll("#feed li")].map((li) => li.dataset.clave));
 }
-async function refrescarInicio() {
-  if (hashActual() !== "inicio" || $("#casa").hidden || document.hidden) return;
+/* ───── En vivo: UNA consulta liviana cada 20 s actualiza cifras, oficina, actividad y barra superior ───── */
+let ultimoVivo = null;
+const valores = () => Object.fromEntries([...document.querySelectorAll("#casa-vista [data-k]")].map((el) => [el.dataset.k, parseFloat(el.dataset.contar)]));
+function pintarBarra(d) {
+  const p = d.pres, pct = p.limites.total ? Math.min(100, (p.usado / p.limites.total) * 100) : 0;
+  $("#plan-txt").textContent = "$" + p.usado.toFixed(2) + " / $" + p.limites.total.toFixed(2);
+  $("#plan-barra").style.width = pct.toFixed(1) + "%";
+  $("#plan-pie").textContent = "Proyección del mes: $" + p.proyeccion.toFixed(2);
+  const e = $("#estado-emp"); e.classList.toggle("parada", d.barra.detenido); e.querySelector("b").textContent = d.barra.detenido ? "Empresa detenida" : "Empresa activa";
+  const c = $("#campana em"); c.hidden = !d.barra.alertas; c.textContent = d.barra.alertas;
+  const bb = $("#badge-bandeja"); bb.hidden = !d.barra.bandeja; bb.textContent = d.barra.bandeja > 99 ? "99+" : d.barra.bandeja;
+}
+const datosInicio = (d) => ({ resumen: d.resumen, crec: d.crec, serie: d.serie, pres: d.pres, agentes: { agentes: d.agentes }, historias: d.historias,
+  grupo: { divisiones: [{ id: "relatos", ...d.division }], actividad: d.actividad } });
+async function enVivo() {
+  if ($("#casa").hidden || document.hidden) return;
   try {
-    const [ag, g] = await Promise.all([api("/agentes"), api("/grupo/resumen")]);
-    const et = $("#etiquetas"); if (et) et.innerHTML = etiquetasHtml(ag.agentes);
-    const fd = $("#feed"); if (fd) { fd.innerHTML = actividadHtml(g.actividad, feedVistos); fd.querySelectorAll("li").forEach((li) => feedVistos.add(li.dataset.clave)); }
+    const d = ultimoVivo = await api("/vivo");
+    pintarBarra(d);
+    const r = hashActual();
+    const et = $("#etiquetas"); if (et) et.innerHTML = etiquetasHtml(d.agentes, agenteAbierto());
+    if (r === "inicio") {
+      const previos = valores(), tmp = document.createElement("div");
+      tmp.innerHTML = inicioHtml(datosInicio(d));
+      for (const sel of [".kpis", ".redes3", ".proyectos ol", ".fin"]) { const n = tmp.querySelector(sel), v = $("#casa-vista " + sel); if (n && v) v.replaceWith(n); }
+      contar($("#casa-vista"), previos);
+      const fd = $("#feed"); if (fd) { fd.innerHTML = actividadHtml(d.actividad, feedVistos); fd.querySelectorAll("li").forEach((li) => feedVistos.add(li.dataset.clave)); }
+    }
+    if (r.startsWith("oficina")) {
+      const tmp = document.createElement("div"); tmp.innerHTML = oficinaHtml({ agentes: d.agentes }, r === "oficina-gaming" ? "gaming" : "relatos");
+      for (const sel of [".equipo-lista", ".oficina-cab"]) { const n = tmp.querySelector(sel), v = $("#casa-vista " + sel); if (n && v) v.replaceWith(n); }
+    }
   } catch {}
 }
-async function actualizarSuperior() {
-  if ($("#casa").hidden) return;
-  try {
-    const [p, det, g, b] = await Promise.all([api("/presupuesto"), api("/detener"), api("/grupo/resumen"), api("/bandeja")]);
-    const pct = p.limites.total ? Math.min(100, (p.usado / p.limites.total) * 100) : 0;
-    $("#plan-txt").textContent = "$" + p.usado.toFixed(2) + " / $" + p.limites.total.toFixed(2);
-    $("#plan-barra").style.width = pct.toFixed(1) + "%";
-    $("#plan-pie").textContent = "Proyección del mes: $" + p.proyeccion.toFixed(2);
-    const parado = Object.entries(det).some(([k, v]) => v === true && k !== "cambiado");
-    const e = $("#estado-emp"); e.classList.toggle("parada", parado); e.querySelector("b").textContent = parado ? "Empresa detenida" : "Empresa activa";
-    const alertas = g.alertas.length + (g.seguridad_24h.altas || 0);
-    const c = $("#campana em"); c.hidden = !alertas; c.textContent = alertas;
-    const pend = b.filter((x) => !x.ultima).length;
-    const bb = $("#badge-bandeja"); bb.hidden = !pend; bb.textContent = pend > 99 ? "99+" : pend;
-  } catch {}
-}
-setInterval(refrescarInicio, 15000);
-setInterval(actualizarSuperior, 60000);
+setInterval(enVivo, 20000);
+iniciarChat({ api, post }, () => ultimoVivo?.agentes || []);
 setInterval(reloj, 10000);
 document.addEventListener("error", (e) => { if (e.target.tagName === "IMG") e.target.classList.add("rota"); }, true);
 
 const CASA_VISTAS = {
   async inicio() {
-    const [resumen, crec, serie, pres, agentes, grupo, historias] = await Promise.all([api("/resumen"), api("/crecimiento"), api("/serie"), api("/presupuesto"), api("/agentes"), api("/grupo/resumen"), api("/historias")]);
-    return inicioHtml({ resumen, crec, serie, pres, agentes, grupo, historias });
+    const d = ultimoVivo = await api("/vivo");
+    pintarBarra(d);
+    return inicioHtml(datosInicio(d));
   },
+  async dia(fecha) { return diaHtml(await api("/dia" + (fecha ? "?fecha=" + encodeURIComponent(fecha) : ""))); },
 
   async empresas() {
     const g = await api("/grupo/resumen");
@@ -762,8 +778,8 @@ const CASA_VISTAS = {
       ${lista.length ? `<div class="bandeja">${lista.map(tarjeta).join("")}</div>` : `<div class="vacio">Nada programado en los próximos 7 días.</div>`}`;
   },
 
-  async oficina() { return oficinaHtml(await api("/agentes"), "relatos"); },
-  async "oficina-gaming"() { return oficinaHtml(await api("/agentes"), "gaming"); },
+  async oficina() { ultimoVivo = await api("/vivo"); return oficinaHtml({ agentes: ultimoVivo.agentes }, "relatos"); },
+  async "oficina-gaming"() { ultimoVivo = await api("/vivo"); return oficinaHtml({ agentes: ultimoVivo.agentes }, "gaming"); },
 
   async agentes() {
     const d = await api("/agentes");
@@ -937,7 +953,7 @@ async function entrar() {
   if (r.status === 401) return mostrarLogin();
   yo = await r.json();
   if (yo.nombre) $("#usuario-nombre").textContent = yo.nombre.split(" ").slice(0, 1).concat(yo.nombre.split(" ").slice(2, 3)).join(" ");
-  reloj(); setTimeout(actualizarSuperior, 300);
+  reloj(); setTimeout(enVivo, 300);
   if (!location.hash || location.hash === "#") history.replaceState(null, "", location.pathname + "#inicio");
   navegar();
 }
@@ -994,15 +1010,6 @@ $("#btn-sync").addEventListener("click", async (e) => {
   try { await api("/sincronizar", { method: "POST" }); await cargar(); pintar(); } finally { b.disabled = false; b.textContent = "↻ Actualizar"; }
 });
 
-// Oficina completa: solo se actualizan etiquetas y lista (el video no se reinicia).
-setInterval(async () => {
-  const r = hashActual();
-  if (!r.startsWith("oficina") || $("#casa").hidden || document.hidden) return;
-  try {
-    const tmp = document.createElement("div"); tmp.innerHTML = await CASA_VISTAS[r]();
-    for (const sel of ["#etiquetas", ".equipo-lista", ".oficina-cab"]) { const nuevo = tmp.querySelector(sel), viejo = $("#casa-vista " + sel); if (nuevo && viejo) viejo.replaceWith(nuevo); }
-  } catch {}
-}, 15000);
 setInterval(() => { if (!$("#app").hidden && !document.hidden) cargar().then(pintar).catch(() => {}); }, 120000);
 // Entrada desde el portal de empresas: el pase llega en #sso= y se canjea por una sesión (un solo uso).
 (async () => {

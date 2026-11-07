@@ -30,3 +30,7 @@ migrations_dir = "migrations"
 type = "Data"
 globs = ["**/*.ttf"]
 fallthrough = true
+
+# Workers AI: respuestas instantáneas del chat con los agentes (src/chat.ts).
+[ai]
+binding = "AI"

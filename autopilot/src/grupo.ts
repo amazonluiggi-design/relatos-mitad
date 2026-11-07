@@ -3,7 +3,7 @@
 import { estadoPresupuesto } from "./sentinel";
 import type { Env } from "./tipos";
 
-async function division(env: Env, id: string) {
+export async function division(env: Env, id: string) {
   const pubs = await env.DB.prepare(`SELECT
       SUM(estado IN ('publicado','privado') AND COALESCE(publicado_en, cuando) >= strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-7 days')) publicados_7d,
       SUM(estado IN ('pendiente','programado','enviado')) agenda,
@@ -24,13 +24,9 @@ async function division(env: Env, id: string) {
   };
 }
 
-export async function resumenGrupo(env: Env, alertasRelatos: string[]) {
-  const divisiones = (await env.DB.prepare("SELECT id, nombre, descripcion, estado FROM divisions ORDER BY id = 'relatos' DESC, creada, id").all<{ id: string; nombre: string; descripcion: string; estado: string }>()).results;
-  const pausa = (await env.DB.prepare("SELECT valor FROM config WHERE clave = 'pausa'").first<string>("valor")) === "1";
-  const datos = await Promise.all(divisiones.map(async (d) => ({ ...d, ...(await division(env, d.id)), pausa: d.id === "relatos" ? pausa : null })));
-  const org = await env.DB.prepare("SELECT nombre, presupuesto_mensual FROM organizations WHERE id = 'grupo'").first<{ nombre: string; presupuesto_mensual: number }>();
-  // Actividad: eventos del sistema + acciones de personas, mezclados por fecha.
-  const actividad = (await env.DB.prepare(`SELECT * FROM (
+/** Actividad mezclada (sistema, personas y agentes), lo más nuevo primero. */
+export async function actividadReciente(env: Env, limite = 30) {
+  return (await env.DB.prepare(`SELECT * FROM (
       SELECT cuando, 'sistema' tipo, nivel, division_id division, mensaje texto FROM eventos
       UNION ALL SELECT cuando, 'persona' tipo, 'info' nivel, division_id division,
         CASE accion WHEN 'mfa-activado' THEN 'Activaste la verificación en dos pasos' WHEN 'DETENER' THEN 'Activaste DETENER: ' || detalle WHEN 'reanudar' THEN 'Reanudaste: ' || detalle
@@ -38,7 +34,16 @@ export async function resumenGrupo(env: Env, alertasRelatos: string[]) {
           ELSE replace(accion, '-', ' ') || CASE WHEN detalle != '' THEN ' · ' || detalle ELSE '' END END texto
         FROM audit_logs WHERE accion NOT IN ('login', 'logout', 'contraseña-correcta', 'sentinel-revision', 'propietario-creado', 'cierre-global')
       UNION ALL SELECT e.cuando, 'agente' tipo, CASE e.estado WHEN 'error' THEN 'error' ELSE 'info' END nivel, COALESCE(a.division_id, 'grupo') division, a.nombre || ' · ' || e.mensaje texto FROM agent_events e JOIN agents a ON a.id = e.agente_id
-    ) ORDER BY cuando DESC LIMIT 30`).all()).results;
+    ) ORDER BY cuando DESC LIMIT ?`).bind(limite).all()).results;
+}
+
+export async function resumenGrupo(env: Env, alertasRelatos: string[]) {
+  const divisiones = (await env.DB.prepare("SELECT id, nombre, descripcion, estado FROM divisions ORDER BY id = 'relatos' DESC, creada, id").all<{ id: string; nombre: string; descripcion: string; estado: string }>()).results;
+  const pausa = (await env.DB.prepare("SELECT valor FROM config WHERE clave = 'pausa'").first<string>("valor")) === "1";
+  const datos = await Promise.all(divisiones.map(async (d) => ({ ...d, ...(await division(env, d.id)), pausa: d.id === "relatos" ? pausa : null })));
+  const org = await env.DB.prepare("SELECT nombre, presupuesto_mensual FROM organizations WHERE id = 'grupo'").first<{ nombre: string; presupuesto_mensual: number }>();
+  // Actividad: eventos del sistema + acciones de personas, mezclados por fecha.
+  const actividad = await actividadReciente(env);
   const seguridad = await env.DB.prepare(`SELECT COUNT(*) total, SUM(severidad = 'alta') altas, SUM(severidad = 'media') medias FROM security_events WHERE cuando >= datetime('now', '-1 day')`).first<{ total: number; altas: number | null; medias: number | null }>();
   return {
     org: org?.nombre ?? "RELATOS AI GROUP",

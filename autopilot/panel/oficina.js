@@ -7,7 +7,7 @@ const vivo = (a) => a.activo && !["disponible", "pausa", "no-activado"].includes
 
 function tarjeta(a) {
   const est = a.activo ? a.estado : "no-activado";
-  return `<button class="miembro ${vivo(a) ? "vivo" : ""} est-${esc(est)}" data-agente="${esc(a.id)}">
+  return `<button class="miembro ${vivo(a) ? "vivo" : ""} est-${esc(est)}" ${a.activo ? `data-charlar="${esc(a.id)}"` : `data-agente="${esc(a.id)}"`}>
     <span class="m-ini">${esc(a.nombre.slice(0, 1))}</span>
     <span class="m-txt"><b>${esc(a.nombre)}</b><small>${esc(a.cargo)}</small><em>${esc(EST[est] || est)}${vivo(a) && a.tarea_titulo ? " · " + esc(a.tarea_titulo) : ""}</em></span>
     <span class="m-num">${a.hechas ?? 0} hechas</span></button>`;

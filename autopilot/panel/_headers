@@ -7,3 +7,11 @@
   Strict-Transport-Security: max-age=31536000
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
   Cross-Origin-Opener-Policy: same-origin
+
+# Recursos pesados que casi no cambian: caché de un día en el navegador.
+/oficina.mp4
+  Cache-Control: public, max-age=86400
+/oficina.jpg
+  Cache-Control: public, max-age=86400
+/icono.png
+  Cache-Control: public, max-age=86400

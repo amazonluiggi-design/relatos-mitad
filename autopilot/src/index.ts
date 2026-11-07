@@ -2,6 +2,8 @@
 // Cron cada 5 min: publica en TikTok lo que venció y revisa estados. Cada hora (minuto 0-4): estadísticas de las 3 redes.
 import { auditar, eventoSeguridad, leerSesion, login, mfa, misSesiones, salir, salirDeTodo } from "./auth";
 import { resumenGrupo } from "./grupo";
+import { informeDia, vivo } from "./vivo";
+import { enviar, historial } from "./chat";
 import { bandeja, decidir } from "./bandeja";
 import { datosGaming, guardarCreador, guardarDerecho, guardarMarca } from "./gaming";
 import { apiAgentes, fichaAgente, instruccion, listaAgentes, verMemoria, verTarea } from "./agentes";
@@ -43,7 +45,16 @@ async function publicarPendientes(env: Env) {
   }
 }
 
-async function sincronizar(env: Env) {
+/** Caché corta en KV para cálculos pesados que cambian como mucho cada pocos minutos. */
+export async function enCache<T>(env: Env, clave: string, fn: () => Promise<T>, ttl = 60): Promise<T> {
+  const c = await env.KV.get(clave, "json");
+  if (c !== null) return c as T;
+  const v = await fn();
+  await env.KV.put(clave, JSON.stringify(v), { expirationTtl: ttl });
+  return v;
+}
+
+async function sincronizar(env: Env, redes = ["youtube", "facebook", "tiktok"]) {
   // TikTok programado a mano en TikTok Studio (app sin auditar): pasa a publicado al llegar su hora.
   await env.DB.prepare("UPDATE publicaciones SET estado = 'publicado', publicado_en = cuando WHERE red = 'tiktok' AND estado = 'programado' AND externo_id IS NULL AND cuando <= ?")
     .bind(new Date().toISOString()).run();
@@ -54,6 +65,7 @@ async function sincronizar(env: Env) {
     ["tiktok", () => sincronizarTikTok(env, todas.filter((p) => p.red === "tiktok"))],
   ];
   for (const [red, f] of tareas) {
+    if (!redes.includes(red)) continue;
     try { await f(); } catch (e) { await evento(env, `No se pudieron leer las estadísticas: ${String(e).slice(0, 200)}`, "error", red); }
   }
   // Una historia pasa a "publicada" cuando su video largo ya salió en alguna red.
@@ -272,7 +284,14 @@ async function api(env: Env, req: Request, url: URL) {
   /* ── Grupo ── */
   if (ruta === "/yo" && ses) return Response.json({ correo: ses.user.correo, nombre: ses.user.nombre, rol: ses.user.rol, origen: ses.origen,
     divisiones: (await env.DB.prepare("SELECT id, nombre, descripcion, estado FROM divisions ORDER BY id = 'relatos' DESC, creada, id").all()).results });
-  if (ruta === "/grupo/resumen") return Response.json(await resumenGrupo(env, (await datosSalud(env)).problemas));
+  if (ruta === "/grupo/resumen") return Response.json(await resumenGrupo(env, (await enCache(env, "c:salud", () => datosSalud(env))).problemas));
+  if (ruta === "/vivo" && ses) return Response.json(await vivo(env, {
+    resumen: () => enCache(env, "c:resumen", () => resumen(env)), serie: () => enCache(env, "c:serie", () => serie(env)),
+    problemas: async () => (await enCache(env, "c:salud", () => datosSalud(env))).problemas, cache: (clave, fn) => enCache(env, clave, fn) }));
+  const ch = /^\/chat\/([a-z-]+)$/.exec(ruta);
+  if (ch && ses && req.method === "GET") return Response.json(await historial(env, ch[1]));
+  if (ch && ses && req.method === "POST") { const r = await enviar(env, ses, ch[1], String(((await req.json().catch(() => ({}))) as { texto?: string }).texto ?? "")); return Response.json(r, { status: "error" in r ? 400 : 200 }); }
+  if (ruta === "/dia" && ses) return Response.json(await informeDia(env, url.searchParams.get("fecha")));
   /* ── Sentinel, presupuesto y botón de emergencia (solo el propietario con sesión; los scripts no pueden) ── */
   /* ── Bandeja de revisión ── */
   if (ruta === "/bandeja" && ses) return Response.json(await bandeja(env));
@@ -311,9 +330,9 @@ async function api(env: Env, req: Request, url: URL) {
   if (ruta === "/sesiones" && ses) return Response.json(await misSesiones(env, ses));
   if (ruta === "/sesiones/cerrar-todas" && req.method === "POST" && ses) return salirDeTodo(env, req, ses);
 
-  if (ruta === "/resumen") return Response.json(await resumen(env));
+  if (ruta === "/resumen") return Response.json(await enCache(env, "c:resumen", () => resumen(env)));
   if (ruta === "/publicaciones") return Response.json(await listaPublicaciones(env));
-  if (ruta === "/serie") return Response.json(await serie(env));
+  if (ruta === "/serie") return Response.json(await enCache(env, "c:serie", () => serie(env)));
   if (ruta === "/historias") return Response.json((await env.DB.prepare("SELECT h.*, (SELECT COUNT(*) FROM videos WHERE historia_id = h.id) videos FROM historias h ORDER BY creada DESC").all()).results);
   // Fábrica en la nube (GitHub Actions): sube archivos a R2 y registra en D1. Solo con la clave de scripts.
   if (ruta.startsWith("/fabrica/")) {
@@ -376,7 +395,7 @@ async function api(env: Env, req: Request, url: URL) {
   const apr = /^\/tiktok\/aprobar\/(.+)$/.exec(ruta);
   if (apr && req.method === "POST" && (await detenido(env, "relatos", "publicaciones"))) return Response.json({ error: "El botón DETENER tiene paradas las publicaciones." }, { status: 423 });
   if (apr && req.method === "POST") return Response.json(await aprobar(env, decodeURIComponent(apr[1]), await req.json()));
-  if (ruta === "/crecimiento") return Response.json(await crecimiento(env));
+  if (ruta === "/crecimiento") return Response.json(await enCache(env, "c:crecimiento", () => crecimiento(env)));
   if (ruta === "/comentarios") return Response.json(await comentariosPendientes(env));
   const rec = /^\/recomendaciones\/(\d+)$/.exec(ruta);
   if (rec && req.method === "POST") {
@@ -419,7 +438,9 @@ export default {
     ctx.waitUntil((async () => {
       await publicarPendientes(env);
       const t = new Date(c.scheduledTime);
+      // Estadísticas: todo cada hora; YouTube y TikTok también cada 15 min (Facebook limita las consultas por hora).
       if (t.getUTCMinutes() < 5) await sincronizar(env);
+      else if (t.getUTCMinutes() % 15 < 5) await sincronizar(env, ["youtube", "tiktok"]);
       if (!(await detenido(env, "relatos", "publicaciones"))) await historiaFacebook(env, t);
       // 03:00 de Ecuador: suscripciones del mes, respaldo cifrado y revisión de Sentinel.
       if (t.getUTCHours() === 8 && t.getUTCMinutes() < 5) {

@@ -66,7 +66,6 @@ export async function leerPresupuesto(env: Env): Promise<Presupuesto> {
 }
 
 export async function estadoPresupuesto(env: Env) {
-  await suscripcionesDelMes(env); // idempotente: anota las fijas del mes si aún no están
   const p = await leerPresupuesto(env);
   const mes = mesEc();
   const filas = (await env.DB.prepare("SELECT proveedor, division_id, tipo, SUM(monto_usd) usd, SUM(unidades) unidades, MAX(unidad) unidad, COUNT(*) n FROM cost_ledger WHERE mes = ? GROUP BY proveedor, division_id, tipo").bind(mes).all<{ proveedor: string; division_id: string | null; tipo: string; usd: number; unidades: number | null; unidad: string | null; n: number }>()).results;

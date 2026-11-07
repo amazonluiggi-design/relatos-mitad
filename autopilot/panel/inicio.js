@@ -7,7 +7,7 @@ const n0 = (n) => Number(n || 0).toLocaleString("es-EC");
 const usd = (n) => "$" + Number(n || 0).toFixed(2);
 
 // Dónde está cada agente en la imagen de la oficina (% del ancho y alto).
-const PUESTOS = { ryan: [11, 55], kelly: [24.5, 46], andy: [29.5, 63, "abajo"], sentinel: [49.6, 37], michael: [50.3, 48], angela: [66.5, 49], oscar: [72.5, 64, "abajo"], pam: [74.5, 44], dwight: [81, 37], jim: [91, 55] };
+export const PUESTOS = { ryan: [11, 55], kelly: [24.5, 46], andy: [29.5, 63, "abajo"], sentinel: [49.6, 37], michael: [50.3, 48], angela: [66.5, 49], oscar: [72.5, 64, "abajo"], pam: [74.5, 44], dwight: [81, 37], jim: [91, 55] };
 const ICONO = { michael: "♛", sentinel: "⛨", andy: "⌕", oscar: "▥", ryan: "✎", kelly: "✺", jim: "▶", dwight: "✓", pam: "➚", angela: "$" };
 const EST = { disponible: "Disponible", investigando: "Investigando", analizando: "Analizando", escribiendo: "Escribiendo", produciendo: "Produciendo", renderizando: "Renderizando", revisando: "Revisando", coordinando: "Coordinando", pausa: "En pausa", error: "Error" };
 const trabajando = (a) => a.activo && !["disponible", "pausa", "no-activado"].includes(a.estado);
@@ -34,10 +34,10 @@ function hace(cuando) {
   return m < 1 ? "ahora" : m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`;
 }
 
-export function etiquetasHtml(agentes) {
+export function etiquetasHtml(agentes, elegido = null) {
   return agentes.filter((a) => PUESTOS[a.id] && a.activo).map((a) => {
     const [x, y, lado] = PUESTOS[a.id], vivo = trabajando(a);
-    return `<button class="etiqueta ${lado || ""} ${vivo ? "viva" : ""} ${a.estado === "error" ? "falla" : ""}" data-agente="${esc(a.id)}" title="${esc(a.nombre + " · " + a.cargo)}" style="left:${x}%;top:${y}%">
+    return `<button class="etiqueta ${lado || ""} ${a.id === elegido ? "elegida" : ""} ${vivo ? "viva" : ""} ${a.estado === "error" ? "falla" : ""}" data-charlar="${esc(a.id)}" title="${esc(a.nombre + " · " + a.cargo)}" style="left:${x}%;top:${y}%">
       <span class="eti-icono">${ICONO[a.id] || "•"}</span><span class="eti-txt"><b>${esc(a.nombre)}</b>${vivo ? `<small>${esc(EST[a.estado] || a.estado)}${a.tarea_titulo ? " · " + esc(a.tarea_titulo) : ""}</small>` : a.abiertas ? `<small class="pend">📥 ${a.abiertas} pendiente${a.abiertas > 1 ? "s" : ""}</small>` : ""}</span>
       <i class="eti-punto"></i></button>`;
   }).join("");
@@ -45,9 +45,12 @@ export function etiquetasHtml(agentes) {
 
 export function escenaHtml(agentes, grande = false) {
   return `<div class="hero ${grande ? "grande" : ""}">
-      <video data-oficina src="/oficina.mp4" poster="/oficina.jpg" muted loop playsinline preload="metadata" aria-hidden="true"></video>
-      <div class="hero-marca" aria-hidden="true"><img src="/icono.png" alt=""><div><b>RELATOS</b><span>AI MEDIA AGENCY</span></div></div>
-      <div class="etiquetas" id="etiquetas">${etiquetasHtml(agentes)}</div>
+      <div class="escena-mov">
+        <video data-oficina src="/oficina.mp4" poster="/oficina.jpg" muted loop playsinline preload="metadata" aria-hidden="true"></video>
+        <div class="hero-marca" aria-hidden="true"><img src="/icono.png" alt=""><div><b>RELATOS</b><span>AI MEDIA AGENCY</span></div></div>
+        <div class="etiquetas" id="etiquetas">${etiquetasHtml(agentes)}</div>
+      </div>
+      <aside class="chat" id="chat" hidden aria-label="Chat con el agente"></aside>
       ${grande ? "" : `<a href="#oficina" class="hero-link">Ver oficina completa →</a>`}
     </div>`;
 }
@@ -76,7 +79,7 @@ export function inicioHtml(d) {
   const porDia = (rel.publicados_7d || 0) / 7;
   const usadoPct = pres.limites.total ? Math.min(100, (pres.usado / pres.limites.total) * 100) : 0;
   const kpi = (cls, icono, valor, etiqueta, pie, chis, fmt = "n") => `<div class="kpi-c ${cls} rev"><span class="kpi-ico">${icono}</span>
-      <div><b data-contar="${valor ?? ""}" data-fmt="${fmt}">${valor == null ? "—" : fmt === "usd" ? usd(0) : "0"}</b><small>${etiqueta}</small>${pie}</div>${chis || ""}</div>`;
+      <div><b data-k="${cls}" data-contar="${valor ?? ""}" data-fmt="${fmt}">${valor == null ? "—" : fmt === "usd" ? usd(0) : "0"}</b><small>${etiqueta}</small>${pie}</div>${chis || ""}</div>`;
   const flecha = (d0, p) => d0 == null ? `<em class="neutro">sin dato de 7 días</em>` : `<em class="${d0 >= 0 ? "sube" : "baja"}">${d0 >= 0 ? "↑" : "↓"} ${d0 >= 0 ? "+" : ""}${n0(d0)}${p != null ? ` (${p >= 0 ? "+" : ""}${Math.abs(p) < 10 ? p.toFixed(1) : p.toFixed(0)}%)` : ""} · 7 días</em>`;
   const ORDEN = ["idea", "guion", "voz", "imagenes", "render", "listo"], AVANCE = { idea: 10, guion: 25, voz: 45, imagenes: 60, render: 80, listo: 100 }, NOM = { idea: "Idea", guion: "Guion", voz: "Voz", imagenes: "Imágenes", render: "Render", listo: "Listo para salir" };
   const proyectos = historias.filter((h) => h.estado !== "publicado").sort((a, b) => (a.semana || "").localeCompare(b.semana || "")).slice(0, 4);
@@ -108,7 +111,7 @@ export function inicioHtml(d) {
     </div>
     <div class="tarjeta rendimiento rev"><h3>▥ Rendimiento por plataforma <span class="nd">vistas nuevas · 7 días</span></h3>
       <div class="redes3">${redes.map(([r, nom, ic, col]) => { const a = sum7(r), b = prev7(r), v = b ? ((a - b) / b) * 100 : null;
-        return `<div class="red-col" style="--c:${col}"><span class="red-ico">${ic}</span><small>${nom}</small><b data-contar="${a}" data-fmt="n">0</b>
+        return `<div class="red-col" style="--c:${col}"><span class="red-ico">${ic}</span><small>${nom}</small><b data-k="r-${r}" data-contar="${a}" data-fmt="n">0</b>
           ${v == null ? `<em class="neutro">sin semana previa</em>` : `<em class="${v >= 0 ? "sube" : "baja"}">${v >= 0 ? "↑ +" : "↓ "}${v.toFixed(0)}%</em>`}${chispa(vistasDia(r), col.includes("fb") ? "#3b82f6" : col.includes("yt") ? "#ef4444" : "#2dd4bf", "r" + r)}</div>`; }).join("")}</div>
     </div>
     <div class="tarjeta finanzas rev"><h3>$ Resumen financiero <a href="#presupuesto">Ver detalle →</a></h3>
@@ -124,14 +127,16 @@ export function inicioHtml(d) {
 }
 
 /** Cifras que cuentan desde 0 (700 ms, desaceleración). */
-export function contar(raiz) {
+export function contar(raiz, previos = {}) {
   const fmt = (v, f) => (f === "usd" ? usd(v) : f === "d1" ? v.toFixed(1) : n0(Math.round(v)));
   raiz.querySelectorAll("[data-contar]").forEach((el) => {
     const fin = parseFloat(el.dataset.contar);
     if (!Number.isFinite(fin)) return;
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = fmt(fin, el.dataset.fmt); return; }
+    const ini = previos[el.dataset.k] ?? 0;
+    if (ini === fin) { el.textContent = fmt(fin, el.dataset.fmt); return; }
     const t0 = performance.now(), dur = 700;
-    const paso = (t) => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(fin * e, el.dataset.fmt); if (k < 1) requestAnimationFrame(paso); };
+    const paso = (t) => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(ini + (fin - ini) * e, el.dataset.fmt); if (k < 1) requestAnimationFrame(paso); };
     requestAnimationFrame(paso);
   });
 }
