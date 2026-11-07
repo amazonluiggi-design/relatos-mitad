@@ -10,7 +10,7 @@ import { apiAgentes, fichaAgente, instruccion, listaAgentes, verMemoria, verTare
 import { cambiarDetener, detenido, estadoPresupuesto, hacerRespaldo, informeSentinel, leerDetener, registrarGasto, revisionDiaria, suscripcionesDelMes, validarSql, verificarGasto } from "./sentinel";
 import { pngResumen } from "./imagen";
 import { entrarDesdePortal, leerPase } from "./portal";
-import { publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube, historiaFacebook, comentariosPendientes } from "./redes";
+import { actualizarSeguidores, publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube, historiaFacebook, comentariosPendientes } from "./redes";
 import { type Env, type Pub, evento } from "./tipos";
 import { aprobar, canjear, creador, urlConectar } from "./tiktok-ui";
 
@@ -438,9 +438,10 @@ async function api(env: Env, req: Request, url: URL) {
     // Como mucho una vez por minuto (Facebook limita las consultas por hora).
     if (await env.KV.get("sync-manual")) return Response.json({ ok: true, espera: true });
     await env.KV.put("sync-manual", "1", { expirationTtl: 60 });
-    await publicarPendientes(env); await sincronizar(env);
+    const redes = await actualizarSeguidores(env);
     await Promise.all(["c:resumen", "c:serie", "c:crecimiento", "c:vivo-lento", "c:salud"].map((k) => env.KV.delete(k)));
-    return Response.json({ ok: true });
+    await env.KV.put("ultima-sync", new Date().toISOString());
+    return Response.json({ ok: true, redes });
   }
   return Response.json({ error: "no existe" }, { status: 404 });
 }

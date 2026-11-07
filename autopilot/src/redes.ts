@@ -294,3 +294,28 @@ export async function comentariosPendientes(env: Env) {
   await env.KV.put("comentarios-pendientes", JSON.stringify(lista), { expirationTtl: 600 });
   return lista;
 }
+
+/** Solo seguidores de las 3 redes (una consulta por red, ~2 s), para el botón "Actualizar ahora".
+ *  Conserva las vistas y videos ya guardados de esa hora (las métricas por video siguen en el ciclo de 15 min). */
+export async function actualizarSeguidores(env: Env) {
+  const previo = async (red: string) => env.DB.prepare("SELECT vistas_totales, videos FROM cuentas_hist WHERE red = ? ORDER BY momento DESC LIMIT 1").bind(red).first<{ vistas_totales: number | null; videos: number | null }>();
+  const tareas: Record<string, () => Promise<void>> = {
+    youtube: async () => {
+      const c = (await (await fetch("https://www.googleapis.com/youtube/v3/channels?part=statistics&mine=true", { headers: { Authorization: `Bearer ${await tokenYouTube(env)}` } })).json()) as { items?: { statistics: { subscriberCount: string; viewCount: string; videoCount: string } }[] };
+      const s = c.items?.[0]?.statistics;
+      if (s) await guardarCuenta(env, "youtube", +s.subscriberCount, +s.viewCount, +s.videoCount);
+    },
+    facebook: async () => {
+      const p = (await (await fetch(`${G}/${env.FB_PAGINA}?fields=followers_count&access_token=${env.FB_TOKEN}`)).json()) as { followers_count?: number };
+      const v = await previo("facebook");
+      if (p.followers_count != null) await guardarCuenta(env, "facebook", p.followers_count, v?.vistas_totales ?? null, v?.videos ?? null);
+    },
+    tiktok: async () => {
+      const r = (await (await fetch(`${TT}/user/info/?fields=follower_count,video_count`, { headers: { Authorization: `Bearer ${await tokenTikTok(env)}` } })).json()) as { data?: { user?: { follower_count?: number; video_count?: number } } };
+      const u = r.data?.user, v = await previo("tiktok");
+      if (u?.follower_count != null) await guardarCuenta(env, "tiktok", u.follower_count, v?.vistas_totales ?? null, u.video_count ?? v?.videos ?? null);
+    },
+  };
+  const res = await Promise.allSettled(Object.values(tareas).map((f) => f()));
+  return Object.fromEntries(Object.keys(tareas).map((k, i) => [k, res[i].status === "fulfilled" ? "ok" : String((res[i] as PromiseRejectedResult).reason).slice(0, 120)]));
+}
