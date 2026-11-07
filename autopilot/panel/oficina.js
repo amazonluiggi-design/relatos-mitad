@@ -1,6 +1,6 @@
 // Oficina virtual completa: la misma oficina fotorrealista (video de Remotion) en grande, con todos los agentes
 // etiquetados sobre su puesto y la lista del equipo con su estado REAL. Gaming muestra su equipo en preparación.
-import { escenaHtml } from "/inicio.js";
+import { escenaHtml, proyeccionHtml } from "/inicio.js";
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const EST = { disponible: "Disponible", investigando: "Investigando", analizando: "Analizando", escribiendo: "Escribiendo", produciendo: "Produciendo", renderizando: "Renderizando", revisando: "Revisando", coordinando: "Coordinando", pausa: "En pausa", error: "Error", "no-activado": "Por activar" };
 const vivo = (a) => a.activo && !["disponible", "pausa", "no-activado"].includes(a.estado);
@@ -23,6 +23,6 @@ export function oficinaHtml(datos, division) {
     </div>
     ${gaming
       ? `<div class="tarjeta gaming-espera"><h3>RELATOS GAMING MEDIA · equipo en preparación</h3><p class="nd">Los agentes de Gaming se activan cuando la marca tenga nombre y cuentas, y Rockstar esté verificado en el gestor de derechos.</p></div>`
-      : escenaHtml(datos.agentes, true)}
+      : proyeccionHtml(datos.proyeccion) + escenaHtml(datos.agentes, true)}
     <div class="equipo-lista">${lista.map(tarjeta).join("")}</div>`;
 }

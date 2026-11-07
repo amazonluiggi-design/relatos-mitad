@@ -4,7 +4,7 @@ import { actividadReciente, division } from "./grupo";
 import { estadoPresupuesto, leerDetener } from "./sentinel";
 import type { Env } from "./tipos";
 
-type Fuentes = { resumen: () => Promise<unknown>; serie: () => Promise<unknown>; problemas: () => Promise<string[]>; cache: <T>(clave: string, fn: () => Promise<T>) => Promise<T> };
+type Fuentes = { resumen: () => Promise<unknown>; serie: () => Promise<unknown>; problemas: () => Promise<string[]>; usuario?: number; cache: <T>(clave: string, fn: () => Promise<T>) => Promise<T> };
 
 export async function vivo(env: Env, f: Fuentes) {
   // Lo que cambia lento va en caché de 60 s; agentes, actividad y DETENER se leen en cada consulta.
@@ -25,7 +25,8 @@ export async function vivo(env: Env, f: Fuentes) {
   return {
     ahora: new Date().toISOString(), resumen, serie, crec: { cuentas }, agentes: ag.agentes, actividad, division: rel, pres,
     historias,
-    barra: { detenido: Object.entries(det).some(([k, v]) => v === true && k !== "cambiado"), alertas: problemas.length + (seguridad || 0), bandeja: bandeja || 0 },
+    barra: { detenido: Object.entries(det).some(([k, v]) => v === true && k !== "cambiado"), alertas: f.usuario ? (await notificaciones(env, f.usuario, problemas)).nuevos : problemas.length + (seguridad || 0), bandeja: bandeja || 0 },
+    proyeccion: proyeccion(cuentas as { red: string; dia: string; seguidores: number | null }[], serie as { dia: string; red: string; vistas: number | null }[]),
   };
 }
 
@@ -45,4 +46,44 @@ export async function informeDia(env: Env, fecha: string | null) {
     env.DB.prepare("SELECT COUNT(*) n FROM agent_chats WHERE cuando >= ? AND cuando < ?").bind(desde, hasta).first<number>("n"),
   ]);
   return { dia, tareas: tareas.results, cambios: cambios.results, publicadas: publicadas.results, actividad: eventos.results, informes: informes.results, chats: chats || 0 };
+}
+
+/* ───── Notificaciones de la campana (lo "visto" se guarda en KV por usuario: vale en cualquier dispositivo) ───── */
+export async function notificaciones(env: Env, userId: number, problemas: string[]) {
+  const visto = (await env.KV.get(`notif-visto:${userId}`)) || "1970-01-01 00:00:00";
+  const vistosProb = new Set(JSON.parse((await env.KV.get(`notif-prob:${userId}`)) || "[]") as string[]);
+  const items = (await env.DB.prepare(`SELECT * FROM (
+      SELECT cuando, CASE nivel WHEN 'error' THEN 'error' ELSE 'aviso' END tipo, mensaje texto FROM eventos
+        WHERE (nivel IN ('error','aviso') OR mensaje LIKE '%cambió la hora%' OR mensaje LIKE '%mejoró el texto%' OR mensaje LIKE '%retuvo%') AND cuando >= datetime('now', '-7 days')
+      UNION ALL SELECT t.terminada, 'tarea', a.nombre || ' terminó: ' || t.titulo || CASE WHEN t.calidad IS NOT NULL THEN ' (' || t.calidad || '/100)' ELSE '' END
+        FROM agent_tasks t JOIN agents a ON a.id = t.agente_id WHERE t.estado = 'hecha' AND t.terminada >= datetime('now', '-7 days')
+      UNION ALL SELECT cuando, 'seguridad', tipo || ': ' || detalle FROM security_events WHERE severidad = 'alta' AND cuando >= datetime('now', '-7 days')
+    ) ORDER BY cuando DESC LIMIT 30`).all<{ cuando: string; tipo: string; texto: string }>()).results;
+  const nuevos = items.filter((i) => i.cuando > visto).length + problemas.filter((p) => !vistosProb.has(p)).length;
+  return { visto, nuevos, problemas: problemas.map((p) => ({ texto: p, nuevo: !vistosProb.has(p) })), items: items.map((i) => ({ ...i, nuevo: i.cuando > visto })) };
+}
+
+export async function marcarVisto(env: Env, userId: number, problemas: string[]) {
+  await env.KV.put(`notif-visto:${userId}`, new Date().toISOString().replace("T", " ").slice(0, 19));
+  await env.KV.put(`notif-prob:${userId}`, JSON.stringify(problemas));
+}
+
+/** "Si seguimos así": tendencia lineal de los últimos 14 días por red (estimación de Oscar, no una promesa). */
+export function proyeccion(cuentas: { red: string; dia: string; seguidores: number | null }[], serie: { dia: string; red: string; vistas: number | null }[]) {
+  return ["facebook", "youtube", "tiktok"].map((red) => {
+    const pts = cuentas.filter((c) => c.red === red && c.seguidores != null).slice(-14).map((c, i) => [i, c.seguidores as number]);
+    const n = pts.length;
+    let pendiente = 0;
+    if (n >= 3) {
+      const mx = pts.reduce((a, p) => a + p[0], 0) / n, my = pts.reduce((a, p) => a + p[1], 0) / n;
+      const num = pts.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0), den = pts.reduce((a, p) => a + (p[0] - mx) ** 2, 0);
+      pendiente = den ? num / den : 0;
+    }
+    const s = serie.filter((x) => x.red === red).map((x) => x.vistas || 0);
+    const dias = s.slice(1).map((v, i) => Math.max(0, v - s[i]));
+    const vistasSemana = dias.slice(-7).reduce((a, b) => a + b, 0);
+    const actual = n ? pts[n - 1][1] : null;
+    return { red, actual, seguidores_semana: Math.round(pendiente * 7), en_4_semanas: actual == null ? null : Math.round(actual + pendiente * 28),
+      vistas_semana: vistasSemana, dias: n, confianza: n >= 10 ? "media" : "baja" };
+  });
 }

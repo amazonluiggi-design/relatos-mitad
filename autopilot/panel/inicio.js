@@ -47,12 +47,26 @@ export function escenaHtml(agentes, grande = false) {
   return `<div class="hero ${grande ? "grande" : ""}">
       <div class="escena-mov">
         <video data-oficina src="/oficina.mp4" poster="/oficina.jpg" muted loop playsinline preload="metadata" aria-hidden="true"></video>
+        <img class="escena-hd" alt="" data-src="/oficina-hd.jpg" decoding="async" aria-hidden="true">
         <div class="hero-marca" aria-hidden="true"><img src="/icono.png" alt=""><div><b>RELATOS</b><span>AI MEDIA AGENCY</span></div></div>
         <div class="etiquetas" id="etiquetas">${etiquetasHtml(agentes)}</div>
       </div>
+      <div class="vuelos" aria-hidden="true"></div>
       <aside class="chat" id="chat" hidden aria-label="Chat con el agente"></aside>
       ${grande ? "" : `<a href="#oficina" class="hero-link">Ver oficina completa →</a>`}
     </div>`;
+}
+
+/** "Si seguimos así": cuánto crecemos por semana en cada red (estimación del equipo con la tendencia de 14 días). */
+export function proyeccionHtml(p) {
+  if (!p) return "";
+  const RED = { facebook: ["Facebook", "f", "#3b82f6"], youtube: ["YouTube", "▶", "#ef4444"], tiktok: ["TikTok", "♪", "#2dd4bf"] };
+  const signo = (n) => (n > 0 ? "+" : "");
+  return `<section class="proy rev"><div class="proy-cab"><b>📈 Si seguimos así</b><span>Estimación de Oscar con la tendencia de los últimos 14 días · se recalcula sola</span></div>
+    <div class="proy-redes">${p.map((x) => { const [n, ic, col] = RED[x.red]; return `<div class="proy-red" style="--c:${col}"><span class="red-ico">${ic}</span>
+      <div><small>${n}</small><b><span data-k="p-${x.red}" data-contar="${x.seguidores_semana}" data-fmt="s">0</span><em> ${x.red === "youtube" ? "suscriptores" : "seguidores"}/semana</em></b>
+      <p>≈ <span data-k="p4-${x.red}" data-contar="${x.en_4_semanas ?? ""}" data-fmt="n">0</span> en 4 semanas · <span data-k="pv-${x.red}" data-contar="${x.vistas_semana}" data-fmt="n">0</span> vistas/semana</p>
+      <i class="conf ${x.confianza}">confianza ${x.confianza} · ${x.dias} días</i></div></div>`; }).join("")}</div></section>`;
 }
 
 export function actividadHtml(lista, vistos) {
@@ -95,6 +109,7 @@ export function inicioHtml(d) {
     ${kpi("dp", "⛨", pres.disponible, "Disponible", `<div class="barra-p"><span style="width:${(100 - usadoPct).toFixed(1)}%"></span></div>`, "", "usd")}
   </div>
 
+  ${proyeccionHtml(d.proyeccion)}
   <section class="escenario rev">
     ${escenaHtml(agentes.agentes)}
     <aside class="feed">
@@ -128,7 +143,7 @@ export function inicioHtml(d) {
 
 /** Cifras que cuentan desde 0 (700 ms, desaceleración). */
 export function contar(raiz, previos = {}) {
-  const fmt = (v, f) => (f === "usd" ? usd(v) : f === "d1" ? v.toFixed(1) : n0(Math.round(v)));
+  const fmt = (v, f) => (f === "usd" ? usd(v) : f === "d1" ? v.toFixed(1) : f === "s" ? (Math.round(v) > 0 ? "+" : "") + n0(Math.round(v)) : n0(Math.round(v)));
   raiz.querySelectorAll("[data-contar]").forEach((el) => {
     const fin = parseFloat(el.dataset.contar);
     if (!Number.isFinite(fin)) return;

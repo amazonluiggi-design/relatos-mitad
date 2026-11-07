@@ -1,6 +1,6 @@
 import { oficinaHtml } from "/oficina.js";
 import { actividadHtml, contar, etiquetasHtml, inicioHtml, reloj } from "/inicio.js";
-import { agenteAbierto, cerrarChat, iniciarChat } from "/chat.js";
+import { agenteAbierto, cerrarChat, iniciarChat, refrescarChat, volar } from "/chat.js";
 import { diaHtml } from "/dia.js";
 // Panel de Relatos Autopilot. Todo el texto que viene de la base se escapa antes de pintarse.
 const $ = (s) => document.querySelector(s);
@@ -606,7 +606,7 @@ function pintarBarra(d) {
   const c = $("#campana em"); c.hidden = !d.barra.alertas; c.textContent = d.barra.alertas;
   const bb = $("#badge-bandeja"); bb.hidden = !d.barra.bandeja; bb.textContent = d.barra.bandeja > 99 ? "99+" : d.barra.bandeja;
 }
-const datosInicio = (d) => ({ resumen: d.resumen, crec: d.crec, serie: d.serie, pres: d.pres, agentes: { agentes: d.agentes }, historias: d.historias,
+const datosInicio = (d) => ({ proyeccion: d.proyeccion, resumen: d.resumen, crec: d.crec, serie: d.serie, pres: d.pres, agentes: { agentes: d.agentes }, historias: d.historias,
   grupo: { divisiones: [{ id: "relatos", ...d.division }], actividad: d.actividad } });
 async function enVivo() {
   if ($("#casa").hidden || document.hidden) return;
@@ -618,17 +618,65 @@ async function enVivo() {
     if (r === "inicio") {
       const previos = valores(), tmp = document.createElement("div");
       tmp.innerHTML = inicioHtml(datosInicio(d));
-      for (const sel of [".kpis", ".redes3", ".proyectos ol", ".fin"]) { const n = tmp.querySelector(sel), v = $("#casa-vista " + sel); if (n && v) v.replaceWith(n); }
+      for (const sel of [".kpis", ".proy", ".redes3", ".proyectos ol", ".fin"]) { const n = tmp.querySelector(sel), v = $("#casa-vista " + sel); if (n && v) v.replaceWith(n); }
       contar($("#casa-vista"), previos);
       const fd = $("#feed"); if (fd) { fd.innerHTML = actividadHtml(d.actividad, feedVistos); fd.querySelectorAll("li").forEach((li) => feedVistos.add(li.dataset.clave)); }
     }
     if (r.startsWith("oficina")) {
-      const tmp = document.createElement("div"); tmp.innerHTML = oficinaHtml({ agentes: d.agentes }, r === "oficina-gaming" ? "gaming" : "relatos");
-      for (const sel of [".equipo-lista", ".oficina-cab"]) { const n = tmp.querySelector(sel), v = $("#casa-vista " + sel); if (n && v) v.replaceWith(n); }
+      const previos = valores(), tmp = document.createElement("div"); tmp.innerHTML = oficinaHtml({ agentes: d.agentes, proyeccion: d.proyeccion }, r === "oficina-gaming" ? "gaming" : "relatos");
+      for (const sel of [".equipo-lista", ".oficina-cab", ".proy"]) { const n = tmp.querySelector(sel), v = $("#casa-vista " + sel); if (n && v) v.replaceWith(n); }
+      contar($("#casa-vista"), previos);
     }
+    mensajesQueVuelan(d.actividad);
+    refrescarChat();
   } catch {}
 }
 setInterval(enVivo, 20000);
+
+/* Cuando Michael reparte trabajo (o tú das una orden), el sobre dorado vuela al puesto de quien la recibe. */
+let actVistas = null;
+function mensajesQueVuelan(lista) {
+  const clave = (x) => x.cuando + x.texto;
+  if (!actVistas) { actVistas = new Set(lista.map(clave)); return; } // la primera vez no se anima lo viejo
+  let n = 0;
+  for (const x of [...lista].reverse()) {
+    if (actVistas.has(clave(x))) continue;
+    actVistas.add(clave(x));
+    const asigna = /^Michael · Asignó a ([a-z-]+):/.exec(x.texto);
+    const orden = /^(\w+) · 📥 (Recibí tu instrucción|Anotó del chat)/.exec(x.texto);
+    if (asigna) volar("michael", asigna[1], 300 * n++);
+    else if (orden) volar("ceo", orden[1].toLowerCase(), 300 * n++);
+  }
+}
+
+/* ───── Campana: ventanita de notificaciones; al cerrarla queda en 0 ───── */
+const ICONO_N = { error: "⚠", aviso: "●", tarea: "✓", seguridad: "⛨" };
+async function abrirNotif() {
+  const caja = $("#notif");
+  caja.hidden = false; caja.innerHTML = `<div class="notif-cargando"><i></i><i></i><i></i></div>`;
+  requestAnimationFrame(() => caja.classList.add("visible"));
+  const n = await api("/notificaciones").catch(() => null);
+  if (!n || caja.hidden) return;
+  const hace = (s) => { const m = Math.round((Date.now() - Date.parse(s.replace(" ", "T") + "Z")) / 60000); return m < 60 ? `hace ${Math.max(1, m)} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} d`; };
+  caja.innerHTML = `<header><b>Notificaciones</b><span>${n.nuevos ? n.nuevos + " nuevas" : "Todo al día"}</span></header>
+    ${n.problemas.length ? `<p class="notif-sec">Necesita atención</p>${n.problemas.map((p) => `<div class="notif-it error ${p.nuevo ? "nuevo" : ""}"><span>⚠</span><p>${esc(p.texto)}</p></div>`).join("")}` : ""}
+    <p class="notif-sec">Últimos 7 días</p>
+    ${n.items.length ? n.items.map((i) => `<div class="notif-it ${esc(i.tipo)} ${i.nuevo ? "nuevo" : ""}"><span>${ICONO_N[i.tipo] || "●"}</span><p>${esc(i.texto)}<small>${esc(hace(i.cuando))}</small></p></div>`).join("") : `<p class="nd notif-vacio">Sin novedades.</p>`}
+    <a href="#dia" class="notif-pie">Ver el informe del día →</a>`;
+}
+async function cerrarNotif() {
+  const caja = $("#notif");
+  if (caja.hidden) return;
+  caja.classList.remove("visible");
+  setTimeout(() => { caja.hidden = true; }, 250);
+  const c = $("#campana em"); c.hidden = true; c.textContent = 0;
+  await post("/notificaciones").catch(() => {});
+}
+document.addEventListener("click", (e) => {
+  if (e.target.closest("#campana")) { e.preventDefault(); $("#notif").hidden ? abrirNotif() : cerrarNotif(); return; }
+  if (!e.target.closest("#notif") || e.target.closest(".notif-pie")) cerrarNotif();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrarNotif(); });
 iniciarChat({ api, post }, () => ultimoVivo?.agentes || []);
 setInterval(reloj, 10000);
 document.addEventListener("error", (e) => { if (e.target.tagName === "IMG") e.target.classList.add("rota"); }, true);
@@ -778,8 +826,8 @@ const CASA_VISTAS = {
       ${lista.length ? `<div class="bandeja">${lista.map(tarjeta).join("")}</div>` : `<div class="vacio">Nada programado en los próximos 7 días.</div>`}`;
   },
 
-  async oficina() { ultimoVivo = await api("/vivo"); return oficinaHtml({ agentes: ultimoVivo.agentes }, "relatos"); },
-  async "oficina-gaming"() { ultimoVivo = await api("/vivo"); return oficinaHtml({ agentes: ultimoVivo.agentes }, "gaming"); },
+  async oficina() { ultimoVivo = await api("/vivo"); return oficinaHtml({ agentes: ultimoVivo.agentes, proyeccion: ultimoVivo.proyeccion }, "relatos"); },
+  async "oficina-gaming"() { ultimoVivo = await api("/vivo"); return oficinaHtml({ agentes: ultimoVivo.agentes, proyeccion: ultimoVivo.proyeccion }, "gaming"); },
 
   async agentes() {
     const d = await api("/agentes");

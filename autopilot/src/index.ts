@@ -2,8 +2,8 @@
 // Cron cada 5 min: publica en TikTok lo que venció y revisa estados. Cada hora (minuto 0-4): estadísticas de las 3 redes.
 import { auditar, eventoSeguridad, leerSesion, login, mfa, misSesiones, salir, salirDeTodo } from "./auth";
 import { resumenGrupo } from "./grupo";
-import { informeDia, vivo } from "./vivo";
-import { enviar, historial } from "./chat";
+import { informeDia, marcarVisto, notificaciones, vivo } from "./vivo";
+import { conversacion, enviar } from "./chat";
 import { bandeja, decidir } from "./bandeja";
 import { datosGaming, guardarCreador, guardarDerecho, guardarMarca } from "./gaming";
 import { apiAgentes, fichaAgente, instruccion, listaAgentes, verMemoria, verTarea } from "./agentes";
@@ -287,9 +287,14 @@ async function api(env: Env, req: Request, url: URL) {
   if (ruta === "/grupo/resumen") return Response.json(await resumenGrupo(env, (await enCache(env, "c:salud", () => datosSalud(env))).problemas));
   if (ruta === "/vivo" && ses) return Response.json(await vivo(env, {
     resumen: () => enCache(env, "c:resumen", () => resumen(env)), serie: () => enCache(env, "c:serie", () => serie(env)),
-    problemas: async () => (await enCache(env, "c:salud", () => datosSalud(env))).problemas, cache: (clave, fn) => enCache(env, clave, fn) }));
+    problemas: async () => (await enCache(env, "c:salud", () => datosSalud(env))).problemas, cache: (clave, fn) => enCache(env, clave, fn), usuario: ses.user.id }));
+  if (ruta === "/notificaciones" && ses) {
+    const problemas = (await enCache(env, "c:salud", () => datosSalud(env))).problemas;
+    if (req.method === "POST") { await marcarVisto(env, ses.user.id, problemas); return Response.json({ ok: true }); }
+    return Response.json(await notificaciones(env, ses.user.id, problemas));
+  }
   const ch = /^\/chat\/([a-z-]+)$/.exec(ruta);
-  if (ch && ses && req.method === "GET") return Response.json(await historial(env, ch[1]));
+  if (ch && ses && req.method === "GET") return Response.json(await conversacion(env, ch[1]));
   if (ch && ses && req.method === "POST") { const r = await enviar(env, ses, ch[1], String(((await req.json().catch(() => ({}))) as { texto?: string }).texto ?? "")); return Response.json(r, { status: "error" in r ? 400 : 200 }); }
   if (ruta === "/dia" && ses) return Response.json(await informeDia(env, url.searchParams.get("fecha")));
   /* ── Sentinel, presupuesto y botón de emergencia (solo el propietario con sesión; los scripts no pueden) ── */
