@@ -434,7 +434,14 @@ async function api(env: Env, req: Request, url: URL) {
     await auditar(env, valor ? "pausa" : "reanudar", { user_id: ses?.user.id, actor: ses?.user.correo ?? "script", division: "relatos", ip: req.headers.get("cf-connecting-ip") });
     return Response.json({ ok: true });
   }
-  if (ruta === "/sincronizar" && req.method === "POST") { await publicarPendientes(env); await sincronizar(env); return Response.json({ ok: true }); }
+  if (ruta === "/sincronizar" && req.method === "POST") {
+    // Como mucho una vez por minuto (Facebook limita las consultas por hora).
+    if (await env.KV.get("sync-manual")) return Response.json({ ok: true, espera: true });
+    await env.KV.put("sync-manual", "1", { expirationTtl: 60 });
+    await publicarPendientes(env); await sincronizar(env);
+    await Promise.all(["c:resumen", "c:serie", "c:crecimiento", "c:vivo-lento", "c:salud"].map((k) => env.KV.delete(k)));
+    return Response.json({ ok: true });
+  }
   return Response.json({ error: "no existe" }, { status: 404 });
 }
 

@@ -618,7 +618,7 @@ async function enVivo() {
     if (r === "inicio") {
       const previos = valores(), tmp = document.createElement("div");
       tmp.innerHTML = inicioHtml(datosInicio(d));
-      for (const sel of [".kpis", ".proy", ".redes3", ".proyectos ol", ".fin"]) { const n = tmp.querySelector(sel), v = $("#casa-vista " + sel); if (n && v) v.replaceWith(n); }
+      for (const sel of [".kpis", ".proy", "#fuente-datos", ".redes3", ".proyectos ol", ".fin"]) { const n = tmp.querySelector(sel), v = $("#casa-vista " + sel); if (n && v) v.replaceWith(n); }
       contar($("#casa-vista"), previos);
       const fd = $("#feed"); if (fd) { fd.innerHTML = actividadHtml(d.actividad, feedVistos); fd.querySelectorAll("li").forEach((li) => feedVistos.add(li.dataset.clave)); }
     }
@@ -632,6 +632,14 @@ async function enVivo() {
   } catch {}
 }
 setInterval(enVivo, 20000);
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("#sync-ahora");
+  if (!b) return;
+  b.disabled = true; b.textContent = "Consultando las redes…";
+  const r = await post("/sincronizar");
+  b.textContent = r.espera ? "Recién actualizado, espera un minuto" : "✓ Listo";
+  await enVivo();
+});
 
 /* Cuando Michael reparte trabajo (o tú das una orden), el sobre dorado vuela al puesto de quien la recibe. */
 let actVistas = null;

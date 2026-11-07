@@ -110,6 +110,7 @@ export function inicioHtml(d) {
   </div>
 
   ${proyeccionHtml(d.proyeccion)}
+  <p class="fuente-datos" id="fuente-datos">Seguidores y vistas: datos oficiales de Facebook, YouTube y TikTok · última lectura ${resumen.ultima_sync ? esc(hace(resumen.ultima_sync)) : "pendiente"} <button type="button" id="sync-ahora">↻ Actualizar ahora</button></p>
   <section class="escenario rev">
     ${escenaHtml(agentes.agentes)}
     <aside class="feed">
