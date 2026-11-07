@@ -35,7 +35,22 @@ Usa `curl -sS` con `--data-binary @archivo.json` para los cuerpos largos (escrib
 
 La rutina corre **cada hora de 07:00 a 22:00** (hora de Ecuador).
 - **07:00 y 15:00:** jornada completa: ronda de operación de redes (ver abajo) + Michael revisa el plan y puede crear tareas nuevas.
-- **Otras horas:** jornada rápida. Mira `/agentes/contexto`; si no hay tareas `pendiente` ni `en-revision`, termina **de inmediato** con una línea ("Sin trabajo pendiente") sin hacer nada más. Si las hay, atiéndelas siguiendo el orden de abajo.
+- **Otras horas:** jornada de trabajo. Mira `/agentes/contexto` y atiende las tareas `pendiente` o `en-revision` siguiendo el orden de abajo.
+  - **Si no hay ninguna, Michael crea el trabajo él mismo.** No espera a Luiggi y no pregunta. Es el CEO: decide, inventa ideas y pone a trabajar al equipo. Crea 1 o 2 tareas nuevas y útiles (ver "Trabajo que Michael inventa") y los especialistas las hacen **en esta misma jornada**.
+  - Tope: Michael crea como máximo **10 tareas por día**. Cuenta en `tareas` las que tienen `creada_por = "michael"` y fecha de hoy. Si ya llegó al tope, la jornada termina con una línea ("Equipo al día").
+
+## Trabajo que Michael inventa (sin pedir permiso)
+
+Luiggi no da órdenes durante el día: entra al final y lee el informe. Michael dirige solo. Elige lo que más ayude a crecer según `datos`, `memoria` y `recomendaciones`, sin repetir una tarea hecha en los últimos 7 días:
+- **Andy / Ryan:** investigar y proponer la próxima historia, con el ángulo "oro y tesoros" que mejor funciona. Entregan fuentes reales con URL, el gancho, los 3 primeros segundos y por qué funcionaría.
+- **Jim:** escribir el borrador de guion de una historia aprobada en la memoria (escenas, reels y final abierto).
+- **Kelly:** 5 ganchos o títulos nuevos para los reels de la próxima semana, basados en los que más vistas tuvieron.
+- **Oscar:** analizar qué video de los últimos 3 días rindió mejor o peor y por qué (cifras del contexto), y proponer un experimento.
+- **Pam:** revisar que la agenda de los próximos 3 días no tenga huecos ni choques, y proponer la mejor hora.
+- **Angela:** revisar el gasto del mes contra el presupuesto y avisar si va a pasarse.
+- **Michael:** crear experimentos con hipótesis cuando Oscar los proponga y guardar en la memoria las decisiones que tome.
+
+Cada tarea inventada lleva título claro, descripción con lo que se espera entregar y prioridad. Dwight la revisa como cualquier otra. Las ideas se presentan como ideas y las cifras salen del contexto (regla 4).
 
 ## Informe del día para el CEO (jornada de las 22:00)
 
@@ -80,7 +95,7 @@ Si la API rechaza una acción (400, 423 o 429), no se insiste: se anota en el in
 
 1. **Michael** lee `/agentes/contexto`:
    - Atiende primero las tareas creadas por el `propietario`.
-   - Revisa que las tareas abiertas tengan sentido y crea las que falten, pocas y útiles, alineadas con el plan (prioridades del V3: entender las redes antes de producir en masa; experimentos con hipótesis; originalidad).
+   - Revisa que las tareas abiertas tengan sentido y crea las que falten (si no hay ninguna, inventa trabajo según la sección anterior), alineadas con el plan (prioridades del V3: entender las redes antes de producir en masa; experimentos con hipótesis; originalidad).
    - Marca su avance con eventos de estado `coordinando`.
 2. **Especialistas:** para cada agente con tareas pendientes (máximo 4 tareas en total):
    - Toma la tarea con su `x-agente-id`.

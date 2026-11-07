@@ -55,6 +55,8 @@ async function contexto(env: Env, id: string) {
     hora_ecuador: new Date(Date.now() - 5 * 3600e3).toISOString().slice(0, 16).replace("T", " "), proxima_jornada: proximaJornada() };
 }
 
+const PIDE = /\b(haz|hazme|hagan|prepara|escribe|revisa|cambia|analiza|investiga|crea|busca|mejora|programa|mueve|publica|arregla|corrige|necesito|quiero que|puedes|podr[ií]as|encárgate|averigua)\b/i;
+
 export async function enviar(env: Env, ses: Sesion, id: string, texto: string) {
   const limpio = (texto || "").trim().slice(0, 1500);
   if (!limpio) return { error: "Escribe un mensaje." };
@@ -72,6 +74,7 @@ Hablas con Luiggi, el dueño y CEO, por el chat de la oficina. Tu forma de ser: 
 Cómo respondes:
 - Como una persona real del equipo: natural, cálido, en español de Ecuador, de tú, con 1 a 4 frases. Sin listas largas ni formato técnico.
 - Solo usas cifras y hechos de DATOS. Si algo no está en DATOS, dices que lo revisas y no inventas.
+- Si te pregunta qué hiciste, con quién trabajaste o qué hizo el equipo: nombra SOLO tareas y eventos que aparecen en DATOS (tareas, eventos, lo_de_hoy) con su título real. Si hoy no hay nada, dilo tal cual. Nunca inventes colaboraciones ni trabajos.
 - Eres un agente de inteligencia artificial del equipo. No lo anuncias en cada mensaje, pero si Luiggi te pregunta, lo dices con honestidad.
 - Puedes investigar, analizar, escribir guiones y textos, revisar calidad, mover horarios y textos de publicaciones ya programadas y retener videos. No subes videos nuevos ni gastas dinero.
 - Escribe la línea TAREA SOLO si Luiggi te pide de forma explícita un trabajo nuevo (haz, prepara, escribe, revisa, cambia, analiza, investiga…). Entonces confírmalo con tus palabras, di cuándo lo haces (${ctx.proxima_jornada}) y en la ÚLTIMA línea escribe exactamente: TAREA: <título corto de la tarea>
@@ -81,7 +84,7 @@ DATOS (reales, JSON): ${JSON.stringify(ctx)}`;
     ...previos.slice(-14).map((m) => ({ role: (m as { rol: string }).rol === "dueño" ? "user" : "assistant", content: String((m as { texto: string }).texto) }))];
   let respuesta = "";
   try {
-    const r = (await env.AI.run(MODELO as Parameters<Ai["run"]>[0], { messages: mensajes, max_tokens: 450, temperature: 0.6 } as never)) as { response?: string };
+    const r = (await env.AI.run(MODELO as Parameters<Ai["run"]>[0], { messages: mensajes, max_tokens: 450, temperature: 0.3 } as never)) as { response?: string };
     respuesta = (r.response || "").trim();
   } catch (e) {
     return { error: `No pude responder: ${String(e).slice(0, 160)}` };
@@ -91,9 +94,10 @@ DATOS (reales, JSON): ${JSON.stringify(ctx)}`;
 
   // ¿Pidió un trabajo? → tarea real para la jornada.
   let tareaId: number | null = null;
-  const m = /^\s*TAREA:\s*(.{5,200})\s*$/im.exec(respuesta);
-  if (m) {
-    respuesta = respuesta.replace(m[0], "").trim();
+  // El modelo a veces pega "TAREA:" en una charla normal: se oculta siempre y solo crea tarea si el mensaje pide algo.
+  const m = /\s*TAREA:\s*(.{5,200}?)\s*$/i.exec(respuesta);
+  if (m) respuesta = respuesta.slice(0, m.index).trim();
+  if (m && PIDE.test(limpio)) {
     const t = await env.DB.prepare("INSERT INTO agent_tasks (division_id, agente_id, titulo, descripcion, prioridad, creada_por) VALUES ('relatos', ?, ?, ?, 'alta', 'propietario')")
       .bind(id, m[1].trim(), `Pedido por Luiggi en el chat: «${limpio}»`).run();
     tareaId = t.meta.last_row_id as number;

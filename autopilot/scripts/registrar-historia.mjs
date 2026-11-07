@@ -37,7 +37,9 @@ const plan2 = plan.episodios || [];
   pub(`${h}-parte${i + 1}`, "tiktok", p.cuando, "pendiente", null, p.texto);
   if (p.yt) pub(`${h}-parte${i + 1}`, "youtube", p.yt, yt[`parte${i + 1}`] ? "programado" : "pendiente", yt[`parte${i + 1}`]?.id, p.texto.split("\n")[0]);
 });
-sql.push(`INSERT INTO eventos (nivel, mensaje) VALUES ('info', ${q(`Historia "${HISTORIA.titulo}" registrada con ${REELS.length + 1} videos`)});`);
+// Solo la primera vez: el diario re-registra todas las historias cada mañana y llenaba la actividad.
+const aviso = q(`Historia "${HISTORIA.titulo}" registrada con ${REELS.length + 1} videos`);
+sql.push(`INSERT INTO eventos (nivel, mensaje) SELECT 'info', ${aviso} WHERE NOT EXISTS (SELECT 1 FROM eventos WHERE mensaje = ${aviso});`);
 // Las publicaciones de TikTok esperan la aprobación del creador en el panel (guías de TikTok).
 sql.push(`UPDATE publicaciones SET estado = 'por-programar' WHERE red = 'tiktok' AND video_id LIKE ${q(h + "-%")} AND estado = 'pendiente' AND privacidad IS NULL;`);
 console.log(await ejecutar(sql));
