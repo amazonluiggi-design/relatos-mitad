@@ -115,7 +115,7 @@ export async function sincronizarTikTok(env: Env, pubs: Pub[]) {
 }
 
 /* ───────────── YouTube ───────────── */
-async function tokenYouTube(env: Env) {
+export async function tokenYouTube(env: Env) {
   const cache = await env.KV.get("yt-access");
   if (cache) return cache;
   const refresh = await env.KV.get("yt-refresh");

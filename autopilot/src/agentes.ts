@@ -3,6 +3,7 @@
 // Permisos mínimos: leen datos, toman/terminan tareas, escriben memoria, recomendaciones y experimentos.
 // NO pueden publicar, gastar, tocar el botón DETENER, la configuración, usuarios ni sesiones.
 import { auditar, eventoSeguridad, type Sesion } from "./auth";
+import { apiRed } from "./operaciones";
 import { detenido, estadoPresupuesto, leerDetener } from "./sentinel";
 import type { Env } from "./tipos";
 
@@ -33,6 +34,10 @@ async function contexto(env: Env, division: string, crecimiento: () => Promise<u
     presupuesto: { usado: presupuesto.usado, total: presupuesto.limites.total, proyeccion: presupuesto.proyeccion },
     agentes: agentes.results, tareas: tareas.results, memoria: memoria.results, experimentos: experimentos.results, recomendaciones: recomendaciones.results,
     datos: division === "relatos" ? await crecimiento() : null,
+    // Agenda operable de los próximos 10 días (pub_id = "<video>:<red>"; subido = ya está en la plataforma y se puede mover/editar allí).
+    agenda: (await env.DB.prepare(`SELECT p.id pub_id, p.red, p.estado, p.cuando, p.texto, p.externo_id IS NOT NULL subido, v.id video_id, v.titulo, v.tipo, v.historia_id, v.duracion, v.calidad
+      FROM publicaciones p JOIN videos v ON v.id = p.video_id WHERE p.division_id = ? AND p.cuando > strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      AND p.cuando < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '+10 days') AND p.estado NOT IN ('publicado', 'descartado') ORDER BY p.cuando`).bind(division).all()).results,
   };
 }
 
@@ -145,6 +150,9 @@ export async function apiAgentes(env: Env, req: Request, ruta: string, crecimien
     const r = await env.DB.prepare(`UPDATE experiments SET ${campos.map((k) => `${k} = ?`).join(", ")} WHERE id = ? AND division_id = ?`).bind(...campos.map((k) => texto(cuerpo[k], 6000)), exp[1], division).run();
     return json({ ok: !!r.meta.changes });
   }
+
+  // Operación real de las redes (cambiar horas, textos, retener): ver src/operaciones.ts.
+  if (ruta.startsWith("/agentes/red/") && req.method === "POST") return apiRed(env, agente, division, ruta, cuerpo);
 
   return json({ error: "ruta de agentes no existe" }, 404);
 }
