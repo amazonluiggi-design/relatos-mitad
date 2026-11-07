@@ -30,7 +30,8 @@ export async function historial(env: Env, id: string) {
 /** Para la ventana de chat: mensajes + lo que el agente va haciendo (sus eventos), y su estado actual. */
 export async function conversacion(env: Env, id: string) {
   const [mensajes, actividad, ahora] = await Promise.all([historial(env, id),
-    env.DB.prepare("SELECT id, cuando, estado, mensaje FROM agent_events WHERE agente_id = ? ORDER BY id DESC LIMIT 15").bind(id).all(),
+    // Lo suyo + las órdenes que Michael le pasó ("Asignó a <id>: …"), para ver que le llegó.
+    env.DB.prepare("SELECT id, cuando, estado, mensaje, agente_id FROM agent_events WHERE agente_id = ?1 OR (agente_id = 'michael' AND ?1 != 'michael' AND mensaje LIKE 'Asignó a ' || ?1 || ':%') ORDER BY id DESC LIMIT 15").bind(id).all(),
     env.DB.prepare("SELECT a.estado, t.titulo tarea FROM agents a LEFT JOIN agent_tasks t ON t.id = a.tarea_actual WHERE a.id = ?").bind(id).first()]);
   return { mensajes, actividad: actividad.results.reverse(), ahora };
 }

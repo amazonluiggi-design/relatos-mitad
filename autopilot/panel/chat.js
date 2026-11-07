@@ -21,7 +21,9 @@ const fechaDe = (s) => new Date(s.includes("T") ? s : s.replace(" ", "T") + "Z")
 const hora = (s) => fechaDe(s).toLocaleTimeString("es-EC", { timeZone: "America/Guayaquil", hour: "2-digit", minute: "2-digit" });
 const burbuja = (m) => `<div class="msg ${m.rol === "dueño" ? "yo" : "el"}"><p>${esc(m.texto)}</p>
   <small>${m.rol === "dueño" ? "Tú" : esc(nombreAbierto)} · ${esc(hora(m.cuando))}${m.tarea_id ? ` · <span class="tarea-chip">📌 Tarea #${m.tarea_id} creada</span>` : ""}</small></div>`;
-const nota = (e) => `<div class="msg nota" data-ev="${e.id}"><p><i class="est-${esc(e.estado || "")}"></i>${esc(e.mensaje)}</p><small>${esc(hora(e.cuando))}</small></div>`;
+const nota = (e) => e.agente_id === "michael" && abierto !== "michael" && /^Asignó a /.test(e.mensaje)
+  ? `<div class="msg nota orden" data-ev="${e.id}"><p>📨 Michael te asignó: <b>${esc(e.mensaje.replace(/^Asignó a [a-z-]+: /, ""))}</b></p><small>${esc(hora(e.cuando))}</small></div>`
+  : `<div class="msg nota" data-ev="${e.id}"><p><i class="est-${esc(e.estado || "")}"></i>${esc(e.mensaje)}</p><small>${esc(hora(e.cuando))}</small></div>`;
 
 /** Mensajes + actividad del agente, en orden de tiempo. */
 function linea(d) {
@@ -130,8 +132,10 @@ function centro(hero, id) {
 }
 export function volar(desde, hacia, retardo = 0) {
   const hero = document.querySelector(".hero");
-  if (!hero || hero.classList.contains("enfocada") || document.hidden || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const a = centro(hero, desde), b = centro(hero, hacia);
+  if (!hero || document.hidden || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  // Con el chat abierto solo vuela si va para quien estás mirando (entra desde arriba hasta su puesto).
+  if (hero.classList.contains("enfocada") && hacia !== abierto) return;
+  const a = hero.classList.contains("enfocada") ? centro(hero, "ceo") : centro(hero, desde), b = centro(hero, hacia);
   if (!a || !b) return;
   const capa = hero.querySelector(".vuelos");
   const el = document.createElement("div");
@@ -148,7 +152,12 @@ export function volar(desde, hacia, retardo = 0) {
   anim.onfinish = () => {
     el.remove();
     const destino = hero.querySelector(`.etiqueta[data-charlar="${hacia}"]`);
-    if (destino) { destino.classList.remove("recibe"); void destino.offsetWidth; destino.classList.add("recibe"); setTimeout(() => destino.classList.remove("recibe"), 1400); }
+    if (destino) {
+      destino.classList.remove("recibe"); void destino.offsetWidth; destino.classList.add("recibe");
+      destino.insertAdjacentHTML("beforeend", `<span class="nueva-tarea">📨 Nueva tarea</span>`);
+      setTimeout(() => { destino.classList.remove("recibe"); destino.querySelector(".nueva-tarea")?.remove(); }, 3500);
+    }
+    if (hacia === abierto) refrescarChat();
   };
 }
 
