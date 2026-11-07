@@ -125,10 +125,13 @@ export function inicioHtml(d) {
         <div><b>${esc(h.titulo)}</b><small>${esc(NOM[h.estado] || h.estado)} · ${AVANCE[h.estado] ?? 0}%${h.semana ? " · sale " + esc(new Date(h.semana + "T12:00:00-05:00").toLocaleDateString("es-EC", { day: "numeric", month: "short" })) : ""}</small>
         <div class="barra-p"><span style="width:${AVANCE[h.estado] ?? 0}%"></span></div></div></li>`).join("")}</ol>` : `<div class="vacio">No hay historias en producción.</div>`}
     </div>
-    <div class="tarjeta rendimiento rev"><h3>▥ Rendimiento por plataforma <span class="nd">vistas nuevas · 7 días</span></h3>
+    <div class="tarjeta rendimiento rev"><h3>▥ Rendimiento por plataforma <span class="nd">vistas totales</span></h3>
       <div class="redes3">${redes.map(([r, nom, ic, col]) => { const a = sum7(r), b = prev7(r), v = b ? ((a - b) / b) * 100 : null;
-        return `<div class="red-col" style="--c:${col}"><span class="red-ico">${ic}</span><small>${nom}</small><b data-k="r-${r}" data-contar="${a}" data-fmt="n">0</b>
-          ${v == null ? `<em class="neutro">sin semana previa</em>` : `<em class="${v >= 0 ? "sube" : "baja"}">${v >= 0 ? "↑ +" : "↓ "}${v.toFixed(0)}%</em>`}${chispa(vistasDia(r), col.includes("fb") ? "#3b82f6" : col.includes("yt") ? "#ef4444" : "#2dd4bf", "r" + r)}</div>`; }).join("")}</div>
+        // Total oficial del canal (YouTube, TikTok); Facebook no da total de página → suma de nuestros videos.
+        const total = red(r).ultimo?.vistas_totales ?? red(r).vistas ?? 0;
+        return `<div class="red-col" style="--c:${col}"><span class="red-ico">${ic}</span><small>${nom}</small><b data-k="r-${r}" data-contar="${total}" data-fmt="n">0</b>
+          <em class="neutro">+${n0(a)} en 7 días</em>
+          ${v == null ? "" : `<em class="${v >= 0 ? "sube" : "baja"}">${v >= 0 ? "↑ +" : "↓ "}${v.toFixed(0)}% vs semana anterior</em>`}${chispa(vistasDia(r), col.includes("fb") ? "#3b82f6" : col.includes("yt") ? "#ef4444" : "#2dd4bf", "r" + r)}</div>`; }).join("")}</div>
     </div>
     <div class="tarjeta finanzas rev"><h3>$ Resumen financiero <a href="#presupuesto">Ver detalle →</a></h3>
       <div class="fin">
