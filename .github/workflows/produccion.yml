@@ -1,0 +1,59 @@
+# Producción automática: toma los guiones que los agentes mandan a producir desde el panel
+# (voz ElevenLabs + imágenes + plan), los guarda en el repo y lanza la Fábrica (render + programación).
+name: Producción de los agentes
+
+on:
+  schedule:
+    - cron: "20 * * * *"   # cada hora; si no hay pedidos termina en segundos
+  workflow_dispatch:
+
+concurrency:
+  group: produccion
+
+jobs:
+  producir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - name: ¿Hay pedidos? (sin pedidos no se instala nada)
+        id: hay
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: |
+          N=$(curl -s -H "x-clave: $RELATOS_CLAVE" https://relatos-autopilot.probador-worker.workers.dev/api/fabrica/produccion/pendientes | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).n||0)}catch{console.log(0)}})')
+          echo "n=$N" >> "$GITHUB_OUTPUT"; echo "pedidos: $N"
+      - if: steps.hay.outputs.n != '0'
+        run: npm ci
+      - name: Interruptor de emergencia (DETENER EMPRESA)
+        if: steps.hay.outputs.n != '0'
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: node scripts/nube.mjs alto relatos renderizados
+      - name: Voz, imágenes y plan
+        id: p
+        if: steps.hay.outputs.n != '0'
+        env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+          ELEVENLABS_TXT: ${{ secrets.ELEVENLABS_TXT }}
+        run: |
+          mkdir -p ~/.relatos-secretos
+          printf '%s' "$ELEVENLABS_TXT" > ~/.relatos-secretos/elevenlabs.txt
+          printf '%s' "$RELATOS_CLAVE" > ~/.relatos-secretos/clave-imagenes.txt
+          node scripts/producir.mjs tomar
+      - name: Guardar la historia en el repo y lanzar la Fábrica
+        if: steps.p.outputs.id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          H="${{ steps.p.outputs.id }}"
+          git config user.name "Relatos de la Mitad"; git config user.email "amazonluiggi@gmail.com"
+          git add "historias/$H.mjs" "publicaciones/$H.mjs" src/datos/$H-* src/datos/producidas.ts
+          git commit -m "Producción de los agentes: $H"
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 10; done
+          gh workflow run fabrica.yml -f historia="$H" -f solo="${{ steps.p.outputs.comps }}" -f publicar=si

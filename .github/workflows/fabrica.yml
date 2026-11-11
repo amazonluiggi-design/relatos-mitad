@@ -135,9 +135,24 @@ jobs:
         env:
           RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
           SIN_SUBIR: "1"
-        run: bash scripts/publicar-historia.sh "${{ inputs.historia }}"
+        run: |
+          bash scripts/publicar-historia.sh "${{ inputs.historia }}"
+          node scripts/producir.mjs listo "${{ inputs.historia }}" || true
       - name: Guardar IDs de Facebook y YouTube
         run: |
           git config user.name "Relatos de la Mitad"; git config user.email "amazonluiggi@gmail.com"
           git add publicaciones/*.json && git commit -m "IDs publicados: ${{ inputs.historia }}" || exit 0
           for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 10; done
+
+  # Si algo falla y la historia es de los agentes, su producción queda en "error" en el panel (si no, no hace nada).
+  fallo:
+    needs: [plan, render, publicar]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+        run: |
+          curl -s -X POST -H "x-clave: $RELATOS_CLAVE" -H "content-type: application/json" \
+            -d '{"estado":"error","detalle":"Falló el render o la publicación en la Fábrica (run ${{ github.run_id }})."}' \
+            "https://relatos-autopilot.probador-worker.workers.dev/api/fabrica/produccion/${{ inputs.historia }}"

@@ -76,7 +76,7 @@ Cómo respondes:
 - Solo usas cifras y hechos de DATOS. Si algo no está en DATOS, dices que lo revisas y no inventas.
 - Si te pregunta qué hiciste, con quién trabajaste o qué hizo el equipo: nombra SOLO tareas y eventos que aparecen en DATOS (tareas, eventos, lo_de_hoy) con su título real. Si hoy no hay nada, dilo tal cual. Nunca inventes colaboraciones ni trabajos.
 - Eres un agente de inteligencia artificial del equipo. No lo anuncias en cada mensaje, pero si Luiggi te pregunta, lo dices con honestidad.
-- Puedes investigar, analizar, escribir guiones y textos, revisar calidad, mover horarios y textos de publicaciones ya programadas y retener videos. No subes videos nuevos ni gastas dinero.
+- El equipo SÍ produce videos nuevos: Andy investiga, Ryan escribe el guion, Dwight lo aprueba y Michael o Jim lo mandan a la fábrica en la nube, que graba la voz, genera las imágenes, renderiza el largo y los reels y los programa solos en Facebook, YouTube y el panel (tarda unas horas). También mueven horarios y textos y retienen videos. Si Luiggi pide videos, confírmalo, explica ese camino y crea la TAREA.
 - Escribe la línea TAREA SOLO si Luiggi te pide de forma explícita un trabajo nuevo (haz, prepara, escribe, revisa, cambia, analiza, investiga…). Entonces confírmalo con tus palabras, di cuándo lo haces (${ctx.proxima_jornada}) y en la ÚLTIMA línea escribe exactamente: TAREA: <título corto de la tarea>
 - Si saluda, pregunta cómo van las cosas o conversa, responde con DATOS y NO escribas TAREA ni prometas trabajos que no te pidió.
 DATOS (reales, JSON): ${JSON.stringify(ctx)}`;
@@ -95,8 +95,9 @@ DATOS (reales, JSON): ${JSON.stringify(ctx)}`;
   // ¿Pidió un trabajo? → tarea real para la jornada.
   let tareaId: number | null = null;
   // El modelo a veces pega "TAREA:" en una charla normal: se oculta siempre y solo crea tarea si el mensaje pide algo.
-  const m = /\s*TAREA:\s*(.{5,200}?)\s*$/i.exec(respuesta);
-  if (m) respuesta = respuesta.slice(0, m.index).trim();
+  // Si el modelo repite "TAREA:" en la misma línea, vale solo la última y se ocultan todas.
+  const m = /\s*TAREA:\s*((?:(?!TAREA:).){5,200}?)\s*$/i.exec(respuesta);
+  if (m) respuesta = respuesta.slice(0, m.index).replace(/\s*TAREA:.*$/is, "").trim();
   if (m && PIDE.test(limpio)) {
     const t = await env.DB.prepare("INSERT INTO agent_tasks (division_id, agente_id, titulo, descripcion, prioridad, creada_por) VALUES ('relatos', ?, ?, ?, 'alta', 'propietario')")
       .bind(id, m[1].trim(), `Pedido por Luiggi en el chat: «${limpio}»`).run();

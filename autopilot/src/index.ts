@@ -9,6 +9,7 @@ import { datosGaming, guardarCreador, guardarDerecho, guardarMarca } from "./gam
 import { apiAgentes, fichaAgente, instruccion, listaAgentes, verMemoria, verTarea } from "./agentes";
 import { cambiarDetener, detenido, estadoPresupuesto, hacerRespaldo, informeSentinel, leerDetener, registrarGasto, revisionDiaria, suscripcionesDelMes, validarSql, verificarGasto } from "./sentinel";
 import { pngResumen } from "./imagen";
+import { fabricaProduccion } from "./produccion";
 import { entrarDesdePortal, leerPase } from "./portal";
 import { actualizarSeguidores, publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube, historiaFacebook, comentariosPendientes } from "./redes";
 import { type Env, type Pub, evento } from "./tipos";
@@ -362,6 +363,8 @@ async function api(env: Env, req: Request, url: URL) {
       return Response.json({ ok: true });
     }
     if (ruta === "/fabrica/respaldos" && req.method === "GET") return Response.json((await env.DB.prepare("SELECT id, cuando, clave_r2, filas, bytes, restaurado_prueba FROM backups WHERE estado = 'ok' ORDER BY id DESC LIMIT 14").all()).results);
+    const prod = await fabricaProduccion(env, req, ruta);
+    if (prod) return prod;
     if (ruta === "/fabrica/estado" && req.method === "GET") return Response.json({ detener: await leerDetener(env) });
     if (ruta === "/fabrica/gasto" && req.method === "POST") {
       const g = (await req.json()) as { proveedor: string; concepto: string; monto: number; tipo?: string; unidades?: number; unidad?: string; division?: string; agente?: string; ref?: string; previo?: boolean };

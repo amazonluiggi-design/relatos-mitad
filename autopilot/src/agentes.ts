@@ -4,6 +4,7 @@
 // NO pueden publicar, gastar, tocar el botón DETENER, la configuración, usuarios ni sesiones.
 import { auditar, eventoSeguridad, type Sesion } from "./auth";
 import { apiRed } from "./operaciones";
+import { listaProducciones, pedirProduccion } from "./produccion";
 import { detenido, estadoPresupuesto, leerDetener } from "./sentinel";
 import type { Env } from "./tipos";
 
@@ -29,10 +30,11 @@ async function contexto(env: Env, division: string, crecimiento: () => Promise<u
     env.DB.prepare("SELECT id, prioridad, area, quien, titulo, detalle, estado FROM recomendaciones WHERE division_id = ? AND estado != 'descartado' ORDER BY id DESC LIMIT 20").bind(division).all(),
     estadoPresupuesto(env), leerDetener(env),
   ]);
+  const producciones = division === "relatos" ? await listaProducciones(env) : [];
   return {
     ahora: new Date().toISOString(), division, detener: det,
     presupuesto: { usado: presupuesto.usado, total: presupuesto.limites.total, proyeccion: presupuesto.proyeccion },
-    agentes: agentes.results, tareas: tareas.results, memoria: memoria.results, experimentos: experimentos.results, recomendaciones: recomendaciones.results,
+    agentes: agentes.results, tareas: tareas.results, memoria: memoria.results, experimentos: experimentos.results, recomendaciones: recomendaciones.results, producciones,
     datos: division === "relatos" ? await crecimiento() : null,
     // Agenda operable de los próximos 10 días (pub_id = "<video>:<red>"; subido = ya está en la plataforma y se puede mover/editar allí).
     agenda: (await env.DB.prepare(`SELECT p.id pub_id, p.red, p.estado, p.cuando, p.texto, p.externo_id IS NOT NULL subido, v.id video_id, v.titulo, v.tipo, v.historia_id, v.duracion, v.calidad
@@ -149,6 +151,13 @@ export async function apiAgentes(env: Env, req: Request, ruta: string, crecimien
     if (cuerpo.estado === "terminado" && !texto(cuerpo.resultado, 10)) return json({ error: "Un experimento no se cierra sin resultado con datos." }, 400);
     const r = await env.DB.prepare(`UPDATE experiments SET ${campos.map((k) => `${k} = ?`).join(", ")} WHERE id = ? AND division_id = ?`).bind(...campos.map((k) => texto(cuerpo[k], 6000)), exp[1], division).run();
     return json({ ok: !!r.meta.changes });
+  }
+
+  // Producir videos nuevos con un guion aprobado (fábrica en la nube): ver src/produccion.ts y agentes/PRODUCCION.md.
+  if (ruta === "/agentes/produccion" && req.method === "POST") {
+    const { status, ...r } = await pedirProduccion(env, agente, division, cuerpo);
+    if (status === 200) await marcar(env, agente, "produciendo", `🎬 Pidió producir «${String((cuerpo.guion as { titulo?: string })?.titulo || r.id).slice(0, 120)}»`);
+    return json(r, status);
   }
 
   // Operación real de las redes (cambiar horas, textos, retener): ver src/operaciones.ts.
