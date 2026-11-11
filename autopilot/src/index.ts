@@ -4,6 +4,7 @@ import { auditar, eventoSeguridad, leerSesion, login, mfa, misSesiones, salir, s
 import { resumenGrupo } from "./grupo";
 import { informeDia, marcarVisto, notificaciones, vivo } from "./vivo";
 import { conversacion, enviar } from "./chat";
+import { analizar, type PubA } from "./analisis";
 import { bandeja, decidir } from "./bandeja";
 import { datosGaming, guardarCreador, guardarDerecho, guardarMarca } from "./gaming";
 import { apiAgentes, fichaAgente, instruccion, listaAgentes, verMemoria, verTarea } from "./agentes";
@@ -11,7 +12,7 @@ import { cambiarDetener, detenido, estadoPresupuesto, hacerRespaldo, informeSent
 import { pngResumen } from "./imagen";
 import { fabricaProduccion } from "./produccion";
 import { entrarDesdePortal, leerPase } from "./portal";
-import { actualizarSeguidores, publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube, historiaFacebook, comentariosPendientes } from "./redes";
+import { actualizarSeguidores, publicarTikTok, revisarTikTok, sincronizarFacebook, sincronizarTikTok, sincronizarYouTube, historiaFacebook, comentariosPendientes, tendencias } from "./redes";
 import { type Env, type Pub, evento } from "./tipos";
 import { aprobar, canjear, creador, urlConectar } from "./tiktok-ui";
 
@@ -297,6 +298,11 @@ async function api(env: Env, req: Request, url: URL) {
   const ch = /^\/chat\/([a-z-]+)$/.exec(ruta);
   if (ch && ses && req.method === "GET") return Response.json(await conversacion(env, ch[1]));
   if (ch && ses && req.method === "POST") { const r = await enviar(env, ses, ch[1], String(((await req.json().catch(() => ({}))) as { texto?: string }).texto ?? "")); return Response.json(r, { status: "error" in r ? 400 : 200 }); }
+  if (ruta === "/inteligencia" && ses) {
+    const c = await enCache(env, "c:crecimiento", () => crecimiento(env));
+    return Response.json({ analisis: analizar(c.pubs as PubA[]), tendencias: await tendencias(env),
+      producciones: (await env.DB.prepare("SELECT id, estado, detalle, pedida_por, creada, actualizada, json_extract(guion, '$.titulo') titulo, json_array_length(guion, '$.escenas') escenas, json_array_length(guion, '$.reels') reels, json_extract(guion, '$.largo.cuando') largo FROM producciones ORDER BY creada DESC LIMIT 12").all()).results });
+  }
   if (ruta === "/dia" && ses) return Response.json(await informeDia(env, url.searchParams.get("fecha")));
   /* ── Sentinel, presupuesto y botón de emergencia (solo el propietario con sesión; los scripts no pueden) ── */
   /* ── Bandeja de revisión ── */

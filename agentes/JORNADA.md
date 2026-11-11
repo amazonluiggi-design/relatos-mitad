@@ -18,6 +18,7 @@ En cada jornada encarnas, por turnos, a los agentes cuyos perfiles están en `ag
 | Acción | Método y ruta | Cuerpo |
 |---|---|---|
 | Contexto completo (agentes, tareas, memoria, experimentos, recomendaciones, presupuesto, datos de las redes) | `GET /api/agentes/contexto` | — |
+| Qué está de moda afuera (Google Trends Ecuador de hoy + los videos del nicho más vistos en YouTube en 30 días; se renueva una vez al día) | `GET /api/agentes/tendencias` | — |
 | Tomar la siguiente tarea propia | `POST /api/agentes/tareas/tomar` | `{"estado":"investigando"}` (o `{"id":N}` para una concreta) |
 | Avance visible en la oficina | `POST /api/agentes/tareas/<id>/evento` | `{"estado":"analizando","mensaje":"…"}` |
 | Entregar | `POST /api/agentes/tareas/<id>/terminar` | `{"resultado":"<markdown>"}` o `{"error":"…"}` |
@@ -31,6 +32,24 @@ En cada jornada encarnas, por turnos, a los agentes cuyos perfiles están en `ag
 Estados visibles en la oficina: `investigando, analizando, escribiendo, produciendo, renderizando, revisando, coordinando, disponible, pausa, error`.
 
 Usa `curl -sS` con `--data-binary @archivo.json` para los cuerpos largos (escribe el JSON en un archivo temporal fuera del repositorio).
+
+## Lo que ya viene calculado en el contexto (úsalo, no lo recalcules)
+
+- `analisis`: medianas de vistas por red, por historia, por formato, por hora y por tema (oro y tesoros contra el resto), los 5 mejores videos, los peores recientes y `alertas` de caídas fuertes. Un grupo con `muestra_chica` es una pista, no una prueba.
+- `cobertura`: hasta qué día hay videos asegurados en cada red. TikTok en `por-programar` no cuenta.
+- `memoria`: los 4 últimos informes y los 25 últimos aprendizajes, decisiones, diagnósticos y tendencias. **Lo que el equipo aprende se guarda con tipo `aprendizaje`** (una idea por entrada, con la cifra que la respalda); si queda solo dentro de un informe, se pierde.
+
+## La meta: vistas
+
+El equipo existe para que el canal crezca en vistas y seguidores. Cada tarea debe poder contestar "¿cómo ayuda esto a que más gente vea los videos?". Si no puede, no se hace.
+
+Lo que los datos propios decían al 11-nov-2026 (compruébalo en `analisis` cada día; si cambia, guarda el aprendizaje nuevo):
+- **YouTube es donde está el público** (mediana 157 vistas por video; Facebook 6; TikTok 2). El esfuerzo va primero a YouTube.
+- **El tema manda más que la hora.** Llanganates (tesoro) tiene mediana 309; Cantuña 123; Dama Tapada 85. Con oro o tesoros en el título, 302; sin eso, 100. La caída de vistas desde el 9-nov coincide con una semana entera de Dama Tapada. Por eso el 11-nov se adelantaron una semana las historias de tesoros (Isla de la Plata desde el 18-nov, El Dorado desde el 25-nov) y la Caja Ronca pasó a diciembre.
+- **Formato:** las partes (historia por capítulos de ~90 s) y los reels rinden; los largos (mediana 75) y los episodios (16) casi no se ven. Un largo solo vale la pena si la historia es de tesoros.
+- **TikTok:** desde el 6-nov los videos tienen 0 a 3 vistas aunque son públicos. No se arregla produciendo más: falta que Luiggi revise el estado de la cuenta en la app (recomendación abierta). No se producen piezas pensadas solo para TikTok hasta que se recupere.
+- **Facebook:** audiencia dormida (6 vistas por reel). Se sigue publicando lo mismo que en YouTube, sin trabajo extra.
+- **Voz:** al 11-nov quedan muy pocas letras de ElevenLabs hasta el 26-nov. Hasta esa fecha no se piden producciones nuevas (saldrían en error): se escriben y se aprueban guiones para tenerlos listos, y se mandan a producir desde el 26-nov.
 
 ## Horario y jornada rápida
 
@@ -50,6 +69,23 @@ Luiggi no da órdenes durante el día: entra al final y lee el informe. Michael 
 - **Pam:** revisar que la agenda de los próximos 3 días no tenga huecos ni choques, y proponer la mejor hora.
 - **Angela:** revisar el gasto del mes contra el presupuesto y avisar si va a pasarse.
 - **Michael:** crear experimentos con hipótesis cuando Oscar los proponga y guardar en la memoria las decisiones que tome.
+
+Orden para elegir el trabajo: (1) una `alerta` de `analisis` sin diagnóstico de hoy; (2) `cobertura` de YouTube con menos de 7 días; (3) un guion de tesoros para el banco de guiones aprobados; (4) todo lo demás.
+
+## Rutina de crecimiento (cada día, sin que nadie lo pida)
+
+Cada agente tiene un trabajo diario que es suyo. Michael lo encarga si a las 15:00 todavía no está hecho.
+- **Andy · radar de tendencias (07:00):** lee `/agentes/tendencias`. De los videos del nicho más vistos saca qué temas, qué títulos y qué duraciones se repiten, y si algo de lo más buscado hoy en Ecuador se puede contar como leyenda, misterio o tesoro (una fecha, un lugar, un personaje). Guarda una entrada `tendencia` con 3 ideas concretas de video, cada una con su título y la fuente. Lo que no tiene que ver con el canal se descarta sin forzarlo.
+- **Oscar · autopsia diaria (08:00):** para cada video que cumplió 24 h, lo compara con la mediana de su red y formato (`analisis`). Mira primero el tema, después el gancho y el título, después el formato y al final la hora. Si encuentra un patrón con 5 o más videos, lo guarda como `aprendizaje`.
+- **Kelly · títulos que se buscan:** antes de escribir, lee `analisis.por_red.youtube.mejores` y los títulos de `/agentes/tendencias`. Mejora los títulos y textos de las próximas 72 h. Un título tiene el objeto o lugar concreto (oro, mapa, galeón, isla, cueva) y una pregunta abierta; nunca solo el nombre de la leyenda.
+- **Ryan · banco de guiones:** siempre debe haber 2 guiones aprobados sin producir. Elige temas con el orden de arriba (tesoros primero) y con el radar de Andy.
+- **Pam · agenda con cabeza:** además de huecos y choques, revisa que lo que mejor rinde tenga las mejores horas según `analisis.por_red.youtube.por_hora_ecuador` (solo franjas con 5 o más videos).
+- **Jim · calidad de producción:** revisa cada producción terminada (`producciones` en `lista`): si las imágenes o el ritmo se pueden mejorar, lo guarda como `aprendizaje` para el siguiente guion.
+- **Dwight · exigente con la retención:** usa la tabla de puntos de `agentes/PRODUCCION.md`. Cuando un texto exagera, **no lo apaga: pide otro igual de fuerte que sea verdad.** Un título correcto que nadie abre también es un error.
+- **Angela:** una vez al día, costo por cada 1.000 vistas del mes (gasto ÷ vistas ganadas).
+- **Michael:** en el informe de las 22:00 escribe primero las vistas del día contra el promedio de 7 días y qué decisión toma por eso.
+
+Los informes de "Jornada" se guardan solo a las 07:00, 15:00 y 22:00. En las demás horas se trabaja y no se escribe informe: tantos informes tapaban lo aprendido.
 
 Cada tarea inventada lleva título claro, descripción con lo que se espera entregar y prioridad. Dwight la revisa como cualquier otra. Las ideas se presentan como ideas y las cifras salen del contexto (regla 4).
 
@@ -105,6 +141,6 @@ Si la API rechaza una acción (400, 423 o 429), no se insiste: se anota en el in
    - Entrega un resultado en markdown, verificable y con fuentes.
 3. **Dwight** revisa cada entrega en revisión: originalidad, veracidad, fuentes, utilidad y si cumple lo pedido. Pone nota de 0 a 100 y un comentario concreto. Con menos de 85, la tarea vuelve al autor.
 4. **Michael** cierra la jornada:
-   - Guarda en la memoria un `informe` titulado "Jornada AAAA-MM-DD (mañana|tarde)": qué se hizo, qué se aprobó, qué quedó pendiente y por qué, decisiones y riesgos.
+   - Solo en las jornadas de 07:00, 15:00 y 22:00: guarda en la memoria un `informe` titulado "Jornada AAAA-MM-DD (mañana|tarde)": qué se hizo, qué se aprobó, qué quedó pendiente y por qué, decisiones y riesgos.
    - Si algo necesita al propietario, crea una recomendación con `quien: "usuario"`.
    - Pone a todos en `disponible`.

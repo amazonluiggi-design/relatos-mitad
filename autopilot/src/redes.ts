@@ -104,7 +104,7 @@ export async function sincronizarTikTok(env: Env, pubs: Pub[]) {
   const vistasTotales = videos.reduce((a, v) => a + (v.view_count || 0), 0);
   if (u?.follower_count !== undefined) await guardarCuenta(env, "tiktok", u.follower_count, vistasTotales, u.video_count ?? videos.length);
   // Une cada publicación con su video por el inicio del texto (los de TikTok Studio no traen id).
-  const norm = (t: string) => (t || "").normalize("NFKD").replace(/[^p{L}p{N}]+/gu, " ").trim().toLowerCase().slice(0, 45);
+  const norm = (t: string) => (t || "").normalize("NFKD").replace(/[^\p{L}\p{N}]+/gu, " ").trim().toLowerCase().slice(0, 45);
   for (const p of pubs.filter((x) => x.estado === "publicado" || x.externo_id)) {
     let v = p.externo_id ? videos.find((x) => x.id === p.externo_id) : undefined;
     if (!v && p.texto) v = videos.find((x) => norm(x.video_description || x.title || "") === norm(p.texto!) && !pubs.some((q) => q.externo_id === x.id));
@@ -293,6 +293,49 @@ export async function comentariosPendientes(env: Env) {
   lista.sort((a, b) => b.cuando.localeCompare(a.cuando));
   await env.KV.put("comentarios-pendientes", JSON.stringify(lista), { expirationTtl: 600 });
   return lista;
+}
+
+/* ───────────── Tendencias (lo que está de moda afuera) ───────────── */
+// Búsquedas del nicho en YouTube: UNA por día, rotando (search.list cuesta 100 de las 10.000 unidades diarias que también usan las subidas).
+const BUSQUEDAS = ["tesoro perdido leyenda", "leyendas de Ecuador", "misterios sin resolver historia", "oro de los incas tesoro", "leyendas latinoamérica shorts", "tesoros perdidos shorts", "historia real misterio colonial"];
+type Tendencias = { dia: string; google_ecuador: { tema: string; busquedas: string }[]; youtube_nicho: Record<string, { dia: string; videos: unknown[] }>; errores: string[] };
+
+/** Temas de Google Trends (RSS público). Exportada aparte para probarla con un RSS de ejemplo. */
+export const temasGoogle = (rss: string) => [...rss.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((m) => ({
+  tema: (/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/.exec(m[1])?.[1] || "").trim().slice(0, 80),
+  busquedas: (/<ht:approx_traffic>([^<]*)</.exec(m[1])?.[1] || "").trim() })).filter((i) => i.tema).slice(0, 20);
+
+/** Qué busca hoy la gente en Ecuador (Google Trends) y qué videos del nicho arrasaron en YouTube en los últimos 30 días.
+ *  Se consulta como mucho una vez al día y se guarda; si una fuente falla, queda lo último guardado y el error a la vista. */
+export async function tendencias(env: Env): Promise<Tendencias> {
+  const hoy = new Date(Date.now() - 5 * 3600e3).toISOString().slice(0, 10);
+  const g: Tendencias = JSON.parse((await env.KV.get("tendencias")) || "null") || { dia: "", google_ecuador: [], youtube_nicho: {}, errores: [] };
+  if (g.dia === hoy) return g;
+  g.dia = hoy; g.errores = [];
+  await env.KV.put("tendencias", JSON.stringify(g)); // marca primero: dos pedidos a la vez no gastan la cuota dos veces
+  try {
+    const items = temasGoogle(await (await fetch("https://trends.google.com/trending/rss?geo=EC", { headers: { "User-Agent": "Mozilla/5.0" } })).text());
+    if (items.length) g.google_ecuador = items; else g.errores.push("Google Trends no devolvió temas hoy");
+  } catch (e) { g.errores.push(`Google Trends: ${String(e).slice(0, 100)}`); }
+  try {
+    const q = BUSQUEDAS[Math.floor(Date.now() / 86400e3) % BUSQUEDAS.length];
+    const H = { Authorization: `Bearer ${await tokenYouTube(env)}` };
+    const YT = "https://www.googleapis.com/youtube/v3";
+    const s = (await (await fetch(`${YT}/search?part=snippet&type=video&order=viewCount&maxResults=15&relevanceLanguage=es&publishedAfter=${new Date(Date.now() - 30 * 86400e3).toISOString()}&q=${encodeURIComponent(q)}`, { headers: H })).json()) as
+      { items?: { id: { videoId: string } }[]; error?: { message: string } };
+    if (s.error) throw new Error(s.error.message);
+    const ids = (s.items || []).map((i) => i.id.videoId).filter(Boolean);
+    const v = ids.length ? (await (await fetch(`${YT}/videos?part=snippet,statistics,contentDetails&id=${ids.join(",")}`, { headers: H })).json()) as
+      { items?: { id: string; snippet: { title: string; channelTitle: string; publishedAt: string }; statistics: { viewCount?: string; likeCount?: string; commentCount?: string }; contentDetails: { duration: string } }[] } : { items: [] };
+    g.youtube_nicho[q] = { dia: hoy, videos: (v.items || []).map((i) => ({ titulo: i.snippet.title.slice(0, 110), canal: i.snippet.channelTitle, publicado: i.snippet.publishedAt.slice(0, 10),
+      vistas: +(i.statistics.viewCount || 0), me_gusta: +(i.statistics.likeCount || 0), comentarios: +(i.statistics.commentCount || 0), duracion: i.contentDetails.duration.replace("PT", "").toLowerCase(), url: `https://youtu.be/${i.id}` }))
+      .sort((a, b) => b.vistas - a.vistas).slice(0, 10) };
+    // Se conservan las búsquedas de los últimos 8 días (una vuelta completa de la rotación).
+    const limite = new Date(Date.now() - 8 * 86400e3).toISOString().slice(0, 10);
+    for (const k of Object.keys(g.youtube_nicho)) if (g.youtube_nicho[k].dia < limite) delete g.youtube_nicho[k];
+  } catch (e) { g.errores.push(`YouTube: ${String(e).slice(0, 120)}`); }
+  await env.KV.put("tendencias", JSON.stringify(g));
+  return g;
 }
 
 /** Solo seguidores de las 3 redes (una consulta por red, ~2 s), para el botón "Actualizar ahora".

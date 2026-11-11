@@ -3,8 +3,10 @@
 // Permisos mínimos: leen datos, toman/terminan tareas, escriben memoria, recomendaciones y experimentos.
 // NO pueden publicar, gastar, tocar el botón DETENER, la configuración, usuarios ni sesiones.
 import { auditar, eventoSeguridad, type Sesion } from "./auth";
+import { analizar, type PubA } from "./analisis";
 import { apiRed } from "./operaciones";
 import { listaProducciones, pedirProduccion } from "./produccion";
+import { tendencias } from "./redes";
 import { detenido, estadoPresupuesto, leerDetener } from "./sentinel";
 import type { Env } from "./tipos";
 
@@ -25,17 +27,22 @@ async function contexto(env: Env, division: string, crecimiento: () => Promise<u
   const [agentes, tareas, memoria, experimentos, recomendaciones, presupuesto, det] = await Promise.all([
     env.DB.prepare("SELECT id, nombre, cargo, departamento, division_id, estado, activo FROM agents ORDER BY division_id IS NOT NULL, id").all(),
     env.DB.prepare("SELECT id, agente_id, titulo, descripcion, prioridad, estado, depende_de, creada_por, creada, calidad, revision FROM agent_tasks WHERE (division_id = ? OR division_id IS NULL) AND (estado IN ('pendiente','en-curso','en-revision','bloqueada') OR terminada >= datetime('now', '-3 days')) ORDER BY id").bind(division).all(),
-    env.DB.prepare("SELECT id, tipo, titulo, substr(contenido, 1, 1500) contenido, autor, confianza, creado FROM company_memory WHERE division_id = ? OR division_id IS NULL ORDER BY id DESC LIMIT 15").bind(division).all(),
+    env.DB.prepare(`SELECT * FROM (SELECT id, tipo, titulo, substr(contenido, 1, 1500) contenido, autor, confianza, creado FROM company_memory WHERE (division_id = ?1 OR division_id IS NULL) AND tipo = 'informe' ORDER BY id DESC LIMIT 4)
+      UNION ALL SELECT * FROM (SELECT id, tipo, titulo, substr(contenido, 1, 1500) contenido, autor, confianza, creado FROM company_memory WHERE (division_id = ?1 OR division_id IS NULL) AND tipo != 'informe' ORDER BY id DESC LIMIT 25) ORDER BY id DESC`).bind(division).all(),
     env.DB.prepare("SELECT * FROM experiments WHERE division_id = ?").bind(division).all(),
     env.DB.prepare("SELECT id, prioridad, area, quien, titulo, detalle, estado FROM recomendaciones WHERE division_id = ? AND estado != 'descartado' ORDER BY id DESC LIMIT 20").bind(division).all(),
     estadoPresupuesto(env), leerDetener(env),
   ]);
   const producciones = division === "relatos" ? await listaProducciones(env) : [];
+  const datos = division === "relatos" ? ((await crecimiento()) as { pubs: PubA[] }) : null;
+  // Hasta qué día hay videos asegurados en cada red (TikTok "por-programar" no cuenta: todavía no tiene cómo salir).
+  const cobertura = (await env.DB.prepare(`SELECT red, COUNT(*) videos_asegurados, MAX(cuando) hasta, CAST(julianday(MAX(cuando)) - julianday('now') AS INTEGER) dias FROM publicaciones
+      WHERE division_id = ? AND cuando > strftime('%Y-%m-%dT%H:%M:%fZ', 'now') AND estado IN ('programado', 'pendiente') GROUP BY red`).bind(division).all()).results;
   return {
     ahora: new Date().toISOString(), division, detener: det,
     presupuesto: { usado: presupuesto.usado, total: presupuesto.limites.total, proyeccion: presupuesto.proyeccion },
     agentes: agentes.results, tareas: tareas.results, memoria: memoria.results, experimentos: experimentos.results, recomendaciones: recomendaciones.results, producciones,
-    datos: division === "relatos" ? await crecimiento() : null,
+    datos, analisis: datos ? analizar(datos.pubs) : null, cobertura,
     // Agenda operable de los próximos 10 días (pub_id = "<video>:<red>"; subido = ya está en la plataforma y se puede mover/editar allí).
     agenda: (await env.DB.prepare(`SELECT p.id pub_id, p.red, p.estado, p.cuando, p.texto, p.externo_id IS NOT NULL subido, v.id video_id, v.titulo, v.tipo, v.historia_id, v.duracion, v.calidad
       FROM publicaciones p JOIN videos v ON v.id = p.video_id WHERE p.division_id = ? AND p.cuando > strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
@@ -54,6 +61,7 @@ export async function apiAgentes(env: Env, req: Request, ruta: string, crecimien
   if (fila.division_id && fila.division_id !== division) return json({ error: "otra división" }, 403);
 
   if (ruta === "/agentes/contexto" && req.method === "GET") return json(await contexto(env, division, crecimiento));
+  if (ruta === "/agentes/tendencias" && req.method === "GET") return json(await tendencias(env));
 
   if (await detenido(env, division, "agentes")) {
     if (req.method !== "GET") return json({ error: "DETENER EMPRESA: los agentes están parados. No hagas nada más." }, 423);

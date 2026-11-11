@@ -17,27 +17,27 @@ export const PUBLICACION = {
 
 Imágenes: recreaciones generadas con IA. La leyenda tiene varias versiones; contamos las más conocidas.
 #cajaronca #quito #leyendasdeecuador #leyendas #misterio`,
-    cuando: "2026-11-20T19:00:00-05:00",
+    cuando: "2026-12-04T19:00:00-05:00",
   },
   reels: [
-    { archivo: "out/caja-ronca-reel1.mp4", cuando: "2026-11-18T19:30:00-05:00",
+    { archivo: "out/caja-ronca-reel1.mp4", cuando: "2026-12-02T19:30:00-05:00",
       texto: `Si a medianoche escuchas un tambor en una calle vacía de Quito… no te asomes 🥁\n\nLa leyenda completa este viernes en la página 👆 ¿La conocías? SÍ o NO\n#cajaronca #quito #leyendas #misterio #ecuador` },
-    { archivo: "out/caja-ronca-reel2.mp4", cuando: "2026-11-19T19:30:00-05:00",
+    { archivo: "out/caja-ronca-reel2.mp4", cuando: "2026-12-03T19:30:00-05:00",
       texto: `Le dieron una vela en la procesión de medianoche… y amaneció con un hueso en la mano 💀\n\nEste viernes, la historia completa en la página 👆 ¿Tú la habrías tomado?\n#cajaronca #quito #leyendasdeecuador #terror #misterio` },
-    { archivo: "out/caja-ronca-reel3.mp4", cuando: "2026-11-21T19:30:00-05:00",
+    { archivo: "out/caja-ronca-reel3.mp4", cuando: "2026-12-05T19:30:00-05:00",
       texto: `Encapuchados con velas, un tambor y una carreta oscura… la procesión que no es de este mundo 🕯️\n\nLa leyenda completa en la página 👆 ¿Te asomarías?\n#cajaronca #quito #leyendas #misterio #ecuador` },
-    { archivo: "out/caja-ronca-reel4.mp4", cuando: "2026-11-22T19:30:00-05:00",
+    { archivo: "out/caja-ronca-reel4.mp4", cuando: "2026-12-06T19:30:00-05:00",
       texto: `Para curarse, tuvo que devolver el hueso… a la misma hora y en el mismo lugar 😨\n\nRelato completo en la página 👆 ¿Tú te atreverías?\n#cajaronca #quito #leyendasdeecuador #terror #historia` },
-    { archivo: "out/caja-ronca-reel5.mp4", cuando: "2026-11-23T19:30:00-05:00",
+    { archivo: "out/caja-ronca-reel5.mp4", cuando: "2026-12-07T19:30:00-05:00",
       texto: `¿Almas en pena, penitentes de verdad… o un invento para que nadie saliera de noche? 🤔\n\nTodas las versiones en la página 👆 ¿Cuál crees tú?\n#cajaronca #quito #leyendas #misterio #ecuador` },
-    { archivo: "out/caja-ronca-reel6.mp4", cuando: "2026-11-24T19:30:00-05:00",
+    { archivo: "out/caja-ronca-reel6.mp4", cuando: "2026-12-08T19:30:00-05:00",
       texto: `Cada Viernes Santo, miles de cucuruchos recorren Quito… igual que en la leyenda de la Caja Ronca 🟣\n\nLa leyenda completa en la página 👆 ¿La has visto en persona?\n#cucuruchos #quito #semanasanta #cajaronca #leyendas` },
   ],
   partes: [
-    { archivo: "out/caja-ronca-parte1.mp4", cuando: "2026-11-20T22:00:00-05:00", yt: "2026-11-20T22:00:00-05:00", texto: `La Caja Ronca · Parte 1 🥁 El tambor de medianoche. ¿Alguna vez escuchaste un tambor a medianoche?\n\nSígueme para la Parte 2 👆\n#cajaronca #quito #leyendas #ecuador #parte1` },
-    { archivo: "out/caja-ronca-parte2.mp4", cuando: "2026-11-21T22:00:00-05:00", yt: "2026-11-21T22:00:00-05:00", texto: `La Caja Ronca · Parte 2 🕯️ El cortejo de encapuchados… y la vela. ¿Tú habrías aceptado la vela?\n\nSígueme para la Parte 3 👆\n#cajaronca #misterio #leyendas #quito #parte2` },
-    { archivo: "out/caja-ronca-parte3.mp4", cuando: "2026-11-22T22:00:00-05:00", yt: "2026-11-22T22:00:00-05:00", texto: `La Caja Ronca · Parte 3 💀 La vela que amaneció convertida en hueso. ¿Qué habrías hecho con ese hueso?\n\nSígueme para la Parte 4 👆\n#cajaronca #terror #leyendas #quito #parte3` },
-    { archivo: "out/caja-ronca-parte4.mp4", cuando: "2026-11-23T22:00:00-05:00", yt: "2026-11-23T22:00:00-05:00", texto: `La Caja Ronca · Parte 4 (final) 🟣 ¿Qué era realmente? Y la procesión que todavía existe.\n\n¿Te asomarías? Comenta 👇\n#cajaronca #quito #leyendasdeecuador #misterio #final` },
+    { archivo: "out/caja-ronca-parte1.mp4", cuando: "2026-12-04T22:00:00-05:00", yt: "2026-12-04T22:00:00-05:00", texto: `La Caja Ronca · Parte 1 🥁 El tambor de medianoche. ¿Alguna vez escuchaste un tambor a medianoche?\n\nSígueme para la Parte 2 👆\n#cajaronca #quito #leyendas #ecuador #parte1` },
+    { archivo: "out/caja-ronca-parte2.mp4", cuando: "2026-12-05T22:00:00-05:00", yt: "2026-12-05T22:00:00-05:00", texto: `La Caja Ronca · Parte 2 🕯️ El cortejo de encapuchados… y la vela. ¿Tú habrías aceptado la vela?\n\nSígueme para la Parte 3 👆\n#cajaronca #misterio #leyendas #quito #parte2` },
+    { archivo: "out/caja-ronca-parte3.mp4", cuando: "2026-12-06T22:00:00-05:00", yt: "2026-12-06T22:00:00-05:00", texto: `La Caja Ronca · Parte 3 💀 La vela que amaneció convertida en hueso. ¿Qué habrías hecho con ese hueso?\n\nSígueme para la Parte 4 👆\n#cajaronca #terror #leyendas #quito #parte3` },
+    { archivo: "out/caja-ronca-parte4.mp4", cuando: "2026-12-07T22:00:00-05:00", yt: "2026-12-07T22:00:00-05:00", texto: `La Caja Ronca · Parte 4 (final) 🟣 ¿Qué era realmente? Y la procesión que todavía existe.\n\n¿Te asomarías? Comenta 👇\n#cajaronca #quito #leyendasdeecuador #misterio #final` },
   ],
 };
 

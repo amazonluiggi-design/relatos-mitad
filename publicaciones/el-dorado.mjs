@@ -18,27 +18,27 @@ export const PUBLICACION = {
 
 Imágenes: recreaciones generadas con IA. La ceremonia y los intentos de desagüe están documentados; la ciudad de oro es leyenda.
 #eldorado #guatavita #muiscas #tesoro #leyendaslatinoamericanas`,
-    cuando: "2026-12-04T19:00:00-05:00",
+    cuando: "2026-11-27T19:00:00-05:00",
   },
   reels: [
-    { archivo: "out/el-dorado-reel1.mp4", cuando: "2026-12-02T19:30:00-05:00",
+    { archivo: "out/el-dorado-reel1.mp4", cuando: "2026-11-25T19:30:00-05:00",
       texto: `En los Andes hay una laguna redonda que miles intentaron vaciar… porque en el fondo hay siglos de oro 🌕\n\nLa historia completa este viernes en la página 👆 ¿La conocías? SÍ o NO\n#eldorado #guatavita #tesoro #leyendas #colombia` },
-    { archivo: "out/el-dorado-reel2.mp4", cuando: "2026-12-03T19:30:00-05:00",
+    { archivo: "out/el-dorado-reel2.mp4", cuando: "2026-11-26T19:30:00-05:00",
       texto: `Cubrían a su rey con polvo de oro y lo llevaban al centro de la laguna sagrada ✨ Así nació El Dorado.\n\nEste viernes, la historia completa en la página 👆 ¿Tú lo sabías?\n#eldorado #muiscas #oro #historia #latinoamerica` },
-    { archivo: "out/el-dorado-reel3.mp4", cuando: "2026-12-05T19:30:00-05:00",
+    { archivo: "out/el-dorado-reel3.mp4", cuando: "2026-11-28T19:30:00-05:00",
       texto: `Cavaron un corte gigante en el cráter para sacar el oro de la laguna… y las paredes se vinieron abajo ⛏️\n\nLa historia completa en la página 👆 ¿Tú lo habrías intentado?\n#eldorado #guatavita #tesoro #historia #colombia` },
-    { archivo: "out/el-dorado-reel4.mp4", cuando: "2026-12-06T19:30:00-05:00",
+    { archivo: "out/el-dorado-reel4.mp4", cuando: "2026-11-29T19:30:00-05:00",
       texto: `Por fin vaciaron la laguna de El Dorado… y el lodo del fondo se endureció como cemento 😳\n\nRelato completo en la página 👆 ¿Mala suerte o maldición?\n#eldorado #guatavita #misterio #tesoro #historia` },
-    { archivo: "out/el-dorado-reel5.mp4", cuando: "2026-12-07T19:30:00-05:00",
+    { archivo: "out/el-dorado-reel5.mp4", cuando: "2026-11-30T19:30:00-05:00",
       texto: `En 1969, unos campesinos encontraron en una cueva la prueba de que El Dorado existió 🛶\n\nLa historia completa en la página 👆 ¿La has visto en el Museo del Oro?\n#eldorado #museodeloro #muiscas #arqueologia #colombia` },
-    { archivo: "out/el-dorado-reel6.mp4", cuando: "2026-12-08T19:30:00-05:00",
+    { archivo: "out/el-dorado-reel6.mp4", cuando: "2026-12-01T19:30:00-05:00",
       texto: `Buscaron una ciudad de oro durante siglos… pero El Dorado nunca fue una ciudad 🤔\n\nToda la historia en la página 👆 ¿Tú qué crees?\n#eldorado #leyendas #tesoro #misterio #latinoamerica` },
   ],
   partes: [
-    { archivo: "out/el-dorado-parte1.mp4", cuando: "2026-12-04T22:00:00-05:00", yt: "2026-12-04T22:00:00-05:00", texto: `El Dorado · Parte 1 ✨ El hombre cubierto de oro. ¿Conocías el origen de la leyenda?\n\nSígueme para la Parte 2 👆\n#eldorado #muiscas #leyendas #tesoro #parte1` },
-    { archivo: "out/el-dorado-parte2.mp4", cuando: "2026-12-05T22:00:00-05:00", yt: "2026-12-05T22:00:00-05:00", texto: `El Dorado · Parte 2 🌕 La fiebre del oro que enloqueció a los conquistadores. ¿Tú la habrías buscado?\n\nSígueme para la Parte 3 👆\n#eldorado #conquista #tesoro #historia #parte2` },
-    { archivo: "out/el-dorado-parte3.mp4", cuando: "2026-12-06T22:00:00-05:00", yt: "2026-12-06T22:00:00-05:00", texto: `El Dorado · Parte 3 ⛏️ Los que intentaron vaciar la laguna… y lo que pasó. ¿Mala suerte o maldición?\n\nSígueme para la Parte 4 👆\n#eldorado #guatavita #misterio #tesoro #parte3` },
-    { archivo: "out/el-dorado-parte4.mp4", cuando: "2026-12-07T22:00:00-05:00", yt: "2026-12-07T22:00:00-05:00", texto: `El Dorado · Parte 4 (final) 🛶 La prueba de oro que apareció en una cueva.\n\n¿Crees que queda oro en el fondo? Comenta 👇\n#eldorado #museodeloro #muiscas #colombia #final` },
+    { archivo: "out/el-dorado-parte1.mp4", cuando: "2026-11-27T22:00:00-05:00", yt: "2026-11-27T22:00:00-05:00", texto: `El Dorado · Parte 1 ✨ El hombre cubierto de oro. ¿Conocías el origen de la leyenda?\n\nSígueme para la Parte 2 👆\n#eldorado #muiscas #leyendas #tesoro #parte1` },
+    { archivo: "out/el-dorado-parte2.mp4", cuando: "2026-11-28T22:00:00-05:00", yt: "2026-11-28T22:00:00-05:00", texto: `El Dorado · Parte 2 🌕 La fiebre del oro que enloqueció a los conquistadores. ¿Tú la habrías buscado?\n\nSígueme para la Parte 3 👆\n#eldorado #conquista #tesoro #historia #parte2` },
+    { archivo: "out/el-dorado-parte3.mp4", cuando: "2026-11-29T22:00:00-05:00", yt: "2026-11-29T22:00:00-05:00", texto: `El Dorado · Parte 3 ⛏️ Los que intentaron vaciar la laguna… y lo que pasó. ¿Mala suerte o maldición?\n\nSígueme para la Parte 4 👆\n#eldorado #guatavita #misterio #tesoro #parte3` },
+    { archivo: "out/el-dorado-parte4.mp4", cuando: "2026-11-30T22:00:00-05:00", yt: "2026-11-30T22:00:00-05:00", texto: `El Dorado · Parte 4 (final) 🛶 La prueba de oro que apareció en una cueva.\n\n¿Crees que queda oro en el fondo? Comenta 👇\n#eldorado #museodeloro #muiscas #colombia #final` },
   ],
 };
 

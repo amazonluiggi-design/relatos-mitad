@@ -2,6 +2,7 @@ import { oficinaHtml } from "/oficina.js";
 import { actividadHtml, contar, etiquetasHtml, inicioHtml, reloj } from "/inicio.js";
 import { agenteAbierto, cerrarChat, iniciarChat, refrescarChat, volar } from "/chat.js";
 import { diaHtml } from "/dia.js";
+import { fabricaHtml } from "/fabrica.js";
 // Panel de Relatos Autopilot. Todo el texto que viene de la base se escapa antes de pintarse.
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -535,7 +536,7 @@ async function cargarComentarios() {
 }
 
 /* ───── RELATOS AI GROUP: selector, panel del grupo, Gaming y seguridad ───── */
-const CASA = new Set(["inicio", "empresas", "grupo", "seguridad", "gaming", "presupuesto", "agentes", "oficina", "oficina-gaming", "bandeja", "dia"]);
+const CASA = new Set(["inicio", "empresas", "grupo", "seguridad", "gaming", "presupuesto", "agentes", "oficina", "oficina-gaming", "bandeja", "dia", "fabrica"]);
 const hashActual = () => (location.hash || "#inicio").slice(1);
 let yo = null;
 
@@ -695,6 +696,7 @@ const CASA_VISTAS = {
     pintarBarra(d);
     return inicioHtml(datosInicio(d));
   },
+  async fabrica() { return fabricaHtml(await api("/inteligencia")); },
   async dia(fecha) { return diaHtml(await api("/dia" + (fecha ? "?fecha=" + encodeURIComponent(fecha) : ""))); },
 
   async empresas() {

@@ -23,6 +23,9 @@ export function validarGuion(g: Record<string, unknown>, ahora = Date.now()): { 
     const x = { id: s(e?.id, 8), texto: s(e?.texto, 400), img: s(e?.img, 600), mov: MOVS.includes(String(e?.mov)) ? String(e.mov) : "acercar" };
     if (!/^[a-z][0-9]{1,2}$/.test(x.id)) return { error: `escena ${x.id || "?"}: id = letra de sección + número (g1, c2…)` };
     if (escenas.some((y) => y.id === x.id)) return { error: `escena ${x.id} repetida` };
+    // Antes se cortaba en silencio a 400 letras (frase a medias). Una imagen quieta más de ~16 s hace que la gente se vaya.
+    const largoTexto = String(e?.texto ?? "").trim().length;
+    if (largoTexto > 240) return { error: `escena ${x.id}: ${largoTexto} letras de narración; máximo 240 por escena (una idea = una imagen: pártela en dos escenas)` };
     if (x.texto.length < 10 || x.img.length < 15) return { error: `escena ${x.id}: falta texto (narración) o img (prompt en inglés)` };
     escenas.push(x);
   }
@@ -43,6 +46,12 @@ export function validarGuion(g: Record<string, unknown>, ahora = Date.now()): { 
       cuando: s(r?.cuando, 40), texto: s(r?.texto, 2000), titulo_yt: s(r?.titulo_yt, 100) };
     if (x.gancho.length < 5 || x.texto.length < 20 || x.titulo_yt.length < 5) return { error: `reel ${i + 1}: falta gancho, texto (descripción FB) o titulo_yt` };
     if (x.escenas.length < 2 || x.escenas.length > 8 || x.escenas.some((e) => !ids.has(e))) return { error: `reel ${i + 1}: de 2 a 8 escenas que existan en el guion` };
+    // Lo que hace que un reel retenga se exige aquí, no solo en el manual.
+    const palabras = x.gancho.split(/\s+/).length;
+    if (palabras > 9) return { error: `reel ${i + 1}: el gancho en pantalla tiene ${palabras} palabras; máximo 9 (se lee en 2 segundos)` };
+    const dura = x.escenas.reduce((a, id) => a + (escenas.find((y) => y.id === id)?.texto.length || 0), 0);
+    if (dura < 130 || dura > 700) return { error: `reel ${i + 1}: su narración suma ${dura} letras (~${Math.round(dura / 14)} s); un reel va de 130 a 700 letras (10 a 50 s)` };
+    if (reels.some((y) => y.gancho.toLowerCase() === x.gancho.toLowerCase())) return { error: `reel ${i + 1}: repite el gancho de otro reel; cada reel necesita el suyo` };
     const f = fecha(x.cuando, `reel ${i + 1}`); if (f) return { error: f };
     reels.push(x);
   }

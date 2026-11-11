@@ -2,7 +2,7 @@
 // Sale la víspera del estreno de la Isla de la Plata, como abrebocas de las semanas de tesoros.
 export const PUBLICACION = {
   reels: [
-    { archivo: "out/tesoros-reel1.mp4", cuando: "2026-11-26T22:00:00-05:00",
+    { archivo: "out/tesoros-reel1.mp4", cuando: "2026-11-26T12:30:00-05:00",
       texto: `3 tesoros que nadie ha encontrado: el oro de Rumiñahui en los Llanganates, la plata del pirata Drake en la Isla de la Plata y el oro del fondo de la laguna de El Dorado 🗺️\n\nLas 3 historias completas en la página 👆 ¿Cuál buscarías tú: 1, 2 o 3?\n#tesoros #leyendas #ecuador #misterio #oro` },
   ],
 };
