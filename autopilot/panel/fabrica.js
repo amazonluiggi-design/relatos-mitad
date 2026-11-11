@@ -37,7 +37,7 @@ export function fabricaHtml(d) {
     ${d.analisis.alertas.map((a) => `<div class="tarjeta fab-alerta rev">⚠ ${esc(a)}</div>`).join("")}
     <h3 class="fab-t">🎬 Videos que el equipo mandó a producir</h3>
     <div class="rejilla r2">${d.producciones.map(produccion).join("") || `<div class="vacio">Todavía no hay pedidos. Ryan escribe el guion, Dwight lo aprueba con 85 o más y Michael lo manda aquí.</div>`}</div>
-    <h3 class="fab-t">📊 Qué funciona de verdad <span class="nd">· ${esc(d.analisis.nota)}</span></h3>
+    <h3 class="fab-t">📊 Qué funciona de verdad <span class="nd">· ${esc(d.analisis.nota.replace("con muestra_chica", "con «pocos datos»"))}</span></h3>
     <div class="rejilla r3">${Object.entries(d.analisis.por_red).map(([k, v]) => red(k, v)).join("")}</div>
     <h3 class="fab-t">🔥 Qué está de moda afuera <span class="nd">· se actualiza una vez al día · el equipo lo lee antes de elegir temas</span></h3>
     <div class="rejilla r2">
