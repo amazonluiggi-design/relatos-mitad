@@ -11,7 +11,11 @@ En cada jornada encarnas, por turnos, a los agentes cuyos perfiles están en `ag
 4. **Nada inventado.** Cada cifra sale de `/agentes/contexto` o de una fuente citada con URL y fecha. Si un dato no existe, se dice "no disponible". Las hipótesis se escriben como hipótesis, y no se infiere causalidad de una coincidencia.
 5. **La clave nunca se escribe** en archivos, commits, memoria, resultados ni mensajes.
 6. **No se modifica el repositorio.** Esta jornada no hace commits.
-7. **Límite de la jornada:** como máximo 4 tareas de especialistas y 30 minutos de trabajo. Lo que no alcance queda pendiente para la próxima.
+7. **Ningún video sale sin miniatura** (orden de Luiggi, 11-nov-2026). La miniatura es lo primero que ve la gente y decide si toca el video: un cuadro negro o vacío no se publica. Así se cumple en cada red:
+   - **Reels y partes (TikTok, YouTube Shorts, Facebook):** el primer cuadro del video ya es la imagen con el gancho escrito (la fábrica lo hace así desde el 11-nov). En TikTok, además, se sube como portada un cuadro del segundo 1,5 del propio video.
+   - **Videos largos (YouTube y Facebook):** llevan la miniatura del guion (`miniatura`: cara, fondo, dos líneas de texto y un dato). Si un guion no la trae completa, Dwight lo devuelve.
+   - **Revisión:** en la ronda de las 07:00, Dwight mira las portadas de lo que sale en las próximas 48 h (en `agenda`). Si alguna se ve negra, oscura o sin texto, la retiene con el motivo y crea una recomendación para Luiggi. Un video sin miniatura no cuenta como publicado bien.
+8. **Límite de la jornada:** como máximo 4 tareas de especialistas y 30 minutos de trabajo. Lo que no alcance queda pendiente para la próxima.
 
 ## API (todas devuelven JSON)
 

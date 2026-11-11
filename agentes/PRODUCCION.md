@@ -51,6 +51,8 @@ Si la API responde 400, el mensaje dice exactamente qué corregir. 409 = ese id 
 8. **Títulos de YouTube:** objeto o lugar concreto + pregunta o dato ("¿Dónde están las 750 toneladas de oro de Atahualpa?"). Mira antes `analisis.por_red.youtube.mejores` y `/agentes/tendencias`.
 9. **Qué producir:** reels y partes primero. `largo` solo en historias de tesoros (los largos tienen mediana 75 vistas; los reels 206).
 
+10. **Miniatura obligatoria (orden de Luiggi).** Ningún video sale sin miniatura. Cada guion con `largo` trae `miniatura` completa: `cara` y `fondo` (escenas con imagen clara y luminosa, no noche cerrada), `linea1` y `linea2` (máximo 14 letras cada una, la palabra que engancha: ORO, TESORO, MALDITO…) y `dato` (lugar y año). La primera escena de cada reel debe tener una imagen con luz, porque ese cuadro es la portada del reel en TikTok y en Shorts.
+
 ## Cómo puntúa Dwight un guion (100 puntos, mínimo 85)
 
 | Criterio | Puntos |
