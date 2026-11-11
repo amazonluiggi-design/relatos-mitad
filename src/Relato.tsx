@@ -283,12 +283,13 @@ const Rotulo: React.FC<{ texto: string }> = ({ texto }) => {
 // Reel vertical 9:16: gancho escrito arriba al inicio y cierre que manda al canal.
 export const Reel: React.FC<{ reel: Plan["reels"][number]; musica?: string }> = ({ reel, musica }) => {
   const f = useCurrentFrame();
-  const gancho = interpolate(f, [0, 8, 75, 90], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  // El primer cuadro es la portada en TikTok/Shorts y lo primero que ve quien pasa el dedo: nunca negro.
+  const gancho = interpolate(f, [0, 75, 90], [1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <AbsoluteFill style={{ background: "#000" }}>
-      {reel.escenas.map((e) => (
+      {reel.escenas.map((e, i) => (
         <Sequence key={e.id} from={Math.max(0, e.desde - ENTRA)} durationInFrames={e.cuadros + ENTRA * 2}>
-          <Fundido><CuadroVertical e={e} dur={e.cuadros + ENTRA * 2} /></Fundido>
+          {i === 0 ? <CuadroVertical e={e} dur={e.cuadros + ENTRA * 2} /> : <Fundido><CuadroVertical e={e} dur={e.cuadros + ENTRA * 2} /></Fundido>}
         </Sequence>
       ))}
       <Ambiente />
