@@ -47,7 +47,7 @@ for (let k = 0; k < 4; k++) {
 }
 console.log("mes:", await cabecera());
 await clicSeguro(`(() => {
-  const h = ${CAB}; let pop = h; for (let i = 0; i < 6 && pop && !/Dom|Sun/.test(pop.innerText); i++) pop = pop.parentElement;
+  const h = ${CAB}; let pop = h; for (let i = 0; i < 12 && pop && !/Dom|Sun/.test(pop.innerText); i++) pop = pop.parentElement; if (!pop) pop = h.parentElement.parentElement.parentElement;
   const celdas = [...pop.querySelectorAll("*")].filter((e) => e.childElementCount === 0 && /^\\d{1,2}$/.test((e.innerText || "").trim()) && e.getBoundingClientRect().width > 0);
   const ini = celdas.findIndex((e) => e.innerText.trim() === "1");
   let fin = celdas.findIndex((e, i) => i > ini && e.innerText.trim() === "1"); if (fin < 0) fin = celdas.length;
@@ -63,15 +63,21 @@ const OP = (col, txt) => `(() => { const op = [...document.querySelectorAll(".ti
   let s = el.parentElement; while (s && s.scrollHeight <= s.clientHeight + 2) s = s.parentElement;
   if (s) s.scrollTop += el.getBoundingClientRect().top - s.getBoundingClientRect().top - s.clientHeight / 2 + el.offsetHeight / 2;
   return el; })()`;
-for (let k = 0; k < 3; k++) {
+// Primero como una persona (rueda del ratón sobre cada columna); si no queda, el método anterior.
+globalThis.inputs = inputs; globalThis.clicSeguro = clicSeguro; globalThis.hh = hh; globalThis.mm = mm;
+await (0, eval)(`(async () => { ${fs.readFileSync("hora-rueda.js", "utf8")} })()`);
+for (let k = 0; k < 4; k++) {
   try {
-    await clicSeguro(`${inputs}[0]`, "campo hora"); await c.dormir(1200);
-    await clicSeguro(OP(0, hh), "hora " + hh); await c.dormir(600);
-    await clicSeguro(OP(1, mm), "minuto " + mm); await c.dormir(600);
-  } catch (e) { console.log("reintento hora:", e.message); }
-  // TikTok guarda la hora al volver a pulsar su campo (no al pulsar fuera).
-  try { await clicSeguro(`${inputs}[0]`, "campo hora (cerrar)"); } catch { await cerrar(); }
-  await c.dormir(1000);
+    if (k < 2) await ponerHora();
+    else {
+      await clicSeguro(`${inputs}[0]`, "campo hora"); await c.dormir(1200);
+      await clicSeguro(OP(0, hh), "hora " + hh); await c.dormir(600);
+      await clicSeguro(OP(1, mm), "minuto " + mm); await c.dormir(600);
+      // TikTok guarda la hora al volver a pulsar su campo (no al pulsar fuera).
+      try { await clicSeguro(`${inputs}[0]`, "campo hora (cerrar)"); } catch { await cerrar(); }
+      await c.dormir(1000);
+    }
+  } catch (e) { console.log("reintento hora:", e.message); try { await cerrar(); } catch {} }
   if ((await c.evaluar(`${inputs}[0].value`)) === `${hh}:${mm}`) break;
   console.log("hora quedó", await c.evaluar(`${inputs}[0].value`), "— reintento");
 }

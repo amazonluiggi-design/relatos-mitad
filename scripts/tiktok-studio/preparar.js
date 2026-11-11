@@ -7,19 +7,20 @@ await c.cmd("Page.navigate",{url:"https://www.tiktok.com/tiktokstudio/upload"});
 for (let k = 0; k < 3; k++) {
   const hayVideo = await c.evaluar(`(document.body?.innerText || "").split(String.fromCharCode(10)).some((l) => l.trim().endsWith(".mp4"))`);
   if (!hayVideo) break;
-  await c.evaluar(`(() => { const bs = [...document.querySelectorAll("button")].filter((b) => /^(Descartar|Discard)$/.test(b.innerText.trim()) && b.offsetParent); bs[bs.length - 1]?.click(); })()`);
+  await clic("Descartar");
   await c.dormir(1500);
-  await c.evaluar(`(() => { const bs = [...document.querySelectorAll("button")].filter((b) => /^(Descartar|Discard)$/.test(b.innerText.trim()) && b.offsetParent); bs[bs.length - 1]?.click(); })()`);
+  await clic("Descartar");
   for (let i = 0; i < 20 && (await c.evaluar(`(document.body?.innerText || "").split(String.fromCharCode(10)).some((l) => l.trim().endsWith(".mp4"))`)); i++) await c.dormir(1500);
 }
-if (/no se ha guardado|wasn.t saved/.test(await c.evaluar("document.body ? document.body.innerText : \"\""))) { await clic("Descartar"); await c.dormir(1200); await c.evaluar(`(()=>{const bs=[...document.querySelectorAll("button")].filter(b=>/^(Descartar|Discard)$/.test(b.innerText.trim())&&b.offsetParent);if(bs.length)bs[bs.length-1].click()})()`); await c.dormir(1500); }
+if (/no se ha guardado|wasn.t saved/.test(await c.evaluar("document.body ? document.body.innerText : \"\""))) { await clic("Descartar"); await c.dormir(1500); await clic("Descartar"); await c.dormir(2000); }
 await c.cmd("DOM.enable");
 const ruta = "C:/Users/DJ LUIGGI DELGADO/relatos-mitad/" + o.archivo;
 if (!fs.existsSync(ruta)) throw new Error("no existe " + ruta);
 for (let k = 0; k < 5; k++) {
   const { root } = await c.cmd("DOM.getDocument", { depth: -1, pierce: true });
   const { nodeId } = await c.cmd("DOM.querySelector", { nodeId: root.nodeId, selector: "input[type=file]" });
-  await c.cmd("DOM.setFileInputFiles", { nodeId, files: [ruta] });
+  // TikTok a veces rehace la página justo ahora: si el campo cambió, se busca de nuevo en la siguiente vuelta.
+  try { await c.cmd("DOM.setFileInputFiles", { nodeId, files: [ruta] }); } catch (e) { console.log("reintento carga:", e.message); await c.dormir(2000); continue; }
   await c.dormir(2500);
   if (!/Selecciona el vídeo que quieres cargar|Select video to upload/.test(await c.evaluar("document.body ? document.body.innerText : \"\""))) break;
 }
