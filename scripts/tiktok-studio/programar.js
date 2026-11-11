@@ -1,4 +1,6 @@
-// Programa la fecha y hora (calendario nuevo de TikTok Studio, oct-2026): hora "HH:MM" en dos columnas y fecha "YYYY-MM-DD".
+// Programa la fecha y hora en TikTok Studio (inglés o español). Hora "HH:MM" en dos columnas y fecha "YYYY-MM-DD".
+// Aprendido el 11-nov-2026: TikTok solo responde a clics reales del ratón y la hora se guarda al CERRAR el selector.
+// Cada clic pasa por clicSeguro: si bajo el puntero no está el elemento buscado, no se hace clic (evita tocar otros ajustes).
 const fs = await import("node:fs");
 const o = JSON.parse(fs.readFileSync("cola.json", "utf8")).find((x) => x.id === process.env.VID);
 const dt = new Date(new Date(o.cuando).getTime() - 5 * 3600e3); // hora de Ecuador
@@ -7,79 +9,72 @@ const hh = String(dt.getUTCHours()).padStart(2, "0"), mm = String(dt.getUTCMinut
 const fechaTxt = `${Y}-${String(M + 1).padStart(2, "0")}-${String(D).padStart(2, "0")}`;
 const MESES_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-const clicXY = async ([x, y]) => { await c.cmd("Input.dispatchMouseEvent", { type: "mouseMoved", x, y }); for (const type of ["mousePressed", "mouseReleased"]) await c.cmd("Input.dispatchMouseEvent", { type, x, y, button: "left", clickCount: 1 }); };
 const inputs = `[...document.querySelectorAll("[data-e2e=schedule_container] input[type=text]")]`;
 
-await c.evaluar(`document.querySelector("input[value=schedule]").click()`); await c.dormir(1500);
-await clic("Permitir"); await c.dormir(1000);
+const clicSeguro = async (expr, nombre) => {
+  await c.evaluar(`(() => { const e = ${expr}; if (e && !e.classList.contains("tiktok-timepicker-option-item")) e.scrollIntoView({ block: "center", behavior: "instant" }); })()`);
+  await c.dormir(900);
+  const p = await c.evaluar(`(() => { const e = ${expr}; if (!e) return null; const r = e.getBoundingClientRect(); const x = r.x + r.width / 2, y = r.y + r.height / 2; const b = document.elementFromPoint(x, y); return (b && (e === b || e.contains(b) || b.contains(e))) ? [x, y] : "tapado por: " + (b ? b.tagName + " " + (b.innerText || "").trim().slice(0, 30) : "nada"); })()`);
+  if (!Array.isArray(p)) throw new Error(`no hago clic en ${nombre}: ${p}`);
+  await c.cmd("Input.dispatchMouseEvent", { type: "mouseMoved", x: p[0], y: p[1] }); await c.dormir(300);
+  for (const type of ["mousePressed", "mouseReleased"]) await c.cmd("Input.dispatchMouseEvent", { type, x: p[0], y: p[1], button: "left", clickCount: 1 });
+};
+// Cierra el selector abierto con un clic en zona vacía, a la derecha del título "When to post / Cuándo publicar".
+const cerrar = async () => {
+  // Se pulsa un título de texto ("Settings", "Details", "When to post"…): no hace nada y cierra el menú abierto.
+  const p = await c.evaluar(`(() => { const ts = [...document.querySelectorAll("*")].filter((x) => /^(Settings|Configuración|Ajustes|Details|Detalles|When to post|Cuándo publicar|Cover|Portada)$/.test((x.innerText || "").trim())); for (const t of ts) { const r = t.getBoundingClientRect(); if (r.width <= 0 || r.y < 80 || r.y > innerHeight - 20) continue; const x = r.x + Math.min(r.width / 2, 30), y = r.y + r.height / 2; const b = document.elementFromPoint(x, y); if (b && (b === t || t.contains(b)) && !b.closest("button, input, label, [role=switch], a")) return [x, y]; } return null; })()`);
+  if (!p) throw new Error("no encuentro zona vacía para cerrar el selector");
+  for (const type of ["mousePressed", "mouseReleased"]) await c.cmd("Input.dispatchMouseEvent", { type, x: p[0], y: p[1], button: "left", clickCount: 1 });
+  await c.dormir(800);
+};
+
+// PROGRAMAR (radio "Schedule"); TikTok a veces pide permiso la primera vez.
+if (!(await c.evaluar(`document.querySelector("input[value=schedule]").checked`))) {
+  await clicSeguro(`document.querySelector("input[value=schedule]").closest("label") || document.querySelector("input[value=schedule]").parentElement`, "Schedule");
+  await c.dormir(1500); await clic("Permitir"); await c.dormir(1000);
+}
+if (!(await c.evaluar(`document.querySelector("input[value=schedule]").checked`))) throw new Error("no se pudo marcar Programar");
 
 // FECHA
-await c.evaluar(`${inputs}[1].scrollIntoView({ block: "center" })`); await c.dormir(500);
-const cabecera = `(() => { const h = [...document.querySelectorAll("*")].filter((e) => e.offsetParent && /^[A-Za-zÁÉÍÓÚáéíóúñ]+\\s*\\/\\s*\\d{4}$/.test((e.innerText || "").trim()) && (e.innerText || "").trim().length < 20).pop(); return h ? h.innerText.trim() : ""; })()`;
-if (!(await c.evaluar(cabecera))) { await clicXY(await c.evaluar(`(() => { const r = ${inputs}[1].getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()`)); await c.dormir(1200); }
+const CAB = `[...document.querySelectorAll("*")].filter((e) => e.getBoundingClientRect().width > 0 && /^[A-Za-zÁÉÍÓÚáéíóúñ]+\\s*\\/\\s*\\d{4}$/.test((e.innerText || "").trim()) && (e.innerText || "").trim().length < 20).pop()`;
+const cabecera = () => c.evaluar(`(() => { const h = ${CAB}; return h ? h.innerText.trim() : ""; })()`);
+if (!(await cabecera())) { await clicSeguro(`${inputs}[1]`, "campo fecha"); await c.dormir(1200); }
 for (let k = 0; k < 4; k++) {
-  const cab = await c.evaluar(cabecera); 
-  if ([`${MESES[M]}/${Y}`, `${MESES_EN[M]}/${Y}`].includes(cab.replace(/\s+/g, ""))) break;
-  // flecha ">" a la derecha de la cabecera
-  const pos = await c.evaluar(`(() => { const h = [...document.querySelectorAll("*")].filter((e) => e.offsetParent && /^[A-Za-zÁÉÍÓÚáéíóúñ]+\\s*\\/\\s*\\d{4}$/.test((e.innerText || "").trim()) && (e.innerText || "").trim().length < 20).pop(); let n = h.parentElement; const cands = [...n.parentElement.querySelectorAll("*")].filter((e) => e.offsetParent && e !== h && !e.innerText.trim() && e.getBoundingClientRect().x > h.getBoundingClientRect().right); const b = cands.sort((a, b) => b.getBoundingClientRect().x - a.getBoundingClientRect().x)[0]; const r = b.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()`);
-  await clicXY(pos); await c.dormir(900);
+  if ([`${MESES[M]}/${Y}`, `${MESES_EN[M]}/${Y}`].includes((await cabecera()).replace(/\s+/g, ""))) break;
+  // flecha ">" a la derecha de la cabecera del mes
+  await clicSeguro(`(() => { const h = ${CAB}; const cands = [...h.parentElement.parentElement.querySelectorAll("*")].filter((e) => e.getBoundingClientRect().width > 0 && e !== h && !e.innerText.trim() && e.getBoundingClientRect().x > h.getBoundingClientRect().right); return cands.sort((a, b) => b.getBoundingClientRect().x - a.getBoundingClientRect().x)[0]; })()`, "mes siguiente");
+  await c.dormir(900);
 }
-console.log("mes:", await c.evaluar(cabecera));
-const posDia = await c.evaluar(`(() => {
-  const h = [...document.querySelectorAll("*")].filter((e) => e.offsetParent && /^[A-Za-zÁÉÍÓÚáéíóúñ]+\\s*\\/\\s*\\d{4}$/.test((e.innerText || "").trim()) && (e.innerText || "").trim().length < 20).pop();
-  let pop = h; for (let i = 0; i < 6 && pop && !/Dom|Sun/.test(pop.innerText); i++) pop = pop.parentElement;
-  const celdas = [...pop.querySelectorAll("*")].filter((e) => e.childElementCount === 0 && /^\\d{1,2}$/.test((e.innerText || "").trim()) && e.offsetParent);
+console.log("mes:", await cabecera());
+await clicSeguro(`(() => {
+  const h = ${CAB}; let pop = h; for (let i = 0; i < 6 && pop && !/Dom|Sun/.test(pop.innerText); i++) pop = pop.parentElement;
+  const celdas = [...pop.querySelectorAll("*")].filter((e) => e.childElementCount === 0 && /^\\d{1,2}$/.test((e.innerText || "").trim()) && e.getBoundingClientRect().width > 0);
   const ini = celdas.findIndex((e) => e.innerText.trim() === "1");
   let fin = celdas.findIndex((e, i) => i > ini && e.innerText.trim() === "1"); if (fin < 0) fin = celdas.length;
-  const d = celdas.slice(ini, fin).find((e) => +e.innerText.trim() === ${D});
-  if (!d) return null; const r = d.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2];
-})()`);
-if (!posDia) throw new Error("no encuentro el día " + D);
-await clicXY(posDia); await c.dormir(1000);
+  return celdas.slice(ini, fin).find((e) => +e.innerText.trim() === ${D});
+})()`, "día " + D);
+await c.dormir(1000);
+if ((await c.evaluar(`${inputs}[1].value`)) !== fechaTxt) { await cerrar(); }
+if ((await c.evaluar(`${inputs}[1].value`)) !== fechaTxt) throw new Error("la fecha no quedó: " + (await c.evaluar(`${inputs}[1].value`)));
 
-// HORA (se cierra el calendario antes; se reintenta hasta que la hora quede bien)
-const esc = async () => { await c.cmd("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 }); await c.cmd("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 }); };
-const abrirHora = async () => { await esc(); await c.dormir(500); await clicXY(await c.evaluar(`(() => { const r = ${inputs}[0].getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()`)); await c.dormir(1200); };
-const elegir = async (col, txt) => {
-  const p = await c.evaluar(`(() => {
-    const i = ${inputs}[0]; let n = i; for (let k = 0; k < 6 && n && !n.querySelector("span"); k++) n = n.parentElement;
-    let raiz = i; for (let k = 0; k < 6; k++) raiz = raiz.parentElement;
-    const cols = [...raiz.querySelectorAll("div")].filter((d) => d.childElementCount >= 12 && [...d.children].every((x) => /^\\d{2}$/.test((x.innerText || "").trim())));
-    const col = cols[${col}]; if (!col) return null;
-    const el = [...col.children].find((x) => x.innerText.trim() === "${txt}"); el.scrollIntoView({ block: "center" });
-    return true;
-  })()`);
-  if (!p) throw new Error("no encuentro la columna " + col);
-  // La lista se acomoda (snap) después de desplazarse: se mide la posición cuando ya quedó quieta.
-  await c.dormir(600);
-  const q = await c.evaluar(`(() => {
-    let raiz = ${inputs}[0]; for (let k = 0; k < 6; k++) raiz = raiz.parentElement;
-    const cols = [...raiz.querySelectorAll("div")].filter((d) => d.childElementCount >= 12 && [...d.children].every((x) => /^\\d{2}$/.test((x.innerText || "").trim())));
-    const el = [...cols[${col}].children].find((x) => x.innerText.trim() === "${txt}");
-    const r = el.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2];
-  })()`);
-  await clicXY(q); await c.dormir(700);
-  return;
-  await clicXY(p); await c.dormir(700);
-};
+// HORA: abrir, elegir hora y minutos, cerrar y recién ahí comprobar.
+const OP = (col, txt) => `(() => { const op = [...document.querySelectorAll(".tiktok-timepicker-option-item")].filter((x) => x.getBoundingClientRect().width > 0); const cols = [...new Set(op.map((x) => x.parentElement))]; const col = cols[${col}]; if (!col) return null; const el = [...col.children].find((x) => x.innerText.trim() === "${txt}"); if (!el) return null;
+  // Se desplaza la LISTA (no la página) para que la opción quede en medio de la parte visible.
+  let s = el.parentElement; while (s && s.scrollHeight <= s.clientHeight + 2) s = s.parentElement;
+  if (s) s.scrollTop += el.getBoundingClientRect().top - s.getBoundingClientRect().top - s.clientHeight / 2 + el.offsetHeight / 2;
+  return el; })()`;
 for (let k = 0; k < 3; k++) {
-  await abrirHora();
   try {
-    // El selector de TikTok a veces marca la opción vecina: se lee lo que quedó y se compensa la diferencia.
-    let hObj = +hh, mObj = +mm;
-    for (let j = 0; j < 4; j++) {
-      await elegir(0, String((hObj + 24) % 24).padStart(2, "0")); await elegir(1, String((mObj + 60) % 60).padStart(2, "0"));
-      const [h2, m2] = String(await c.evaluar(`${inputs}[0].value`)).split(":").map(Number);
-      if (h2 === +hh && m2 === +mm) break;
-      hObj += +hh - h2; mObj += +mm - m2;
-      console.log("ajuste hora:", `${h2}:${m2}`, "→ apunto a", hObj, mObj);
-    }
+    await clicSeguro(`${inputs}[0]`, "campo hora"); await c.dormir(1200);
+    await clicSeguro(OP(0, hh), "hora " + hh); await c.dormir(600);
+    await clicSeguro(OP(1, mm), "minuto " + mm); await c.dormir(600);
   } catch (e) { console.log("reintento hora:", e.message); }
-  await esc(); await c.dormir(600);
+  // TikTok guarda la hora al volver a pulsar su campo (no al pulsar fuera).
+  try { await clicSeguro(`${inputs}[0]`, "campo hora (cerrar)"); } catch { await cerrar(); }
+  await c.dormir(1000);
   if ((await c.evaluar(`${inputs}[0].value`)) === `${hh}:${mm}`) break;
+  console.log("hora quedó", await c.evaluar(`${inputs}[0].value`), "— reintento");
 }
-await c.cmd("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 }); await c.cmd("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
-await c.dormir(800);
 const puesto = await c.evaluar(`${inputs}.map((i) => i.value).join(" ")`);
 const esperado = `${hh}:${mm} ${fechaTxt}`;
 console.log(o.id, "→", puesto, "(esperado", esperado + ")");

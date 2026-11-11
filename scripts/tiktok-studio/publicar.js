@@ -7,7 +7,7 @@ if (ok) for (let i = 0; i < 45; i++) {
   await c.dormir(2000);
   const u = await c.evaluar("location.href").catch(() => "");
   const t = await c.evaluar("document.body ? document.body.innerText : ''").catch(() => "");
-  const m = t.match(/Vídeo publicado|Vídeo programado|programad[oa][^\n]{0,80}|Video (posted|scheduled)|scheduled[^\n]{0,80}|Error[^\n]{0,120}/i);
+  const m = t.match(/Vídeo publicado|Vídeo programado|programad[oa][^\n]{0,80}|Video (posted|scheduled)|scheduled[^\n]{0,80}/i); // "Error" suelto daba falsos avisos: se confirma por el salto a la lista
   if (m) { console.log("resultado:", m[0]); break; }
   if (u.includes("/tiktokstudio/content")) { console.log("resultado: pasó a Publicaciones"); break; }
   if (/Selecciona el vídeo que quieres cargar|Select video to upload/.test(t)) { console.log("resultado: formulario reiniciado tras programar"); break; }
