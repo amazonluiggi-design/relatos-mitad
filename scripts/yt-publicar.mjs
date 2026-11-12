@@ -28,8 +28,9 @@ async function subir(archivo, meta) {
   if (!j.id) throw new Error("subida: " + JSON.stringify(j).slice(0, 300));
   return j;
 }
+// YouTube rechaza títulos de más de 100 letras: se cortan para no frenar la historia entera.
 const meta = (titulo, descripcion, etiquetas, cuando) => ({
-  snippet: { title: titulo, description: descripcion, tags: etiquetas, categoryId: "24", defaultLanguage: "es", defaultAudioLanguage: "es" },
+  snippet: { title: titulo.slice(0, 100), description: descripcion, tags: etiquetas, categoryId: "24", defaultLanguage: "es", defaultAudioLanguage: "es" },
   status: { privacyStatus: "private", publishAt: new Date(cuando).toISOString(), selfDeclaredMadeForKids: false, containsSyntheticMedia: true },
 });
 

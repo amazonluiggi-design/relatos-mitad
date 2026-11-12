@@ -44,7 +44,7 @@ Imágenes: recreaciones generadas con IA. Los hechos de la captura están docume
 
 export const YOUTUBE = {
   largo: {
-    titulo: "El tesoro pirata de la Isla de la Plata: Francis Drake y las 26 toneladas de plata (historia real y leyenda)",
+    titulo: "El tesoro pirata de la Isla de la Plata: Drake y las 26 toneladas de plata (historia y leyenda)",
     descripcion: (capitulos) => `En 1579, el pirata inglés Francis Drake capturó frente a Esmeraldas el galeón Nuestra Señora de la Concepción, el "Cacafuego": oro, joyas, cofres de monedas y unas 26 toneladas de plata. La leyenda dice que escondió parte en una isla de Manabí, y que por eso se llama la Isla de la Plata. ¿Qué dicen los historiadores? ¿Y qué tesoro guardaba la isla miles de años antes de los piratas?
 
 ${capitulos}
