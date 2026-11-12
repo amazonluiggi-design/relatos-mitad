@@ -95,9 +95,9 @@ DATOS (reales, JSON): ${JSON.stringify(ctx)}`;
   // ¿Pidió un trabajo? → tarea real para la jornada.
   let tareaId: number | null = null;
   // El modelo a veces pega "TAREA:" en una charla normal: se oculta siempre y solo crea tarea si el mensaje pide algo.
-  // Si el modelo repite "TAREA:" en la misma línea, vale solo la última y se ocultan todas.
-  const m = /\s*TAREA:\s*((?:(?!TAREA:).){5,200}?)\s*$/i.exec(respuesta);
-  if (m) respuesta = respuesta.slice(0, m.index).replace(/\s*TAREA:.*$/is, "").trim();
+  // Si repite "TAREA:" o sigue escribiendo después, vale el título de la primera (hasta el punto) y se oculta todo desde ahí.
+  const m = /TAREA:\s*([^.\n]{5,200})/i.exec(respuesta);
+  if (m) respuesta = respuesta.slice(0, m.index).trim() || "Listo, lo anoto para la próxima jornada.";
   if (m && PIDE.test(limpio)) {
     const t = await env.DB.prepare("INSERT INTO agent_tasks (division_id, agente_id, titulo, descripcion, prioridad, creada_por) VALUES ('relatos', ?, ?, ?, 'alta', 'propietario')")
       .bind(id, m[1].trim(), `Pedido por Luiggi en el chat: «${limpio}»`).run();
