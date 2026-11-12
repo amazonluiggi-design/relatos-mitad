@@ -19,27 +19,27 @@ export const PUBLICACION = {
 
 Imágenes: recreaciones generadas con IA. La leyenda tiene varias versiones; contamos las más conocidas.
 #padrealmeida #quito #leyendasdeecuador #leyendas #misterio`,
-    cuando: "2026-11-15T19:00:00-05:00",
+    cuando: "2026-11-22T15:00:00-05:00",
   },
   reels: [
-    { archivo: "out/padre-almeida-reel1.mp4", cuando: "2026-11-13T19:30:00-05:00",
+    { archivo: "out/padre-almeida-reel1.mp4", cuando: "2026-11-20T19:30:00-05:00",
       texto: `Se escapaba cada noche por la torre del convento… hasta que la estatua de Cristo le habló 😳\n\nLa leyenda completa este domingo en la página 👆 ¿La conocías? SÍ o NO\n#padrealmeida #quito #leyendas #misterio #ecuador` },
-    { archivo: "out/padre-almeida-reel2.mp4", cuando: "2026-11-14T19:30:00-05:00",
+    { archivo: "out/padre-almeida-reel2.mp4", cuando: "2026-11-21T19:30:00-05:00",
       texto: `El fraile de Quito que se escapaba a las fiestas 🎸 y volvía antes del amanecer.\n\nEste domingo, la historia completa en la página 👆 ¿Tú lo habrías descubierto?\n#padrealmeida #quito #leyendasdeecuador #humor #historia` },
-    { archivo: "out/padre-almeida-reel3.mp4", cuando: "2026-11-16T08:30:00-05:00",
+    { archivo: "out/padre-almeida-reel3.mp4", cuando: "2026-11-23T08:30:00-05:00",
       texto: `Se acercó al ataúd para ver quién era el muerto… y se vio a sí mismo ⚰️\n\nLa leyenda completa en la página 👆 ¿Aviso del cielo o efecto de la chicha?\n#padrealmeida #quito #leyendas #misterio #ecuador` },
-    { archivo: "out/padre-almeida-reel4.mp4", cuando: "2026-11-16T19:30:00-05:00",
+    { archivo: "out/padre-almeida-reel4.mp4", cuando: "2026-11-23T19:30:00-05:00",
       texto: `«¿Hasta cuándo, Padre Almeida?» — «¡Hasta la vuelta, Señor!» 😂 La respuesta más famosa de Quito.\n\nRelato completo en la página 👆 ¿Tú qué le responderías?\n#padrealmeida #quito #leyendas #ecuador #humor` },
-    { archivo: "out/padre-almeida-reel5.mp4", cuando: "2026-11-17T08:30:00-05:00",
+    { archivo: "out/padre-almeida-reel5.mp4", cuando: "2026-11-24T08:30:00-05:00",
       texto: `Después de esa noche, el fraile más fiestero de Quito nunca más se escapó 🙏\n\nLa historia completa en la página 👆 ¿Crees en las segundas oportunidades?\n#padrealmeida #quito #leyendasdeecuador #historia #misterio` },
-    { archivo: "out/padre-almeida-reel6.mp4", cuando: "2026-11-17T19:30:00-05:00",
+    { archivo: "out/padre-almeida-reel6.mp4", cuando: "2026-11-24T19:30:00-05:00",
       texto: `El convento y la estatua del Padre Almeida todavía existen en Quito 📍 ¿Ya los visitaste?\n\nLa leyenda completa en la página 👆\n#padrealmeida #quito #sandiego #turismo #leyendas` },
   ],
   partes: [
-    { archivo: "out/padre-almeida-parte1.mp4", cuando: "2026-11-15T22:00:00-05:00", yt: "2026-11-15T22:00:00-05:00", texto: `El Padre Almeida · Parte 1 🕯️ El fraile que no quería ser fraile. ¿Conocías esta leyenda de Quito?\n\nSígueme para la Parte 2 👆\n#padrealmeida #quito #leyendas #ecuador #parte1` },
-    { archivo: "out/padre-almeida-parte2.mp4", cuando: "2026-11-16T22:00:00-05:00", yt: "2026-11-16T22:00:00-05:00", texto: `El Padre Almeida · Parte 2 😳 La noche que la estatua le habló. ¿Tú le habrías respondido a la estatua?\n\nSígueme para la Parte 3 👆\n#padrealmeida #quito #misterio #leyendas #parte2` },
-    { archivo: "out/padre-almeida-parte3.mp4", cuando: "2026-11-17T15:00:00-05:00", yt: "2026-11-17T15:00:00-05:00", texto: `El Padre Almeida · Parte 3 ⚰️ El cortejo fúnebre… y el muerto era él. ¿Te atreverías a mirar dentro del ataúd?\n\nSígueme para la Parte 4 👆\n#padrealmeida #quito #leyendas #misterio #parte3` },
-    { archivo: "out/padre-almeida-parte4.mp4", cuando: "2026-11-17T22:00:00-05:00", yt: "2026-11-17T22:00:00-05:00", texto: `El Padre Almeida · Parte 4 (final) 🙏 Lo que cambió después de esa noche.\n\n¿Tú qué le habrías respondido? Comenta 👇\n#padrealmeida #quito #leyendasdeecuador #historia #final` },
+    { archivo: "out/padre-almeida-parte1.mp4", cuando: "2026-11-15T22:00:00-05:00", yt: "2026-11-22T22:00:00-05:00", texto: `El Padre Almeida · Parte 1 🕯️ El fraile que no quería ser fraile. ¿Conocías esta leyenda de Quito?\n\nSígueme para la Parte 2 👆\n#padrealmeida #quito #leyendas #ecuador #parte1` },
+    { archivo: "out/padre-almeida-parte2.mp4", cuando: "2026-11-16T22:00:00-05:00", yt: "2026-11-23T22:00:00-05:00", texto: `El Padre Almeida · Parte 2 😳 La noche que la estatua le habló. ¿Tú le habrías respondido a la estatua?\n\nSígueme para la Parte 3 👆\n#padrealmeida #quito #misterio #leyendas #parte2` },
+    { archivo: "out/padre-almeida-parte3.mp4", cuando: "2026-11-17T15:00:00-05:00", yt: "2026-11-24T15:00:00-05:00", texto: `El Padre Almeida · Parte 3 ⚰️ El cortejo fúnebre… y el muerto era él. ¿Te atreverías a mirar dentro del ataúd?\n\nSígueme para la Parte 4 👆\n#padrealmeida #quito #leyendas #misterio #parte3` },
+    { archivo: "out/padre-almeida-parte4.mp4", cuando: "2026-11-17T22:00:00-05:00", yt: "2026-11-24T22:00:00-05:00", texto: `El Padre Almeida · Parte 4 (final) 🙏 Lo que cambió después de esa noche.\n\n¿Tú qué le habrías respondido? Comenta 👇\n#padrealmeida #quito #leyendasdeecuador #historia #final` },
   ],
 };
 
