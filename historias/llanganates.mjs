@@ -114,3 +114,6 @@ REELS.push({"id":"reel11","gancho":"¿Dónde quedó el oro de Rumiñahui?","esce
 
 // reel nuevo 2026-11-13
 REELS.push({"id":"reel12","gancho":"El mapa de Guzmán: ¿dónde quedó el oro?","escenas":["z1","z2","z3b","c1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-13
+REELS.push({"id":"reel13","gancho":"¿Por qué varios se perdieron siguiendo el mapa?","escenas":["d3","f2","d3b","f4","c1"],"cierre":"La historia completa, en el canal"});
