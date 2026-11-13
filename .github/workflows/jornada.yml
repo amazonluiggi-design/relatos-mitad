@@ -1,0 +1,34 @@
+# Jornada de los agentes con la API de Claude (reemplaza la rutina de claude.ai, que se apagaba con la cuenta).
+# 4 jornadas al día para caber en el tope de USD 4/mes de Anthropic (Sentinel corta si se pasa).
+name: Jornada de agentes
+
+on:
+  schedule:
+    - cron: "5 12,17,20 * * *" # 07:05, 12:05 y 15:05 en Ecuador
+    - cron: "5 3 * * *"        # 22:05 en Ecuador (informe del día)
+  workflow_dispatch:
+
+concurrency:
+  group: jornada
+
+jobs:
+  jornada:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # reels nuevos: guarda historias/ y publicaciones/
+      actions: write  # y lanza la Fábrica solo para ese reel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Jornada
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AGENTE_CLAVE: ${{ secrets.AGENTE_CLAVE }}
+          RELATOS_CLAVE: ${{ secrets.RELATOS_CLAVE }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ] || [ -z "$AGENTE_CLAVE" ]; then echo "Faltan los secretos ANTHROPIC_API_KEY o AGENTE_CLAVE (correr prueba/claves-agentes.ps1)"; exit 1; fi
+          node scripts/jornada.mjs

@@ -29,7 +29,8 @@ for (const e of HISTORIA.escenas) {
 // Sentinel: botón DETENER y presupuesto (ElevenLabs Starter: las letras van dentro del plan → costo marginal 0, se anotan las letras).
 const { detenido, anotarGasto } = await import("./nube.mjs");
 if (await detenido("relatos", "apis")) { console.error("🛑 DETENER EMPRESA: APIs con consumo paradas."); process.exit(3); }
-const salida = [];
+let salida = [];
+async function conElevenLabs() {
 for (const [n, bloque] of bloques.entries()) {
   const archivo = `${dir}/b${n}.json`;
   const texto = bloque.map((e) => e.texto).join("\n\n");
@@ -77,6 +78,39 @@ for (const [n, bloque] of bloques.entries()) {
     });
   }
   console.log(`bloque ${n}: ${bloque.length} escenas, ${texto.length} letras`);
+}
+}
+
+// Respaldo gratis: Kokoro (VOZ_RESPALDO=em_alex, etc.) escena por escena cuando ElevenLabs no tiene letras.
+// Kokoro no da tiempos por palabra: se reparten por largo de cada palabra (los subtítulos quedan aproximados).
+async function conKokoro(voz) {
+  const { execFileSync } = await import("node:child_process");
+  const pedido = HISTORIA.escenas.map((e) => ({ texto: e.texto, salida: `${dir}/k-${e.id}.wav` }));
+  fs.writeFileSync(`${dir}/kokoro.json`, JSON.stringify(pedido));
+  const py = process.env.PYTHON || "python3";
+  const lineas = execFileSync(py, ["scripts/voz-kokoro.py", voz, `${dir}/kokoro.json`], { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] }).trim().split("\n").map((l) => JSON.parse(l));
+  const ff = "node_modules/@remotion/cli/remotion-cli.js";
+  salida = HISTORIA.escenas.map((e, n) => {
+    const mp3 = `${dir}/k-${e.id}.mp3`;
+    execFileSync(process.execPath, [ff, "ffmpeg", "-y", "-loglevel", "error", "-i", pedido[n].salida, "-b:a", "128k", mp3], { stdio: "ignore" });
+    fs.rmSync(pedido[n].salida);
+    const seg = lineas[n].segundos, palabras = e.texto.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w));
+    const total = palabras.reduce((a, w) => a + w.length + 1, 0);
+    let t = 0;
+    return { id: e.id, bloque: n, archivo: `${nombre}/voz/k-${e.id}.mp3`, recorte: 0, duracion: +(seg + 0.25).toFixed(3),
+      palabras: palabras.map((w) => { const d = (seg * (w.length + 1)) / total, p = { texto: w, desde: +t.toFixed(3), hasta: +(t + d).toFixed(3) }; t += d; return p; }) };
+  });
+  fs.rmSync(`${dir}/kokoro.json`);
+  console.log(`voz de respaldo Kokoro (${voz}): ${salida.length} escenas`);
+}
+
+if (process.env.VOZ_RESPALDO_FORZAR) await conKokoro(process.env.VOZ_RESPALDO_FORZAR);
+else try { await conElevenLabs(); }
+catch (e) {
+  const sinLetras = /quota|credits|401|402|429/i.test(String(e.message));
+  if (!process.env.VOZ_RESPALDO || !sinLetras) throw e;
+  console.error(`ElevenLabs sin letras (${String(e.message).slice(0, 120)}) → voz de respaldo`);
+  await conKokoro(process.env.VOZ_RESPALDO);
 }
 fs.writeFileSync(`src/datos/${nombre}-voz.json`, JSON.stringify(salida));
 console.log("total", salida.reduce((a, x) => a + x.duracion, 0).toFixed(1), "s de voz");

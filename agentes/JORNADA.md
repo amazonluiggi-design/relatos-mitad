@@ -57,7 +57,7 @@ Lo que los datos propios decían al 11-nov-2026 (compruébalo en `analisis` cada
 
 ## Horario y jornada rápida
 
-La rutina corre **cada hora de 07:00 a 22:00** (hora de Ecuador).
+La jornada corre **4 veces al día: 07:00, 12:00, 15:00 y 22:00** (hora de Ecuador), en GitHub con la API de Claude y un tope de USD 4 al mes. Hasta el 26-nov (sin letras de voz) el trabajo que más rinde son los **reels nuevos** de historias de tesoros (herramienta `reel_nuevo`): no gastan voz.
 - **07:00 y 15:00:** jornada completa: ronda de operación de redes (ver abajo) + Michael revisa el plan y puede crear tareas nuevas.
 - **Otras horas:** jornada de trabajo. Mira `/agentes/contexto` y atiende las tareas `pendiente` o `en-revision` siguiendo el orden de abajo.
   - **Si no hay ninguna, Michael crea el trabajo él mismo.** No espera a Luiggi y no pregunta. Es el CEO: decide, inventa ideas y pone a trabajar al equipo. Crea 1 o 2 tareas nuevas y útiles (ver "Trabajo que Michael inventa") y los especialistas las hacen **en esta misma jornada**.

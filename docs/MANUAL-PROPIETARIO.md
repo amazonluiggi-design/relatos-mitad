@@ -26,7 +26,11 @@ Panel: **https://relatos-autopilot.probador-worker.workers.dev** (también se in
 Detiene sin borrar nada: toda la empresa, una división, o solo publicaciones / renderizados / agentes / APIs con gasto. **Ojo:** lo ya programado DENTRO de Facebook y YouTube sale igual; se cancela en Meta Business Suite / YouTube Studio (o pídemelo). Te llega un aviso por WhatsApp mientras esté activo.
 
 ## 4. Agentes
-- Trabajan solos **a las 07:00 y 15:00** (rutina en claude.ai/code → Programadas → "RELATOS AI GROUP · Jornada de agentes"). Usan tu suscripción de Claude, no la API de pago.
+- Trabajan solos **a las 07:00, 12:00, 15:00 y 22:00** en GitHub (Actions → "Jornada de agentes"; "Run workflow" para que trabajen ya). Usan la API de Claude (Haiku 5.5; Sonnet 5.5 solo para guiones) con tope de **USD 4 al mes** (Presupuesto → anthropic). Ya no dependen de una cuenta de claude.ai.
+- Cada día arman hasta 3 **reels nuevos** con historias que ya rindieron (sin gastar voz) y la Fábrica los programa en Facebook y YouTube.
+- **Marcador real:** la nota de cada reel la ponen sus vistas a 24 h en YouTube (50 = la mediana, 100 = el doble), no la opinión de Dwight.
+- **Voz de respaldo** (Kokoro, gratis) para cuando ElevenLabs se queda sin letras: apagada. Se enciende con la variable del repositorio `VOZ_RESPALDO` (em_alex, em_santa o ef_dora).
+- Claves en GitHub: `ANTHROPIC_API_KEY` y `AGENTE_CLAVE` (se ponen con `prueba/claves-agentes.ps1`).
 - Para pedirles algo: **Agentes → toca al agente → Darle una instrucción**. Lo toma en la siguiente jornada. Para que sea ya: en la rutina, **Ejecutar ahora**.
 - No pueden publicar, gastar ni tocar la seguridad (lo impide el código, no la IA). Dwight revisa todo: < 85/100 vuelve al autor.
 - Su clave vive en el **entorno Default** de claude.ai/code (variable `AGENTE_CLAVE`) y en `~/.relatos-secretos/agente-clave.txt`. Si se filtra: pídeme "rota la clave de los agentes" y la pegas de nuevo en el entorno.
