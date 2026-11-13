@@ -108,3 +108,6 @@ export const REELS = [
 // Segundos máximos que se usan de cada clip animado (el resto se descarta).
 // i4: desde el segundo 5 Veo dibujó estatuas egipcias, que no corresponden al oro inca.
 export const CLIPS_MAX = { i4: 4 };
+
+// reel nuevo 2026-11-12
+REELS.push({"id":"reel11","gancho":"¿Dónde quedó el oro de Rumiñahui?","escenas":["g2","d3","f3","c1"],"cierre":"Historia completa en el canal"});

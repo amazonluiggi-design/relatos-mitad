@@ -94,3 +94,7 @@ YOUTUBE.episodios = [
 // Relleno del mismo día (sáb 31-oct): más publicaciones desde hoy.
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel10.mp4","cuando":"2026-10-31T16:00:00-05:00","texto":"Su suegro lo llevó a las montañas… y ahí vio más oro del que un soldado pobre podía imaginar ✨\n\nLa historia completa en la página 👆 ¿Tú habrías vuelto por más?\n#llanganates #tesoroinca #valverde #misterio #ecuador"});
 YOUTUBE.reels.push({"titulo":"El día que encontró el oro inca ✨ #tesoro #shorts"});
+
+// reel nuevo 2026-11-12
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel11.mp4","cuando":"2026-11-16T12:30:00-05:00","texto":"Según la tradición, el oro de Rumiñahui sigue escondido en los Llanganates. Es una leyenda, no un hecho confirmado. ¿Tú qué crees que pasó? #Llanganates #LeyendasEcuador #Tesoros"});
+YOUTUBE.reels.push({"titulo":"¿Dónde quedó el oro de Rumiñahui en los Llanganates? #shorts"});
