@@ -98,3 +98,7 @@ YOUTUBE.reels.push({"titulo":"El día que encontró el oro inca ✨ #tesoro #sho
 // reel nuevo 2026-11-12
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel11.mp4","cuando":"2026-11-16T12:30:00-05:00","texto":"Según la tradición, el oro de Rumiñahui sigue escondido en los Llanganates. Es una leyenda, no un hecho confirmado. ¿Tú qué crees que pasó? #Llanganates #LeyendasEcuador #Tesoros"});
 YOUTUBE.reels.push({"titulo":"¿Dónde quedó el oro de Rumiñahui en los Llanganates? #shorts"});
+
+// reel nuevo 2026-11-13
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel12.mp4","cuando":"2026-11-17T16:00:00-05:00","texto":"Un minero recorrió los Llanganates, dejó un mapa y su historia sigue sin cerrarse. Según la tradición, cada persona que se acercó al oro corrió la misma suerte. ¿Tú crees que sigue ahí? #Llanganates #TesorosEcuador #Leyendas #MisterioEcuador"});
+YOUTUBE.reels.push({"titulo":"El mapa de Guzmán: ¿dónde quedó el oro de los Llanganates? #shorts"});

@@ -111,3 +111,6 @@ export const CLIPS_MAX = { i4: 4 };
 
 // reel nuevo 2026-11-12
 REELS.push({"id":"reel11","gancho":"¿Dónde quedó el oro de Rumiñahui?","escenas":["g2","d3","f3","c1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-13
+REELS.push({"id":"reel12","gancho":"El mapa de Guzmán: ¿dónde quedó el oro?","escenas":["z1","z2","z3b","c1"],"cierre":"Historia completa en el canal"});
