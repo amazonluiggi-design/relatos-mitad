@@ -127,14 +127,28 @@ const rc = await fetch(API + "/agentes/contexto", { headers: { "x-agente": CLAVE
 const contexto = await rc.text();
 if (!rc.ok) throw new Error(`contexto: ${rc.status} ${contexto.slice(0, 200)}`);
 const ctxJson = JSON.parse(contexto);
+// El contexto entero pasa de 100K tokens con la conversación (y Haiku cobra 5 veces más arriba de eso): se manda lo útil.
+function compactar(c) {
+  const corta = (s, n) => (s == null ? s : String(s).slice(0, n));
+  const desde = Date.now() - 10 * 864e5;
+  const ultimas = {};
+  for (const x of c.datos?.cuentas || []) ultimas[x.red] = x;
+  return { ...c,
+    tareas: (c.tareas || []).map((t) => ({ ...t, descripcion: corta(t.descripcion, 300), revision: corta(t.revision, 200) })),
+    agenda: (c.agenda || []).map((a) => ({ pub_id: a.pub_id, red: a.red, estado: a.estado, cuando: a.cuando, subido: a.subido, titulo: corta(a.titulo, 80), tipo: a.tipo, historia_id: a.historia_id, calidad: a.calidad })),
+    datos: { cuentas: Object.values(ultimas), serie: c.datos?.serie,
+      pubs: (c.datos?.pubs || []).filter((p) => Date.parse(p.cuando) > desde && p.estado === "publicado")
+        .map((p) => ({ id: p.id, cuando: p.cuando, tipo: p.tipo, historia_id: p.historia_id, gancho: corta(p.gancho, 70), vistas: p.vistas, vistas_24h: p.vistas_24h })) } };
+}
 const marca = marcador(ctxJson);
 const tablaMarcador = marca.filas.map((f) => `| ${f.video}${f.de_agentes ? " (agentes)" : ""} | ${(f.gancho || "").slice(0, 70)} | ${f.vistas_24h} | ${f.nota} |`).join("\n");
 // En el cierre de las 22:00 queda guardada la nota de los reels de los agentes que cumplieron 24-48 h (una sola vez cada uno).
 if (!PROBAR && hora >= 21) for (const f of marca.filas.filter((f) => f.de_agentes && Date.parse(f.salio) > Date.now() - 2 * 864e5))
   await api("POST", "/agentes/memoria", "dwight", { tipo: "aprendizaje", titulo: `Marcador: ${f.video}`, contenido: `Gancho «${f.gancho}»: ${f.vistas_24h} vistas a 24 h en YouTube (mediana de reels ${marca.mediana}) → nota ${f.nota}/100.`, confianza: "alta" });
-const inicio = `Jornada ${tipo}. Hoy es ${fecha}, son las ${String(hora).padStart(2, "0")}:00 en Ecuador.\n\nMARCADOR REAL (YouTube, mediana de reels ${marca.mediana}):\n| video | gancho | vistas 24 h | nota |\n|---|---|---|---|\n${tablaMarcador}\n\nCONTEXTO (/agentes/contexto, JSON):\n${contexto}`;
+const compacto = JSON.stringify(compactar(ctxJson));
+const inicio = `Jornada ${tipo}. Hoy es ${fecha}, son las ${String(hora).padStart(2, "0")}:00 en Ecuador.\n\nMARCADOR REAL (YouTube, mediana de reels ${marca.mediana}):\n| video | gancho | vistas 24 h | nota |\n|---|---|---|---|\n${tablaMarcador}\n\nCONTEXTO (/agentes/contexto resumido, JSON):\n${compacto}`;
 console.log(`Tope de esta jornada: USD ${TOPE_JORNADA.toFixed(3)}`);
-console.log(`Jornada ${tipo} · contexto ${contexto.length} letras · prompt fijo ${system[0].text.length} letras`);
+console.log(`Jornada ${tipo} · contexto ${contexto.length} → ${compacto.length} letras · prompt fijo ${system[0].text.length} letras`);
 if (PROBAR) console.log(inicio.slice(0, inicio.indexOf("CONTEXTO (")));
 if (PROBAR) { console.log("--probar: API del panel OK, no se llama a Claude."); process.exit(0); }
 if (!(await puedoGastar("anthropic", TOPE_JORNADA, "Jornada de agentes"))) { console.log("⛔ Sin presupuesto de Anthropic: no hay jornada."); process.exit(0); }
@@ -158,7 +172,7 @@ try {
       resultados.push({ type: "tool_result", tool_use_id: b.id, content: x.content, ...(x.is_error ? { is_error: true } : {}) });
     }
     messages.push({ role: "user", content: resultados });
-    if (gasto > TOPE_JORNADA || prompt > TOPE_PROMPT * 1.1) { console.log("Tope de la jornada alcanzado: se corta."); break; }
+    if (gasto > TOPE_JORNADA || prompt > TOPE_PROMPT * 1.1) { console.log(`Tope de la jornada alcanzado: se corta (USD ${gasto.toFixed(3)}, prompt ${prompt} tokens).`); break; }
     if (!avisado && (gasto > TOPE_JORNADA * 0.8 || prompt > TOPE_PROMPT)) {
       avisado = true;
       messages.push({ role: "system", content: "Se acaba el presupuesto de esta jornada: entrega lo que tengas, pon a todos en disponible y termina en 2 pasos como máximo." });
