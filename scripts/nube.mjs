@@ -10,9 +10,17 @@ const TROZO = 64 * 1024 * 1024;
 export async function subir(archivo, clave, tipo) {
   const buf = fs.readFileSync(archivo);
   if (buf.length <= 90 * 1024 * 1024) {
-    const r = await fetch(`${U}/archivo?clave=${encodeURIComponent(clave)}`, { method: "PUT", headers: { ...H, "content-type": tipo }, body: buf });
-    if (!r.ok) throw new Error(`subir ${clave}: ${r.status} ${await r.text()}`);
-    return;
+    // Reintentos: un corte de red (ECONNRESET) tumbó una Fábrica entera el 12-nov.
+    for (let i = 1; ; i++) {
+      try {
+        const r = await fetch(`${U}/archivo?clave=${encodeURIComponent(clave)}`, { method: "PUT", headers: { ...H, "content-type": tipo }, body: buf });
+        if (!r.ok) throw new Error(`subir ${clave}: ${r.status} ${await r.text()}`);
+        return;
+      } catch (e) {
+        if (i >= 3) throw e;
+        await new Promise((s) => setTimeout(s, 5000 * i));
+      }
+    }
   }
   const { id } = await (await fetch(`${U}/multi?accion=crear&clave=${encodeURIComponent(clave)}`, { method: "POST", headers: { ...H, "content-type": tipo } })).json();
   const partes = [];
