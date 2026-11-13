@@ -56,8 +56,9 @@ const motor = `## Cómo actúas en este motor (manda sobre lo que el manual dice
 - \`leer\` abre archivos del repositorio en agentes/, historias/ y publicaciones/ (Dwight revisa guiones así).
 - \`web_search\` y \`web_fetch\` sirven para investigar con fuentes reales (Andy, Ryan). Úsalos poco: cada búsqueda cuesta.
 - \`escribir_guion\`: cuando Ryan o Jim deban escribir un guion completo en el JSON de PRODUCCION.md, pídelo con esta herramienta (lo escribe un modelo más fuerte) y entrega lo que devuelve.
-- **Reels nuevos sin gastar voz (prioridad diaria):** con \`opciones_reel\` ves las escenas (con voz e imagen vertical) y los ganchos usados de una historia; con \`reel_nuevo\` armas un reel con gancho nuevo y otro orden de escenas. Elige historias que rindieron (tesoros: Llanganates, Isla de la Plata, Tesoro de Lima, El Dorado) y llena los días o franjas de YouTube sin publicación. Kelly escribe el gancho y el título, Dwight lo revisa antes de mandarlo, Pam elige la hora. Máximo 2 por jornada. La Fábrica lo renderiza y lo programa en Facebook y YouTube sola.
+- **Reels nuevos sin gastar voz (prioridad diaria):** con \`opciones_reel\` ves las escenas (con voz e imagen vertical) y los ganchos usados de una historia; con \`reel_nuevo\` armas un reel con gancho nuevo y otro orden de escenas. Elige historias que rindieron (tesoros: Llanganates, Isla de la Plata, Tesoro de Lima, El Dorado) y llena los días o franjas de YouTube sin publicación. Kelly escribe el gancho y el título, Pam elige la hora y Dwight lo revisa: esa revisión la haces TÚ pensando como Dwight con el marcador (no hay ruta del panel para eso ni hace falta). Si Dwight le pone 85 o más, mandas el reel con reel_nuevo EN ESTA MISMA JORNADA. Nadie lo aprueba después: si no lo mandas, no existe. Si reel_nuevo rechaza algo, corrige y reintenta. Máximo 2 por jornada. La Fábrica lo renderiza y lo programa en Facebook y YouTube sola.
 - **La nota real la ponen las vistas.** El primer mensaje trae el MARCADOR REAL (reels de YouTube: vistas a 24 h y nota = 50 en la mediana, 100 al doble). Dwight lo usa para revisar ganchos y títulos: uno parecido a los de nota < 40 se rechaza; los de nota ≥ 70 son el modelo a copiar. Kelly escribe mirando el marcador, no su intuición.
+- **Meta mínima de cada jornada:** si hay días u horas libres en YouTube en los próximos 10 días y hoy quedan reels nuevos permitidos, la jornada no termina sin haber mandado al menos 1 reel nuevo.
 - Sé breve en lo que escribes: cada palabra cuesta. Termina la jornada cuando no quede trabajo útil.`;
 const system = [{ type: "text", text: `${motor}\n\n${manual}\n\n# Manual de producción\n${produccion}\n\n# Perfiles\n${perfiles}`, cache_control: { type: "ephemeral" } }];
 
@@ -160,7 +161,7 @@ try {
     const r = await client.messages.create({ model: MODELO, max_tokens: 8000, system, tools, messages, output_config: { effort: "medium" }, cache_control: { type: "ephemeral" } });
     cobrar(MODELO, r.usage);
     const prompt = (r.usage.input_tokens || 0) + (r.usage.cache_read_input_tokens || 0) + (r.usage.cache_creation_input_tokens || 0);
-    for (const b of r.content) if (b.type === "text" && b.text.trim()) console.log("·", b.text.trim().slice(0, 300));
+    for (const b of r.content) if (b.type === "text" && b.text.trim()) console.log("·", b.text.trim().slice(0, 1500));
     messages.push({ role: "assistant", content: r.content });
     if (r.stop_reason === "refusal") { console.log("El modelo se negó:", r.stop_details?.category); break; }
     if (r.stop_reason === "pause_turn") continue;
