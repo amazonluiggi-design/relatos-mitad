@@ -14,7 +14,12 @@ const PROBAR = process.argv.includes("--probar");
 const MODELO = "claude-haiku-5-5", MODELO_GUION = "claude-sonnet-5-5";
 // USD por millón de tokens (hasta 100K de prompt en Haiku; por encima cuesta 5 veces más, por eso el tope de 95K).
 const PRECIO = { [MODELO]: { in: 0.1, out: 0.5, w: 0.125, r: 0.01 }, [MODELO_GUION]: { in: 2, out: 10, w: 2.5, r: 0.1 } };
-const TOPE_JORNADA = 0.15, TOPE_PROMPT = 95_000, MAX_VUELTAS = 40, BUSQUEDA = 0.01;
+// USD 4 al mes repartidos parejo: cada día recibe lo que queda del mes ÷ días que faltan, y cada jornada hasta la mitad de eso.
+// (Sentinel igual corta en 4 si algo se pasa.) Ej.: 13-nov → 4/18 = 0,22 al día → 0,11 por jornada; diciembre → 0,065.
+const TOPE_MES = 4;
+const _hoy = new Date(Date.now() - 5 * 36e5), _diasMes = new Date(Date.UTC(_hoy.getUTCFullYear(), _hoy.getUTCMonth() + 1, 0)).getUTCDate();
+const TOPE_JORNADA = Math.min(0.15, Math.max(0.03, TOPE_MES / (_diasMes - _hoy.getUTCDate() + 1) / 2));
+const TOPE_PROMPT = 95_000, MAX_VUELTAS = 40, BUSQUEDA = 0.01;
 const AGENTES = ["michael", "andy", "oscar", "ryan", "kelly", "jim", "dwight", "pam", "angela", "sentinel"];
 
 if (!CLAVE) throw new Error("falta AGENTE_CLAVE");
@@ -84,7 +89,7 @@ function cobrar(modelo, u) {
 
 const client = new Anthropic();
 async function escribirGuion(pedido) {
-  if (gasto > TOPE_JORNADA * 0.6) return "No alcanza el presupuesto de esta jornada para un guion: déjalo para la siguiente.";
+  if (gasto + 0.08 > TOPE_JORNADA) return "No alcanza el presupuesto de esta jornada para un guion (cuesta ~USD 0,08): déjalo para la siguiente y trabaja en reels nuevos.";
   const r = await client.messages.create({ model: MODELO_GUION, max_tokens: 16000, output_config: { effort: "medium" },
     system: [{ type: "text", text: `Eres Ryan, guionista de "Relatos de la Mitad" (misterio épico, Ecuador y Latinoamérica, sin gore, leyenda contada como leyenda). Escribe SOLO el JSON del guion, válido, siguiendo exactamente este manual:\n\n${produccion}`, cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: pedido }] });
@@ -128,6 +133,7 @@ const tablaMarcador = marca.filas.map((f) => `| ${f.video}${f.de_agentes ? " (ag
 if (!PROBAR && hora >= 21) for (const f of marca.filas.filter((f) => f.de_agentes && Date.parse(f.salio) > Date.now() - 2 * 864e5))
   await api("POST", "/agentes/memoria", "dwight", { tipo: "aprendizaje", titulo: `Marcador: ${f.video}`, contenido: `Gancho «${f.gancho}»: ${f.vistas_24h} vistas a 24 h en YouTube (mediana de reels ${marca.mediana}) → nota ${f.nota}/100.`, confianza: "alta" });
 const inicio = `Jornada ${tipo}. Hoy es ${fecha}, son las ${String(hora).padStart(2, "0")}:00 en Ecuador.\n\nMARCADOR REAL (YouTube, mediana de reels ${marca.mediana}):\n| video | gancho | vistas 24 h | nota |\n|---|---|---|---|\n${tablaMarcador}\n\nCONTEXTO (/agentes/contexto, JSON):\n${contexto}`;
+console.log(`Tope de esta jornada: USD ${TOPE_JORNADA.toFixed(3)}`);
 console.log(`Jornada ${tipo} · contexto ${contexto.length} letras · prompt fijo ${system[0].text.length} letras`);
 if (PROBAR) console.log(inicio.slice(0, inicio.indexOf("CONTEXTO (")));
 if (PROBAR) { console.log("--probar: API del panel OK, no se llama a Claude."); process.exit(0); }
