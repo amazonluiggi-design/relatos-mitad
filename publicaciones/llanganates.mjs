@@ -110,3 +110,7 @@ YOUTUBE.reels.push({"titulo":"¿Por qué varios se perdieron siguiendo el mapa d
 // reel nuevo 2026-11-14
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel14.mp4","cuando":"2026-11-19T12:30:00-05:00","texto":"¿Crees que el oro de los Llanganates sigue escondido? Cuéntanos qué opinas en los comentarios. #Llanganates #LeyendasEcuador #TesorosPerdidos #Ecuador"});
 YOUTUBE.reels.push({"titulo":"¿Qué vieron dentro de la cueva de oro del Llanganates? #shorts"});
+
+// reel nuevo 2026-11-14
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel15.mp4","cuando":"2026-11-20T12:30:00-05:00","texto":"Un mapa escrito para un rey, con señales que dependen unas de otras. ¿Tú habrías seguido el derrotero de Valverde? Cuéntame en los comentarios. #Llanganates #TesorosDeEcuador #Leyendas"});
+YOUTUBE.reels.push({"titulo":"El derrotero de Valverde: ¿una trampa de cerros iguales? #shorts"});
