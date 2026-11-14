@@ -106,3 +106,7 @@ YOUTUBE.reels.push({"titulo":"El mapa de Guzmán: ¿dónde quedó el oro de los 
 // reel nuevo 2026-11-13
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel13.mp4","cuando":"2026-11-18T12:30:00-05:00","texto":"Según la tradición, el Derrotero de Valverde llevaba al oro de Rumiñahui en los Llanganates. ¿Tú seguirías un mapa así? #Llanganates #Ecuador #Leyendas #Tesoros"});
 YOUTUBE.reels.push({"titulo":"¿Por qué varios se perdieron siguiendo el mapa de Valverde? #shorts"});
+
+// reel nuevo 2026-11-14
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel14.mp4","cuando":"2026-11-19T12:30:00-05:00","texto":"¿Crees que el oro de los Llanganates sigue escondido? Cuéntanos qué opinas en los comentarios. #Llanganates #LeyendasEcuador #TesorosPerdidos #Ecuador"});
+YOUTUBE.reels.push({"titulo":"¿Qué vieron dentro de la cueva de oro del Llanganates? #shorts"});

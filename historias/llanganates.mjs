@@ -117,3 +117,6 @@ REELS.push({"id":"reel12","gancho":"El mapa de Guzmán: ¿dónde quedó el oro?"
 
 // reel nuevo 2026-11-13
 REELS.push({"id":"reel13","gancho":"¿Por qué varios se perdieron siguiendo el mapa?","escenas":["d3","f2","d3b","f4","c1"],"cierre":"La historia completa, en el canal"});
+
+// reel nuevo 2026-11-14
+REELS.push({"id":"reel14","gancho":"¿Qué vieron dentro de la cueva de oro?","escenas":["i3","i4","h4","c1"],"cierre":"Historia completa en el canal"});
