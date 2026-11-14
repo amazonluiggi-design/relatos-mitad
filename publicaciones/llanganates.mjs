@@ -114,3 +114,7 @@ YOUTUBE.reels.push({"titulo":"¿Qué vieron dentro de la cueva de oro del Llanga
 // reel nuevo 2026-11-14
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel15.mp4","cuando":"2026-11-20T12:30:00-05:00","texto":"Un mapa escrito para un rey, con señales que dependen unas de otras. ¿Tú habrías seguido el derrotero de Valverde? Cuéntame en los comentarios. #Llanganates #TesorosDeEcuador #Leyendas"});
 YOUTUBE.reels.push({"titulo":"El derrotero de Valverde: ¿una trampa de cerros iguales? #shorts"});
+
+// reel nuevo 2026-11-14
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel16.mp4","cuando":"2026-11-17T12:30:00-05:00","texto":"Según las cartas de Blake, que muchos creen una invención. ¿Le crees o es otra leyenda de los Llanganates? Cuéntamelo en los comentarios. #Llanganates #TesorosDeEcuador #Leyendas"});
+YOUTUBE.reels.push({"titulo":"¿Miles de piezas de oro en una cueva? Lo que escribió Blake #shorts"});

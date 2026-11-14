@@ -123,3 +123,6 @@ REELS.push({"id":"reel14","gancho":"¿Qué vieron dentro de la cueva de oro?","e
 
 // reel nuevo 2026-11-14
 REELS.push({"id":"reel15","gancho":"El derrotero de Valverde: ¿una trampa de cerros?","escenas":["d3","d3b","h2b","c1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-14
+REELS.push({"id":"reel16","gancho":"¿Miles de estatuas de oro en una cueva?","escenas":["i2","i3","i4","i4b","c1"],"cierre":"Historia completa en el canal"});
