@@ -129,3 +129,6 @@ REELS.push({"id":"reel16","gancho":"¿Miles de estatuas de oro en una cueva?","e
 
 // reel nuevo 2026-11-15
 REELS.push({"id":"reel17","gancho":"¿Qué hizo Rumiñahui con el oro de Atahualpa?","escenas":["a2","a3","a4","a5","c1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-15
+REELS.push({"id":"reel18","gancho":"Nadie ha mostrado ni una pieza de ese oro","escenas":["g2","a5","i3","i4","h4","h5"],"cierre":"¿Tú qué crees? Historia completa en el canal"});

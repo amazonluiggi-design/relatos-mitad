@@ -122,3 +122,7 @@ YOUTUBE.reels.push({"titulo":"¿Miles de piezas de oro en una cueva? Lo que escr
 // reel nuevo 2026-11-15
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel17.mp4","cuando":"2026-11-21T10:00:00-05:00","texto":"Según la tradición, el general Rumiñahui se llevó el oro de Atahualpa a la montaña, y nadie lo ha presentado. ¿Crees que sigue ahí? Cuéntanos tu teoría. #Llanganates #LeyendasEcuador #TesoroPerdido"});
 YOUTUBE.reels.push({"titulo":"¿Qué hizo Rumiñahui con el oro de Atahualpa? #shorts"});
+
+// reel nuevo 2026-11-15
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel18.mp4","cuando":"2026-11-21T12:30:00-05:00","texto":"¿El oro de Rumiñahui existe o es solo leyenda? Las cartas de Blake dicen que sí, pero nadie ha mostrado una pieza. Tú, ¿qué crees? Cuéntanos en los comentarios. #Llanganates #LeyendasEcuador #Tesoros"});
+YOUTUBE.reels.push({"titulo":"¿Dónde está el oro de Rumiñahui? Nadie ha mostrado una pieza #shorts"});
