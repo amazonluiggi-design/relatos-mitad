@@ -126,3 +126,6 @@ REELS.push({"id":"reel15","gancho":"El derrotero de Valverde: ¿una trampa de ce
 
 // reel nuevo 2026-11-14
 REELS.push({"id":"reel16","gancho":"¿Miles de estatuas de oro en una cueva?","escenas":["i2","i3","i4","i4b","c1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-15
+REELS.push({"id":"reel17","gancho":"¿Qué hizo Rumiñahui con el oro de Atahualpa?","escenas":["a2","a3","a4","a5","c1"],"cierre":"Historia completa en el canal"});
