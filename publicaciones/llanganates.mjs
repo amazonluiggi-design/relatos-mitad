@@ -126,3 +126,7 @@ YOUTUBE.reels.push({"titulo":"¿Qué hizo Rumiñahui con el oro de Atahualpa? #s
 // reel nuevo 2026-11-15
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel18.mp4","cuando":"2026-11-21T12:30:00-05:00","texto":"¿El oro de Rumiñahui existe o es solo leyenda? Las cartas de Blake dicen que sí, pero nadie ha mostrado una pieza. Tú, ¿qué crees? Cuéntanos en los comentarios. #Llanganates #LeyendasEcuador #Tesoros"});
 YOUTUBE.reels.push({"titulo":"¿Dónde está el oro de Rumiñahui? Nadie ha mostrado una pieza #shorts"});
+
+// reel nuevo 2026-11-15
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel19.mp4","cuando":"2026-11-22T12:30:00-05:00","texto":"Blake escribió que vio miles de estatuas de oro en una cueva de los Llanganates. ¿Le crees o es una invención? Cuéntame en los comentarios. #Llanganates #Ecuador #Tesoros #Leyendas"});
+YOUTUBE.reels.push({"titulo":"¿Qué vieron dos marineros dentro de la cueva de oro? #shorts"});

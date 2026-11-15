@@ -132,3 +132,6 @@ REELS.push({"id":"reel17","gancho":"¿Qué hizo Rumiñahui con el oro de Atahual
 
 // reel nuevo 2026-11-15
 REELS.push({"id":"reel18","gancho":"Nadie ha mostrado ni una pieza de ese oro","escenas":["g2","a5","i3","i4","h4","h5"],"cierre":"¿Tú qué crees? Historia completa en el canal"});
+
+// reel nuevo 2026-11-15
+REELS.push({"id":"reel19","gancho":"Blake escribió haber visto miles de estatuas de oro","escenas":["g2","i2","i3","i4","i7"],"cierre":"Historia completa en el canal"});
