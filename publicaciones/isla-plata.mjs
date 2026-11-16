@@ -84,3 +84,7 @@ YOUTUBE.episodios = [
 // reel nuevo 2026-11-16
 PUBLICACION.reels.push({"archivo":"out/isla-plata-reel7.mp4","cuando":"2026-11-18T22:00:00-05:00","texto":"Drake salió tras el Cacafuego con un barco más pequeño. ¿Te habrías dejado engañar por un barquito? Cuéntame en los comentarios. #IslaDeLaPlata #Piratas #LeyendasEcuador #TesorosEcuador"});
 YOUTUBE.reels.push({"titulo":"¿Qué truco usó Drake para engañar al galeón del Cacafuego? #shorts"});
+
+// reel nuevo 2026-11-16
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel8.mp4","cuando":"2026-11-20T15:30:00-05:00","texto":"¿Crees que el tesoro del pirata sigue bajo la Isla de la Plata? Cuéntamelo en los comentarios. #IslaDeLaPlata #Ecuador #Leyendas #Tesoros"});
+YOUTUBE.reels.push({"titulo":"¿Sigue escondida la plata de Drake en la Isla de la Plata? #shorts"});
