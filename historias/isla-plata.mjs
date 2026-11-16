@@ -105,3 +105,6 @@ export const REELS = [
 ];
 
 export const CLIPS_MAX = {};
+
+// reel nuevo 2026-11-16
+REELS.push({"id":"reel7","gancho":"¿Qué truco usó el pirata para engañar al galeón?","escenas":["c1","c4","c5","k2","b2"],"cierre":"La historia completa, en el canal"});

@@ -80,3 +80,7 @@ YOUTUBE.episodios = [
   { titulo: "Francis Drake y la caza del galeón más rico del Pacífico (Isla de la Plata, episodio 1)" },
   { titulo: "¿Dónde está el tesoro de la Isla de la Plata? (episodio 2)" },
 ];
+
+// reel nuevo 2026-11-16
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel7.mp4","cuando":"2026-11-18T22:00:00-05:00","texto":"Drake salió tras el Cacafuego con un barco más pequeño. ¿Te habrías dejado engañar por un barquito? Cuéntame en los comentarios. #IslaDeLaPlata #Piratas #LeyendasEcuador #TesorosEcuador"});
+YOUTUBE.reels.push({"titulo":"¿Qué truco usó Drake para engañar al galeón del Cacafuego? #shorts"});
