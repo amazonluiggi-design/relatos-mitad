@@ -88,3 +88,7 @@ YOUTUBE.reels.push({"titulo":"¿Qué truco usó Drake para engañar al galeón d
 // reel nuevo 2026-11-16
 PUBLICACION.reels.push({"archivo":"out/isla-plata-reel8.mp4","cuando":"2026-11-20T15:30:00-05:00","texto":"¿Crees que el tesoro del pirata sigue bajo la Isla de la Plata? Cuéntamelo en los comentarios. #IslaDeLaPlata #Ecuador #Leyendas #Tesoros"});
 YOUTUBE.reels.push({"titulo":"¿Sigue escondida la plata de Drake en la Isla de la Plata? #shorts"});
+
+// reel nuevo 2026-11-17
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel9.mp4","cuando":"2026-11-19T19:00:00-05:00","texto":"Drake prometió una cadena de oro al primero que viera el galeón español. ¿Sabes quién la ganó? Cuéntanos en los comentarios. #IslaDeLaPlata #Leyendas #Tesoros #Ecuador"});
+YOUTUBE.reels.push({"titulo":"¿Quién se llevó la cadena de oro que prometió el pirata Drake? #shorts"});
