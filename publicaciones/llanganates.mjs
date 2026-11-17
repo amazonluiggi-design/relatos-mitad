@@ -130,3 +130,7 @@ YOUTUBE.reels.push({"titulo":"¿Dónde está el oro de Rumiñahui? Nadie ha most
 // reel nuevo 2026-11-15
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel19.mp4","cuando":"2026-11-22T12:30:00-05:00","texto":"Blake escribió que vio miles de estatuas de oro en una cueva de los Llanganates. ¿Le crees o es una invención? Cuéntame en los comentarios. #Llanganates #Ecuador #Tesoros #Leyendas"});
 YOUTUBE.reels.push({"titulo":"¿Qué vieron dos marineros dentro de la cueva de oro? #shorts"});
+
+// reel nuevo 2026-11-17
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel20.mp4","cuando":"2026-11-18T19:00:00-05:00","texto":"Según la tradición, Rumiñahui escondió el oro de Atahualpa en los Llanganates y nunca dijo dónde. ¿Tú crees que sigue ahí? Cuéntame en los comentarios. #Llanganates #TesorosEcuador #Leyendas"});
+YOUTUBE.reels.push({"titulo":"¿Y si Rumiñahui nunca entregó el oro de Atahualpa? #shorts"});

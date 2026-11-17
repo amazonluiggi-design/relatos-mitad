@@ -135,3 +135,6 @@ REELS.push({"id":"reel18","gancho":"Nadie ha mostrado ni una pieza de ese oro","
 
 // reel nuevo 2026-11-15
 REELS.push({"id":"reel19","gancho":"Blake escribió haber visto miles de estatuas de oro","escenas":["g2","i2","i3","i4","i7"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-17
+REELS.push({"id":"reel20","gancho":"¿Y si Rumiñahui nunca entregó el oro?","escenas":["g2","a2","a3","a4","c1"],"cierre":"Historia completa en el canal"});
