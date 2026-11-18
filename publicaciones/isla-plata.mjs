@@ -96,3 +96,7 @@ YOUTUBE.reels.push({"titulo":"¿Quién se llevó la cadena de oro que prometió 
 // reel nuevo 2026-11-18
 PUBLICACION.reels.push({"archivo":"out/isla-plata-reel10.mp4","cuando":"2026-11-19T22:00:00-05:00","texto":"Según la leyenda, un pirata escondió parte de su plata en la Isla de la Plata, frente a Manabí. ¿Tú crees que sigue ahí? Cuéntame en los comentarios: sí o no. #IslaDeLaPlata #TesorosDeEcuador #Leyendas #Piratas"});
 YOUTUBE.reels.push({"titulo":"¿Dónde quedó parte de la plata del pirata? Isla de la Plata #shorts"});
+
+// reel nuevo 2026-11-18
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel11.mp4","cuando":"2026-11-19T15:30:00-05:00","texto":"Mucho antes de los piratas, los pueblos de la costa navegaban hasta esta isla para dejar ofrendas. ¿Tú habrías ido? Cuéntame en los comentarios. #IslaDeLaPlata #Ecuador #Historia #Leyendas"});
+YOUTUBE.reels.push({"titulo":"¿Qué dejaban los pueblos antiguos en esta isla de Ecuador? #shorts"});

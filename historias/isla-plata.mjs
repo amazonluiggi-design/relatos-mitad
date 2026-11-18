@@ -117,3 +117,6 @@ REELS.push({"id":"reel9","gancho":"¿Quién se llevó la cadena de oro del pirat
 
 // reel nuevo 2026-11-18
 REELS.push({"id":"reel10","gancho":"¿Dónde quedó parte de la plata del pirata?","escenas":["g1","l2","l3","l4","o3"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-18
+REELS.push({"id":"reel11","gancho":"¿Qué dejaban los pueblos antiguos en esta isla?","escenas":["s2","s3","s5"],"cierre":"¿Quién sacó esos objetos? Historia completa en el canal"});
