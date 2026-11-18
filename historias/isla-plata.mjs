@@ -114,3 +114,6 @@ REELS.push({"id":"reel8","gancho":"El tesoro del pirata: ¿existió de verdad?",
 
 // reel nuevo 2026-11-17
 REELS.push({"id":"reel9","gancho":"¿Quién se llevó la cadena de oro del pirata?","escenas":["d1","d5","c2","c3"],"cierre":"¿Tú qué crees? Historia completa en el canal"});
+
+// reel nuevo 2026-11-18
+REELS.push({"id":"reel10","gancho":"¿Dónde quedó parte de la plata del pirata?","escenas":["g1","l2","l3","l4","o3"],"cierre":"Historia completa en el canal"});

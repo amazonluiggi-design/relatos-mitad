@@ -92,3 +92,7 @@ YOUTUBE.reels.push({"titulo":"¿Sigue escondida la plata de Drake en la Isla de 
 // reel nuevo 2026-11-17
 PUBLICACION.reels.push({"archivo":"out/isla-plata-reel9.mp4","cuando":"2026-11-19T19:00:00-05:00","texto":"Drake prometió una cadena de oro al primero que viera el galeón español. ¿Sabes quién la ganó? Cuéntanos en los comentarios. #IslaDeLaPlata #Leyendas #Tesoros #Ecuador"});
 YOUTUBE.reels.push({"titulo":"¿Quién se llevó la cadena de oro que prometió el pirata Drake? #shorts"});
+
+// reel nuevo 2026-11-18
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel10.mp4","cuando":"2026-11-19T22:00:00-05:00","texto":"Según la leyenda, un pirata escondió parte de su plata en la Isla de la Plata, frente a Manabí. ¿Tú crees que sigue ahí? Cuéntame en los comentarios: sí o no. #IslaDeLaPlata #TesorosDeEcuador #Leyendas #Piratas"});
+YOUTUBE.reels.push({"titulo":"¿Dónde quedó parte de la plata del pirata? Isla de la Plata #shorts"});
