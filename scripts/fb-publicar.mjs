@@ -2,6 +2,8 @@
 // node scripts/fb-publicar.mjs cantuna [largo|reel1..]   → guarda IDs en publicaciones/<h>-fb.json
 import fs from "node:fs";
 import os from "node:os";
+// 2026-11-18: la página de Facebook pasó a clips de gaming (pedido del usuario). Borrar FB_PAUSADO para reanudar.
+if (fs.existsSync(new URL("../FB_PAUSADO", import.meta.url))) { console.log("Facebook en pausa (FB_PAUSADO): no se publica nada."); process.exit(0); }
 const [, , nombre, solo] = process.argv;
 const { PUBLICACION } = await import(`../publicaciones/${nombre}.mjs`);
 const P = JSON.parse(fs.readFileSync(os.homedir() + "/.relatos-secretos/facebook-pagina.json", "utf8"));
