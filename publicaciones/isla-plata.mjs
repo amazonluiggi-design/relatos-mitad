@@ -100,3 +100,7 @@ YOUTUBE.reels.push({"titulo":"¿Dónde quedó parte de la plata del pirata? Isla
 // reel nuevo 2026-11-18
 PUBLICACION.reels.push({"archivo":"out/isla-plata-reel11.mp4","cuando":"2026-11-19T15:30:00-05:00","texto":"Mucho antes de los piratas, los pueblos de la costa navegaban hasta esta isla para dejar ofrendas. ¿Tú habrías ido? Cuéntame en los comentarios. #IslaDeLaPlata #Ecuador #Historia #Leyendas"});
 YOUTUBE.reels.push({"titulo":"¿Qué dejaban los pueblos antiguos en esta isla de Ecuador? #shorts"});
+
+// reel nuevo 2026-11-19
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel12.mp4","cuando":"2026-11-21T15:30:00-05:00","texto":"Un galeón cargado de plata salió rumbo a Panamá, y Francis Drake lo persiguió en 1579. Según la tradición, prometió una cadena de oro al primero que lo viera. ¿Tú habrías ganado esa cadena? Cuéntanos en los comentarios. #IslaDeLaPlata #Leyendas #Tesoros #Ecuador"});
+YOUTUBE.reels.push({"titulo":"¿Cuánto oro prometió Drake a quien viera el galeón? #shorts"});

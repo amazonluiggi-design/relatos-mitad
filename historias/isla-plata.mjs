@@ -120,3 +120,6 @@ REELS.push({"id":"reel10","gancho":"¿Dónde quedó parte de la plata del pirata
 
 // reel nuevo 2026-11-18
 REELS.push({"id":"reel11","gancho":"¿Qué dejaban los pueblos antiguos en esta isla?","escenas":["s2","s3","s5"],"cierre":"¿Quién sacó esos objetos? Historia completa en el canal"});
+
+// reel nuevo 2026-11-19
+REELS.push({"id":"reel12","gancho":"Ofreció oro al primero que viera el galeón","escenas":["d5","c1","c2","c3","z1"],"cierre":"Historia completa en el canal"});
