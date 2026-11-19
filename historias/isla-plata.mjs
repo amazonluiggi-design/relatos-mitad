@@ -123,3 +123,6 @@ REELS.push({"id":"reel11","gancho":"¿Qué dejaban los pueblos antiguos en esta 
 
 // reel nuevo 2026-11-19
 REELS.push({"id":"reel12","gancho":"Ofreció oro al primero que viera el galeón","escenas":["d5","c1","c2","c3","z1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-19
+REELS.push({"id":"reel13","gancho":"¿Funcionó la promesa de oro del pirata?","escenas":["d5","c2","c3","k3","z1"],"cierre":"Historia completa en el canal"});
