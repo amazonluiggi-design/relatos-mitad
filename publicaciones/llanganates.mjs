@@ -134,3 +134,7 @@ YOUTUBE.reels.push({"titulo":"¿Qué vieron dos marineros dentro de la cueva de 
 // reel nuevo 2026-11-17
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel20.mp4","cuando":"2026-11-18T19:00:00-05:00","texto":"Según la tradición, Rumiñahui escondió el oro de Atahualpa en los Llanganates y nunca dijo dónde. ¿Tú crees que sigue ahí? Cuéntame en los comentarios. #Llanganates #TesorosEcuador #Leyendas"});
 YOUTUBE.reels.push({"titulo":"¿Y si Rumiñahui nunca entregó el oro de Atahualpa? #shorts"});
+
+// reel nuevo 2026-11-20
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel21.mp4","cuando":"2026-11-28T12:30:00-05:00","texto":"Según la tradición, Rumiñahui nunca entregó el oro de Atahualpa a los españoles. ¿Tú crees que sigue escondido en los Llanganates? Cuéntamelo en los comentarios. #Llanganates #Ecuador #TesorosPerdidos #LeyendasEcuador"});
+YOUTUBE.reels.push({"titulo":"¿Y si el oro de Rumiñahui nunca salió de la montaña? #shorts"});

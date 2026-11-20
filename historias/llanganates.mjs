@@ -138,3 +138,6 @@ REELS.push({"id":"reel19","gancho":"Blake escribió haber visto miles de estatua
 
 // reel nuevo 2026-11-17
 REELS.push({"id":"reel20","gancho":"¿Y si Rumiñahui nunca entregó el oro?","escenas":["g2","a2","a3","a4","c1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-20
+REELS.push({"id":"reel21","gancho":"¿Y si el oro nunca salió de la montaña?","escenas":["g2","a4","a5","h4","c1"],"cierre":"Historia completa en el canal"});
