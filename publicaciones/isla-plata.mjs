@@ -108,3 +108,7 @@ YOUTUBE.reels.push({"titulo":"¿Cuánto oro prometió Drake a quien viera el gal
 // reel nuevo 2026-11-19
 PUBLICACION.reels.push({"archivo":"out/isla-plata-reel13.mp4","cuando":"2026-11-27T12:30:00-05:00","texto":"Según la leyenda, Drake prometió una cadena de oro al primero que viera el galeón. ¿Crees que la promesa funcionó? Respóndeme con SÍ o NO. #IslaDeLaPlata #Leyendas #TesorosDeEcuador #Piratas"});
 YOUTUBE.reels.push({"titulo":"¿Funcionó la promesa de oro del pirata? La Isla de la Plata #shorts"});
+
+// reel nuevo 2026-11-20
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel14.mp4","cuando":"2026-11-29T12:30:00-05:00","texto":"Según el relato de la captura de 1579, el galeón llevaba unas veintiséis toneladas de plata. ¿Crees que parte sigue escondida en la Isla de la Plata? Cuéntame. #IslaDeLaPlata #Drake #Ecuador #Piratas #Historia"});
+YOUTUBE.reels.push({"titulo":"¿Cuánta plata cargaba el galeón que asaltó Drake? #shorts"});
