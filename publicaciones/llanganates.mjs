@@ -138,3 +138,7 @@ YOUTUBE.reels.push({"titulo":"¿Y si Rumiñahui nunca entregó el oro de Atahual
 // reel nuevo 2026-11-20
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel21.mp4","cuando":"2026-11-28T12:30:00-05:00","texto":"Según la tradición, Rumiñahui nunca entregó el oro de Atahualpa a los españoles. ¿Tú crees que sigue escondido en los Llanganates? Cuéntamelo en los comentarios. #Llanganates #Ecuador #TesorosPerdidos #LeyendasEcuador"});
 YOUTUBE.reels.push({"titulo":"¿Y si el oro de Rumiñahui nunca salió de la montaña? #shorts"});
+
+// reel nuevo 2026-11-21
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel22.mp4","cuando":"2026-12-01T12:30:00-05:00","texto":"¿Se llevó Rumiñahui el oro de Atahualpa o lo escondió en la montaña? La tradición lo cuenta así, sin pruebas. ¿Tú qué crees? Cuéntamelo en los comentarios. #Llanganates #TesoroEcuador #Leyendas #Rumiñahui"});
+YOUTUBE.reels.push({"titulo":"¿Y si Rumiñahui se llevó el oro de Atahualpa? #shorts"});

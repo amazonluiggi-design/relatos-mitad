@@ -141,3 +141,6 @@ REELS.push({"id":"reel20","gancho":"¿Y si Rumiñahui nunca entregó el oro?","e
 
 // reel nuevo 2026-11-20
 REELS.push({"id":"reel21","gancho":"¿Y si el oro nunca salió de la montaña?","escenas":["g2","a4","a5","h4","c1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-21
+REELS.push({"id":"reel22","gancho":"¿Y si Rumiñahui se llevó el oro de Atahualpa?","escenas":["a1","a3","a4","a5","c1"],"cierre":"Historia completa en el canal"});
