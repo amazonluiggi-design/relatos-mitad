@@ -112,3 +112,7 @@ YOUTUBE.reels.push({"titulo":"¿Funcionó la promesa de oro del pirata? La Isla 
 // reel nuevo 2026-11-20
 PUBLICACION.reels.push({"archivo":"out/isla-plata-reel14.mp4","cuando":"2026-11-29T12:30:00-05:00","texto":"Según el relato de la captura de 1579, el galeón llevaba unas veintiséis toneladas de plata. ¿Crees que parte sigue escondida en la Isla de la Plata? Cuéntame. #IslaDeLaPlata #Drake #Ecuador #Piratas #Historia"});
 YOUTUBE.reels.push({"titulo":"¿Cuánta plata cargaba el galeón que asaltó Drake? #shorts"});
+
+// reel nuevo 2026-11-20
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel15.mp4","cuando":"2026-11-30T12:30:00-05:00","texto":"¿Sí o no: la plata de Drake sigue escondida en la Isla de la Plata? Cuéntanos tu respuesta en los comentarios. #IslaDeLaPlata #TesorosDeEcuador #Leyendas #Ecuador"});
+YOUTUBE.reels.push({"titulo":"¿Y si el pirata nunca escondió su plata en la Isla de la Plata? #shorts"});

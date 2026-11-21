@@ -129,3 +129,6 @@ REELS.push({"id":"reel13","gancho":"¿Funcionó la promesa de oro del pirata?","
 
 // reel nuevo 2026-11-20
 REELS.push({"id":"reel14","gancho":"¿Cuánta plata cargaba el galeón del pirata?","escenas":["d5","b2","b1","k4","z1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-20
+REELS.push({"id":"reel15","gancho":"¿Y si el pirata nunca escondió la plata aquí?","escenas":["g3","g4","v1","v2","z1"],"cierre":"Historia completa en el canal"});
