@@ -146,3 +146,7 @@ YOUTUBE.reels.push({"titulo":"¿Y si Rumiñahui se llevó el oro de Atahualpa? #
 // reel nuevo 2026-11-21
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel23.mp4","cuando":"2026-11-25T22:00:00-05:00","texto":"Según la tradición, un soldado español pobre terminó con más oro del que podía imaginar. ¿Quién le contó dónde estaba? ¿Tú lo sabías? Escríbelo en los comentarios. #Llanganates #OroDeRumiñahui #Leyendas #Ecuador"});
 YOUTUBE.reels.push({"titulo":"¿Quién le contó a Valverde dónde estaba el oro? #shorts"});
+
+// reel nuevo 2026-11-22
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel24.mp4","cuando":"2026-11-25T08:30:00-05:00","texto":"Atahualpa prometió llenar una habitación de oro para salvar su vida. ¿Y después, qué pasó con ese oro? Según la tradición, un general lo llevó a las montañas de los Llanganates. ¿Tú qué crees? Cuéntamelo en los comentarios: ¿sí o no? #Llanganates #TesorosDeEcuador #Leyendas #Atahualpa"});
+YOUTUBE.reels.push({"titulo":"¿Cuánto oro cabía en la habitación de Atahualpa? Llanganates #shorts"});
