@@ -142,3 +142,7 @@ YOUTUBE.reels.push({"titulo":"¿Y si el oro de Rumiñahui nunca salió de la mon
 // reel nuevo 2026-11-21
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel22.mp4","cuando":"2026-12-01T12:30:00-05:00","texto":"¿Se llevó Rumiñahui el oro de Atahualpa o lo escondió en la montaña? La tradición lo cuenta así, sin pruebas. ¿Tú qué crees? Cuéntamelo en los comentarios. #Llanganates #TesoroEcuador #Leyendas #Rumiñahui"});
 YOUTUBE.reels.push({"titulo":"¿Y si Rumiñahui se llevó el oro de Atahualpa? #shorts"});
+
+// reel nuevo 2026-11-21
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel23.mp4","cuando":"2026-11-25T22:00:00-05:00","texto":"Según la tradición, un soldado español pobre terminó con más oro del que podía imaginar. ¿Quién le contó dónde estaba? ¿Tú lo sabías? Escríbelo en los comentarios. #Llanganates #OroDeRumiñahui #Leyendas #Ecuador"});
+YOUTUBE.reels.push({"titulo":"¿Quién le contó a Valverde dónde estaba el oro? #shorts"});

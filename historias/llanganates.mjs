@@ -144,3 +144,6 @@ REELS.push({"id":"reel21","gancho":"¿Y si el oro nunca salió de la montaña?",
 
 // reel nuevo 2026-11-21
 REELS.push({"id":"reel22","gancho":"¿Y si Rumiñahui se llevó el oro de Atahualpa?","escenas":["a1","a3","a4","a5","c1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-21
+REELS.push({"id":"reel23","gancho":"¿Quién le contó a Valverde dónde estaba el oro?","escenas":["g2","v1","v4","v5","c1"],"cierre":"Historia completa en el canal"});
