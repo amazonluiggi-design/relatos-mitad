@@ -116,3 +116,7 @@ YOUTUBE.reels.push({"titulo":"¿Cuánta plata cargaba el galeón que asaltó Dra
 // reel nuevo 2026-11-20
 PUBLICACION.reels.push({"archivo":"out/isla-plata-reel15.mp4","cuando":"2026-11-30T12:30:00-05:00","texto":"¿Sí o no: la plata de Drake sigue escondida en la Isla de la Plata? Cuéntanos tu respuesta en los comentarios. #IslaDeLaPlata #TesorosDeEcuador #Leyendas #Ecuador"});
 YOUTUBE.reels.push({"titulo":"¿Y si el pirata nunca escondió su plata en la Isla de la Plata? #shorts"});
+
+// reel nuevo 2026-11-22
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel16.mp4","cuando":"2026-11-26T16:00:00-05:00","texto":"Antes de los españoles, esta isla era un lugar sagrado. Y alguien se llevó metal de sus tumbas antes de que llegaran los arqueólogos. ¿Fue un saqueador o un viajero? Respóndenos en los comentarios. #IslaDeLaPlata #Ecuador #LeyendasEcuador #Arqueologia"});
+YOUTUBE.reels.push({"titulo":"¿Quién sacó los objetos de metal de las tumbas de la Isla de la Plata? #shorts"});

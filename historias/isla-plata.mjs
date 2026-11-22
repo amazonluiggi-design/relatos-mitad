@@ -132,3 +132,6 @@ REELS.push({"id":"reel14","gancho":"¿Cuánta plata cargaba el galeón del pirat
 
 // reel nuevo 2026-11-20
 REELS.push({"id":"reel15","gancho":"¿Y si el pirata nunca escondió la plata aquí?","escenas":["g3","g4","v1","v2","z1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-22
+REELS.push({"id":"reel16","gancho":"¿Quién sacó los objetos de metal de esas tumbas?","escenas":["s2","s3","s4","s5"],"cierre":"Historia completa en el canal"});
