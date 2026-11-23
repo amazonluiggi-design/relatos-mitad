@@ -138,3 +138,6 @@ REELS.push({"id":"reel16","gancho":"¿Quién sacó los objetos de metal de esas 
 
 // reel nuevo 2026-11-22
 REELS.push({"id":"reel17","gancho":"¿Qué pasó con las 26 toneladas de plata?","escenas":["g4","b2","l3","v3","z1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-23
+REELS.push({"id":"reel18","gancho":"¿Qué escondió el pirata en esta isla?","escenas":["g3","l2","l5","o3","v4"],"cierre":"Historia completa en el canal"});
