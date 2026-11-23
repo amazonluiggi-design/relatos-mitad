@@ -120,3 +120,7 @@ YOUTUBE.reels.push({"titulo":"¿Y si el pirata nunca escondió su plata en la Is
 // reel nuevo 2026-11-22
 PUBLICACION.reels.push({"archivo":"out/isla-plata-reel16.mp4","cuando":"2026-11-26T16:00:00-05:00","texto":"Antes de los españoles, esta isla era un lugar sagrado. Y alguien se llevó metal de sus tumbas antes de que llegaran los arqueólogos. ¿Fue un saqueador o un viajero? Respóndenos en los comentarios. #IslaDeLaPlata #Ecuador #LeyendasEcuador #Arqueologia"});
 YOUTUBE.reels.push({"titulo":"¿Quién sacó los objetos de metal de las tumbas de la Isla de la Plata? #shorts"});
+
+// reel nuevo 2026-11-22
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel17.mp4","cuando":"2026-12-02T12:30:00-05:00","texto":"Según el relato de la captura de 1579, el galeón cargaba unas 26 toneladas de plata. La leyenda dice que parte quedó escondida en la Isla de la Plata; otra parte llegó con Drake a Inglaterra. ¿Tú qué crees: se escondió o se la llevó? Cuéntamelo en los comentarios. #IslaDeLaPlata #Tesoros #LeyendasEcuador #Historia"});
+YOUTUBE.reels.push({"titulo":"¿Qué pasó con las 26 toneladas de plata de Drake? #shorts"});
