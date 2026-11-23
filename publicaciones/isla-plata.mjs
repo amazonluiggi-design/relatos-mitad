@@ -128,3 +128,7 @@ YOUTUBE.reels.push({"titulo":"¿Qué pasó con las 26 toneladas de plata de Drak
 // reel nuevo 2026-11-23
 PUBLICACION.reels.push({"archivo":"out/isla-plata-reel18.mp4","cuando":"2026-11-28T16:00:00-05:00","texto":"Según la leyenda, un pirata escondió parte de su plata en la Isla de la Plata, frente a Manabí. ¿Tú crees que sigue ahí o que nunca existió? Responde SÍ o NO. #IslaDeLaPlata #Leyendas #Tesoros #Ecuador"});
 YOUTUBE.reels.push({"titulo":"¿Qué escondió el pirata en la Isla de la Plata? #shorts"});
+
+// reel nuevo 2026-11-23
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel19.mp4","cuando":"2026-12-03T12:30:00-05:00","texto":"Hace más de 400 años, el Pacífico era el camino de la plata de Potosí hacia España. ¿Crees que un solo barco inglés pudo cambiar esa ruta? Cuéntame en comentarios. #IslaDeLaPlata #Piratas #Ecuador #Leyendas"});
+YOUTUBE.reels.push({"titulo":"¿Quién se atrevió a asaltar el mar de España? Drake, 1579 #shorts"});
