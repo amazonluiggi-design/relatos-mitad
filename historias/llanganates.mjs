@@ -150,3 +150,6 @@ REELS.push({"id":"reel23","gancho":"¿Quién le contó a Valverde dónde estaba 
 
 // reel nuevo 2026-11-22
 REELS.push({"id":"reel24","gancho":"¿Cuánto oro cabía en la habitación de Atahualpa?","escenas":["a1","a2","a4","a5","c1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-24
+REELS.push({"id":"reel25","gancho":"¿Qué se tragó al fraile en la montaña?","escenas":["g1","g2","d2","d3","f3"],"cierre":"Historia completa en el canal"});

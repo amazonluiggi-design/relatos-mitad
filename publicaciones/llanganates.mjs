@@ -150,3 +150,7 @@ YOUTUBE.reels.push({"titulo":"¿Quién le contó a Valverde dónde estaba el oro
 // reel nuevo 2026-11-22
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel24.mp4","cuando":"2026-11-25T08:30:00-05:00","texto":"Atahualpa prometió llenar una habitación de oro para salvar su vida. ¿Y después, qué pasó con ese oro? Según la tradición, un general lo llevó a las montañas de los Llanganates. ¿Tú qué crees? Cuéntamelo en los comentarios: ¿sí o no? #Llanganates #TesorosDeEcuador #Leyendas #Atahualpa"});
 YOUTUBE.reels.push({"titulo":"¿Cuánto oro cabía en la habitación de Atahualpa? Llanganates #shorts"});
+
+// reel nuevo 2026-11-24
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel25.mp4","cuando":"2026-11-25T16:00:00-05:00","texto":"Según la tradición, un fraile desapareció en los Llanganates buscando el oro de Rumiñahui. ¿Tú qué crees que le pasó? #Llanganates #Leyendas #Ecuador #Misterio"});
+YOUTUBE.reels.push({"titulo":"¿Qué se tragó al fraile en la montaña del oro? #shorts"});
