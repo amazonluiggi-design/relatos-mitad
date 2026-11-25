@@ -154,3 +154,7 @@ YOUTUBE.reels.push({"titulo":"¿Cuánto oro cabía en la habitación de Atahualp
 // reel nuevo 2026-11-24
 PUBLICACION.reels.push({"archivo":"out/llanganates-reel25.mp4","cuando":"2026-11-25T16:00:00-05:00","texto":"Según la tradición, un fraile desapareció en los Llanganates buscando el oro de Rumiñahui. ¿Tú qué crees que le pasó? #Llanganates #Leyendas #Ecuador #Misterio"});
 YOUTUBE.reels.push({"titulo":"¿Qué se tragó al fraile en la montaña del oro? #shorts"});
+
+// reel nuevo 2026-11-25
+PUBLICACION.reels.push({"archivo":"out/llanganates-reel26.mp4","cuando":"2026-12-04T12:30:00-05:00","texto":"Dos marineros británicos dijeron haber hallado una cueva con oro en los Llanganates. ¿Qué pasó con ellos después? Según las cartas de Blake, que muchos consideran una invención. ¿Tú qué crees? #Llanganates #LeyendasEcuador #TesorosPerdidos #Ecuador"});
+YOUTUBE.reels.push({"titulo":"¿Qué pasó con Blake después de la cueva de oro? #shorts"});

@@ -153,3 +153,6 @@ REELS.push({"id":"reel24","gancho":"¿Cuánto oro cabía en la habitación de At
 
 // reel nuevo 2026-11-24
 REELS.push({"id":"reel25","gancho":"¿Qué se tragó al fraile en la montaña?","escenas":["g1","g2","d2","d3","f3"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-25
+REELS.push({"id":"reel26","gancho":"¿Qué pasó con Blake después de la cueva?","escenas":["i2","i3","i6","i7","c1"],"cierre":"Llanganates completo en el canal"});
