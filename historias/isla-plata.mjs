@@ -147,3 +147,6 @@ REELS.push({"id":"reel19","gancho":"¿Quién se atrevió a asaltar el mar de Esp
 
 // reel nuevo 2026-11-26
 REELS.push({"id":"reel20","gancho":"¿Qué premio le dio la reina al pirata?","escenas":["b1","b2","v2","v3","z1"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-26
+REELS.push({"id":"reel21","gancho":"¿Quién atacó al galeón Cacafuego en 1579?","escenas":["d1","d4","d5","k3"],"cierre":"Historia completa en el canal"});

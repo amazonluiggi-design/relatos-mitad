@@ -136,3 +136,7 @@ YOUTUBE.reels.push({"titulo":"¿Quién se atrevió a asaltar el mar de España? 
 // reel nuevo 2026-11-26
 PUBLICACION.reels.push({"archivo":"out/isla-plata-reel20.mp4","cuando":"2026-11-27T16:00:00-05:00","texto":"Drake volvió con el botín de un galeón español y la reina Isabel le dio un premio que nadie esperaba. ¿Tú crees que el pirata merecía el honor? Cuéntamelo en los comentarios. La historia de la Isla de la Plata, según la tradición y los diarios del viaje. #IslaDeLaPlata #Tesoros #Leyendas #Ecuador"});
 YOUTUBE.reels.push({"titulo":"¿Qué premio le dio la reina al pirata de la Isla de la Plata? #shorts"});
+
+// reel nuevo 2026-11-26
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel21.mp4","cuando":"2026-11-29T16:00:00-05:00","texto":"Un marino inglés, un galeón cargado hasta el tope y una captura que cambió el Pacífico. ¿Quién crees que lo hizo? Cuéntamelo en los comentarios. #IslaDeLaPlata #Piratas #Ecuador #Leyendas"});
+YOUTUBE.reels.push({"titulo":"¿Quién atacó al galeón Cacafuego en 1579? #shorts"});
