@@ -144,3 +144,6 @@ REELS.push({"id":"reel18","gancho":"¿Qué escondió el pirata en esta isla?","e
 
 // reel nuevo 2026-11-23
 REELS.push({"id":"reel19","gancho":"¿Quién se atrevió a asaltar el mar de España?","escenas":["g1","m1","m2","m4","d1","v4"],"cierre":"Historia completa en el canal"});
+
+// reel nuevo 2026-11-26
+REELS.push({"id":"reel20","gancho":"¿Qué premio le dio la reina al pirata?","escenas":["b1","b2","v2","v3","z1"],"cierre":"Historia completa en el canal"});

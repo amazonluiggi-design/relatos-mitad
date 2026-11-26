@@ -132,3 +132,7 @@ YOUTUBE.reels.push({"titulo":"¿Qué escondió el pirata en la Isla de la Plata?
 // reel nuevo 2026-11-23
 PUBLICACION.reels.push({"archivo":"out/isla-plata-reel19.mp4","cuando":"2026-12-03T12:30:00-05:00","texto":"Hace más de 400 años, el Pacífico era el camino de la plata de Potosí hacia España. ¿Crees que un solo barco inglés pudo cambiar esa ruta? Cuéntame en comentarios. #IslaDeLaPlata #Piratas #Ecuador #Leyendas"});
 YOUTUBE.reels.push({"titulo":"¿Quién se atrevió a asaltar el mar de España? Drake, 1579 #shorts"});
+
+// reel nuevo 2026-11-26
+PUBLICACION.reels.push({"archivo":"out/isla-plata-reel20.mp4","cuando":"2026-11-27T16:00:00-05:00","texto":"Drake volvió con el botín de un galeón español y la reina Isabel le dio un premio que nadie esperaba. ¿Tú crees que el pirata merecía el honor? Cuéntamelo en los comentarios. La historia de la Isla de la Plata, según la tradición y los diarios del viaje. #IslaDeLaPlata #Tesoros #Leyendas #Ecuador"});
+YOUTUBE.reels.push({"titulo":"¿Qué premio le dio la reina al pirata de la Isla de la Plata? #shorts"});
