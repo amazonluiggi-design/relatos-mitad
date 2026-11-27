@@ -72,3 +72,7 @@ Las imágenes son recreaciones generadas con IA. La ceremonia y los intentos de 
 // reel nuevo 2026-11-27
 PUBLICACION.reels.push({"archivo":"out/el-dorado-reel7.mp4","cuando":"2026-11-30T16:00:00-05:00","texto":"Según el cronista Juan Rodríguez Freyle, en la laguna de Guatavita se hacían ofrendas de oro en una ceremonia de los muiscas. ¿Crees que todavía queda oro en el fondo? Cuéntanos en los comentarios. #ElDorado #Guatavita #Leyendas #Ecuador"});
 YOUTUBE.reels.push({"titulo":"¿Qué arrojaban al agua de la laguna de Guatavita? #shorts"});
+
+// reel nuevo 2026-11-27
+PUBLICACION.reels.push({"archivo":"out/el-dorado-reel8.mp4","cuando":"2026-12-05T12:30:00-05:00","texto":"La laguna de Guatavita, en Colombia, guardó durante siglos la leyenda de El Dorado. ¿Sí o no: todavía queda oro en el fondo? Cuéntamelo en los comentarios. #ElDorado #Guatavita #Leyendas #Tesoros"});
+YOUTUBE.reels.push({"titulo":"¿Cuánto oro hay en el fondo de la laguna de Guatavita? #shorts"});
