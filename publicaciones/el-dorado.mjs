@@ -68,3 +68,7 @@ Las imágenes son recreaciones generadas con IA. La ceremonia y los intentos de 
     { titulo: "El Dorado nunca fue una ciudad 🤔 #leyendas #shorts" },
   ],
 };
+
+// reel nuevo 2026-11-27
+PUBLICACION.reels.push({"archivo":"out/el-dorado-reel7.mp4","cuando":"2026-11-30T16:00:00-05:00","texto":"Según el cronista Juan Rodríguez Freyle, en la laguna de Guatavita se hacían ofrendas de oro en una ceremonia de los muiscas. ¿Crees que todavía queda oro en el fondo? Cuéntanos en los comentarios. #ElDorado #Guatavita #Leyendas #Ecuador"});
+YOUTUBE.reels.push({"titulo":"¿Qué arrojaban al agua de la laguna de Guatavita? #shorts"});

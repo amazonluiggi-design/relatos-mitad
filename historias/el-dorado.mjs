@@ -85,3 +85,6 @@ export const REELS = [
 ];
 
 export const CLIPS_MAX = {};
+
+// reel nuevo 2026-11-27
+REELS.push({"id":"reel7","gancho":"¿Qué arrojaban al agua en la laguna sagrada?","escenas":["g3","c3","c5","c6","z1"],"cierre":"Historia completa en el canal"});
