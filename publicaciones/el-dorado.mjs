@@ -76,3 +76,7 @@ YOUTUBE.reels.push({"titulo":"¿Qué arrojaban al agua de la laguna de Guatavita
 // reel nuevo 2026-11-27
 PUBLICACION.reels.push({"archivo":"out/el-dorado-reel8.mp4","cuando":"2026-12-05T12:30:00-05:00","texto":"La laguna de Guatavita, en Colombia, guardó durante siglos la leyenda de El Dorado. ¿Sí o no: todavía queda oro en el fondo? Cuéntamelo en los comentarios. #ElDorado #Guatavita #Leyendas #Tesoros"});
 YOUTUBE.reels.push({"titulo":"¿Cuánto oro hay en el fondo de la laguna de Guatavita? #shorts"});
+
+// reel nuevo 2026-11-28
+PUBLICACION.reels.push({"archivo":"out/el-dorado-reel9.mp4","cuando":"2026-12-06T12:30:00-05:00","texto":"Dicen que el hombre dorado de la laguna de Guatavita existió. ¿Era un rey o solo una leyenda? Elige en los comentarios: rey o leyenda. #ElDorado #Guatavita #LeyendasEcuador #Tesoros"});
+YOUTUBE.reels.push({"titulo":"¿Quién era el hombre dorado de la laguna de Guatavita? #shorts"});
